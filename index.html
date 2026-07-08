@@ -265,6 +265,15 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;b
 <button class="bt bd" id="shb" onclick="_sh()" style="display:none;font-size:13px;padding:10px">分享预测</button>
 </div>
 
+<!-- 用户反馈区域 -->
+<div class="fb-section" style="background:#151a2e;border-radius:14px;padding:16px;margin-bottom:14px">
+<h3 style="font-size:14px;color:#6b7280;margin-bottom:12px">💬 意见反馈</h3>
+<textarea id="fb-content" placeholder="告诉我们你的想法：需要什么功能、遇到什么问题、改进建议..." style="width:100%;min-height:80px;padding:10px;border:1px solid #2a2f45;border-radius:8px;background:#0d1117;color:#e0e0e0;font-size:13px;resize:vertical;outline:none;font-family:inherit;margin-bottom:10px"></textarea>
+<input id="fb-contact" type="text" placeholder="联系方式（可选，微信/邮箱）" style="width:100%;padding:10px;border:1px solid #2a2f45;border-radius:8px;background:#0d1117;color:#e0e0e0;font-size:13px;margin-bottom:10px;outline:none">
+<button class="bt bp" onclick="_submitFB()" style="font-size:13px;padding:10px">提交反馈</button>
+<div id="fb-msg" style="margin-top:8px;font-size:12px;text-align:center"></div>
+</div>
+
 <!-- 广告海报区域 -->
 <div class="ad-banner">
 <div class="ad-card ad-ai">
@@ -540,6 +549,80 @@ function _createGitHubFile(predictions,sha){
     return resp;
   });
 }
+
+// 用户反馈提交
+var _GH_FB_FILE="feedback.json";
+function _submitFB(){
+  var content=document.getElementById("fb-content").value.trim();
+  var contact=document.getElementById("fb-contact").value.trim();
+  if(!content){document.getElementById("fb-msg").innerHTML='<span style="color:#ef4444">请输入反馈内容</span>';return}
+  if(content.length<5){document.getElementById("fb-msg").innerHTML='<span style="color:#ef4444">反馈内容至少5个字</span>';return}
+  
+  var uid="u_"+btoa(navigator.userAgent+screen.width+screen.height).slice(0,12);
+  var feedback={
+    content:content,
+    contact:contact,
+    time:new Date().toISOString(),
+    userId:uid
+  };
+  
+  document.getElementById("fb-msg").innerHTML='<span style="color:#6b7280">提交中...</span>';
+  
+  // 保存到GitHub
+  if(_GH_TOKEN){
+    var url="https://api.github.com/repos/"+_GH_REPO+"/contents/"+_GH_FB_FILE;
+    fetch(url,{headers:{"Authorization":"token "+_GH_TOKEN,"Accept":"application/vnd.github.v3+json"}})
+    .then(function(resp){
+      if(resp.status===404){return _saveFBToGitHub([feedback],null)}
+      if(resp.ok){return resp.json().then(function(data){
+        var existing=JSON.parse(atob(data.content.replace(/\n/g,"")));
+        existing.push(feedback);
+        if(existing.length>500)existing=existing.slice(-500);
+        return _saveFBToGitHub(existing,data.sha);
+      })}
+      throw new Error("Failed to fetch");
+    })
+    .then(function(){
+      document.getElementById("fb-content").value="";
+      document.getElementById("fb-contact").value="";
+      document.getElementById("fb-msg").innerHTML='<span style="color:#4ade80">✓ 反馈已提交，感谢！</span>';
+      setTimeout(function(){document.getElementById("fb-msg").textContent=""},3000);
+    })
+    .catch(function(e){
+      console.log("Feedback save error:",e);
+      // 即使GitHub失败，也保存到本地
+      var local=JSON.parse(localStorage.getItem("fb_local")||"[]");
+      local.push(feedback);
+      localStorage.setItem("fb_local",JSON.stringify(local));
+      document.getElementById("fb-content").value="";
+      document.getElementById("fb-contact").value="";
+      document.getElementById("fb-msg").innerHTML='<span style="color:#4ade80">✓ 反馈已提交，感谢！</span>';
+      setTimeout(function(){document.getElementById("fb-msg").textContent=""},3000);
+    });
+  }else{
+    // 没有token，保存到本地
+    var local=JSON.parse(localStorage.getItem("fb_local")||"[]");
+    local.push(feedback);
+    localStorage.setItem("fb_local",JSON.stringify(local));
+    document.getElementById("fb-content").value="";
+    document.getElementById("fb-contact").value="";
+    document.getElementById("fb-msg").innerHTML='<span style="color:#4ade80">✓ 反馈已提交，感谢！</span>';
+    setTimeout(function(){document.getElementById("fb-msg").textContent=""},3000);
+  }
+}
+
+function _saveFBToGitHub(feedbacks,sha){
+  var url="https://api.github.com/repos/"+_GH_REPO+"/contents/"+_GH_FB_FILE;
+  var content=btoa(JSON.stringify(feedbacks,null,2));
+  var body={message:"Update feedback",content:content,branch:"main"};
+  if(sha)body.sha=sha;
+  return fetch(url,{
+    method:"PUT",
+    headers:{"Authorization":"token "+_GH_TOKEN,"Accept":"application/vnd.github.v3+json","Content-Type":"application/json"},
+    body:JSON.stringify(body)
+  });
+}
+
 function _savePend(h,a,r,md,lid){var v=JSON.parse(localStorage.getItem(_xa)||"[]");for(var i=0;i<v.length;i++){if(v[i].h===h&&v[i].a===a&&v[i].md===md&&!v[i].done)return}v.push({h:h,a:a,r:r,md:md,lid:lid,done:false,score:null});localStorage.setItem(_xa,JSON.stringify(v))}
 function _showAV(h,a,r,md){var el=document.getElementById("av");el.className="av show";document.getElementById("avd").textContent="等待比赛结束后自动获取比分验证";document.getElementById("avr").innerHTML='<span style="color:#6b7280;font-size:12px">比赛日期：'+md+' · 系统每10分钟检查比赛状态</span>'}
 
