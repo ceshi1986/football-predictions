@@ -112,33 +112,31 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;b
 .stb.on{background:#1e3a5f;color:#60a5fa;border-color:#60a5fa}
 
 /* 侧边大海报 - 电脑端 */
-.side-banner{display:none;position:fixed;top:50%;transform:translateY(-50%);width:200px;z-index:100}
+.side-banner{display:none;position:fixed;top:50%;transform:translateY(-50%);width:180px;z-index:100}
 .side-banner-left{left:20px}
 .side-banner-right{right:20px}
-.side-card{border-radius:18px;padding:24px 18px;text-align:center;position:relative;overflow:hidden;margin-bottom:16px}
-.side-card::before{content:'';position:absolute;top:0;left:0;right:0;bottom:0;opacity:0.1;border-radius:18px}
-.side-ai{background:linear-gradient(160deg,#0f2818,#0a1a0f);border:1px solid #1a4a2a;box-shadow:0 8px 32px rgba(34,197,94,0.15)}
-.side-lock{background:linear-gradient(160deg,#2a1f0a,#1a1408);border:1px solid #4a3520;box-shadow:0 8px 32px rgba(245,158,11,0.15)}
-.side-icon{font-size:48px;margin-bottom:14px;display:block}
-.side-title{font-size:20px;font-weight:800;margin-bottom:8px;line-height:1.3}
+.side-card{border-radius:16px;padding:22px 16px;text-align:center;position:relative;overflow:hidden}
+.side-ai{background:linear-gradient(160deg,#0f2818,#0a1a0f);border:1px solid #1a4a2a;box-shadow:0 8px 32px rgba(34,197,94,0.2)}
+.side-lock{background:linear-gradient(160deg,#2a1f0a,#1a1408);border:1px solid #4a3520;box-shadow:0 8px 32px rgba(245,158,11,0.2)}
+.side-icon{font-size:44px;margin-bottom:12px;display:block}
+.side-title{font-size:19px;font-weight:800;margin-bottom:8px;line-height:1.3}
 .side-ai .side-title{color:#4ade80}
 .side-lock .side-title{color:#f59e0b}
-.side-desc{font-size:13px;color:#9ca3af;line-height:1.6;margin-bottom:14px}
-.side-tag{display:inline-block;padding:5px 12px;border-radius:20px;font-size:12px;font-weight:700;letter-spacing:0.5px}
+.side-desc{font-size:13px;color:#9ca3af;line-height:1.6;margin-bottom:12px}
+.side-tag{display:inline-block;padding:5px 14px;border-radius:20px;font-size:12px;font-weight:700}
 .side-ai .side-tag{background:rgba(34,197,94,0.15);color:#4ade80;border:1px solid rgba(34,197,94,0.3)}
 .side-lock .side-tag{background:rgba(245,158,11,0.15);color:#f59e0b;border:1px solid rgba(245,158,11,0.3)}
-.side-features{margin-top:14px;text-align:left;padding:0 4px}
-.side-features div{font-size:12px;color:#6b7280;padding:4px 0;border-bottom:1px solid rgba(255,255,255,0.05);display:flex;align-items:center;gap:6px}
-.side-features div:last-child{border-bottom:none}
+.side-features{margin-top:14px;text-align:left}
+.side-features div{font-size:12px;color:#6b7280;padding:3px 0;display:flex;align-items:center;gap:6px}
 .side-features span{font-size:14px}
-.side-contact{margin-top:14px;font-size:11px;color:#555;padding-top:10px;border-top:1px solid rgba(255,255,255,0.05)}
+.side-contact{margin-top:12px;font-size:10px;color:#555;padding-top:8px;border-top:1px solid rgba(255,255,255,0.05)}
 /* 电脑端显示侧边海报 */
-@media(min-width:900px){
+@media(min-width:800px){
 .side-banner{display:block}
 }
-/* 电脑端主内容需要足够宽才能看到两侧海报 */
-@media(min-width:1300px){
-.ct{max-width:480px}
+/* 电脑端主内容收窄给海报留空间 */
+@media(min-width:800px){
+.ct{max-width:380px}
 }
 </style>
 </head>
