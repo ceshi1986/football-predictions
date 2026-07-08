@@ -669,8 +669,55 @@ el.innerHTML=h;
 }
 
 function _renderHi(){
+// 从GitHub读取所有用户预测数据
+_loadGitHubPredictions(function(allPredictions){
+if(allPredictions.length===0){
+// 如果没有GitHub数据，使用本地数据
 var d=JSON.parse(localStorage.getItem(_gp)||"[]");
 if(d.length===0)return;
+_renderHiLocal(d);
+}else{
+// 使用GitHub数据（去重）
+_renderHiLocal(allPredictions);
+}
+});
+}
+
+function _loadGitHubPredictions(callback){
+if(!_GH_TOKEN){callback([]);return}
+var url="https://api.github.com/repos/"+_GH_REPO+"/contents/"+_GH_FILE;
+fetch(url,{headers:{"Authorization":"token "+_GH_TOKEN,"Accept":"application/vnd.github.v3+json"}})
+.then(function(resp){
+if(resp.status===404){callback([]);return}
+if(!resp.ok){callback([]);return}
+return resp.json();
+})
+.then(function(data){
+if(!data||!data.content){callback([]);return}
+var content=atob(data.content.replace(/\n/g,""));
+var predictions=JSON.parse(content);
+// 按比赛去重（主队+客队+比赛日期）
+var unique={};
+for(var i=0;i<predictions.length;i++){
+var p=predictions[i];
+var key=p.home+"|"+p.away+"|"+p.matchDate;
+if(!unique[key]){
+unique[key]={h:p.home,a:p.away,r:p.result,t:new Date(p.predictTime).getTime(),md:p.matchDate,v:false};
+}
+}
+// 转换为数组并按时间倒序
+var arr=[];
+for(var k in unique){arr.push(unique[k])}
+arr.sort(function(a,b){return b.t-a.t});
+callback(arr);
+})
+.catch(function(e){
+console.log("Load GitHub predictions error:",e);
+callback([]);
+});
+}
+
+function _renderHiLocal(d){
 document.getElementById("hb").style.display="block";
 var h="";
 for(var i=0;i<Math.min(d.length,20);i++){
