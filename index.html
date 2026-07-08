@@ -55,6 +55,22 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;b
 .ba-content .ba-warn{color:#f59e0b;font-weight:700;margin-bottom:4px}
 .ba-content .ba-skip{color:#ef4444;font-weight:700;margin-bottom:4px}
 .ba-content .ba-detail{color:#6b7280;font-size:11px;margin-top:6px}
+
+/* 广告海报样式 */
+.ad-banner{margin:20px 0;padding:0}
+.ad-card{background:linear-gradient(135deg,#1a2332,#0f1419);border-radius:14px;padding:16px;margin-bottom:12px;display:flex;align-items:center;gap:14px;border:1px solid #2a3f55;transition:transform .2s,box-shadow .2s}
+.ad-card:active{transform:scale(.98)}
+.ad-ai{border-left:3px solid #4ade80;background:linear-gradient(135deg,#0f1f15,#0a1510)}
+.ad-lock{border-left:3px solid #f59e0b;background:linear-gradient(135deg,#1f1a0f,#15120a)}
+.ad-icon{font-size:32px;width:50px;height:50px;display:flex;align-items:center;justify-content:center;border-radius:12px;flex-shrink:0}
+.ad-ai .ad-icon{background:linear-gradient(135deg,#22c55e,#16a34a)}
+.ad-lock .ad-icon{background:linear-gradient(135deg,#f59e0b,#d97706)}
+.ad-content{flex:1;min-width:0}
+.ad-title{font-size:15px;font-weight:700;margin-bottom:4px}
+.ad-ai .ad-title{color:#4ade80}
+.ad-lock .ad-title{color:#f59e0b}
+.ad-desc{font-size:11px;color:#6b7280;line-height:1.4}
+.ad-contact{text-align:center;font-size:11px;color:#444;margin-top:8px}
 .sb h3{font-size:14px;color:#6b7280;margin-bottom:10px}
 .ss{display:flex;justify-content:space-around;text-align:center}
 .si .n{font-size:26px;font-weight:800;color:#4ade80}
@@ -188,6 +204,26 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;b
 <div style="text-align:center;margin-bottom:14px">
 <button class="bt bd" id="shb" onclick="_sh()" style="display:none;font-size:13px;padding:10px">分享预测</button>
 </div>
+
+<!-- 广告海报区域 -->
+<div class="ad-banner">
+<div class="ad-card ad-ai">
+<div class="ad-icon">🤖</div>
+<div class="ad-content">
+<div class="ad-title">AI Token 找若禅</div>
+<div class="ad-desc">专业AI算力服务 · 稳定高效 · 企业级解决方案</div>
+</div>
+</div>
+<div class="ad-card ad-lock">
+<div class="ad-icon">🔐</div>
+<div class="ad-content">
+<div class="ad-title">网约房智能门锁 找若禅</div>
+<div class="ad-desc">自主研发 · 安全可靠 · 智能管理 · 五金代加工</div>
+</div>
+</div>
+<div class="ad-contact">上海若禅信息科技 · 合作共赢</div>
+</div>
+
 <div class="ft">数据模型分析 · 仅供参考</div>
 </div>
 <div id="so" style="display:none;position:fixed;top:0;left:0;right:0;bottom:0;background:rgba(0,0,0,.7);z-index:999;justify-content:center;align-items:center">
