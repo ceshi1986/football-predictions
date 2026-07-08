@@ -288,6 +288,19 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;b
 </div>
 
 <div class="ft">数据模型分析 · 仅供参考 · 不构成投注建议</div>
+<div style="text-align:center;padding:8px 0;font-size:10px"><a href="javascript:void(0)" onclick="document.getElementById('ghcfg').style.display='flex'" style="color:#2a2f45;text-decoration:none">⚙️ 数据配置</a></div>
+<div id="ghcfg" style="display:none;position:fixed;top:0;left:0;right:0;bottom:0;background:rgba(0,0,0,.7);z-index:999;justify-content:center;align-items:center">
+<div style="background:#1e2340;border-radius:16px;padding:24px;margin:20px;max-width:320px">
+<div style="font-size:16px;font-weight:700;color:#e0e0e0;margin-bottom:12px">GitHub数据收集配置</div>
+<div style="font-size:12px;color:#6b7280;margin-bottom:12px;line-height:1.5">用于收集用户预测数据，需填写GitHub Token（public_repo权限）</div>
+<input id="ghtoken" type="password" placeholder="ghp_xxxxxxxxxxxx" style="width:100%;padding:10px;border:1px solid #2a2f45;border-radius:8px;background:#0d1117;color:#e0e0e0;font-size:13px;margin-bottom:12px;outline:none">
+<div style="display:flex;gap:8px">
+<button class="bt bp" onclick="_saveGHT()" style="flex:1;padding:10px;font-size:13px">保存</button>
+<button class="bt bd" onclick="document.getElementById('ghcfg').style.display='none'" style="flex:1;padding:10px;font-size:13px">取消</button>
+</div>
+<div id="ghmsg" style="margin-top:10px;font-size:11px;text-align:center"></div>
+</div>
+</div>
 </div>
 <div id="so" style="display:none;position:fixed;top:0;left:0;right:0;bottom:0;background:rgba(0,0,0,.7);z-index:999;justify-content:center;align-items:center">
 <div style="background:#1e2340;border-radius:16px;padding:24px;margin:20px;max-width:320px;text-align:center">
@@ -453,11 +466,22 @@ return{i:h.toFixed(2),n:fh.toFixed(2),f:fg,d:dir,l:lb?lb.toFixed(1):"0",t:tr};
 function _saveP(h,a,r,hh,md){var d=JSON.parse(localStorage.getItem(_gp)||"[]");d.unshift({h:h,a:a,r:r,t:Date.now(),md:md,hh:hh?{f:hh.f,d:hh.d,l:hh.l}:null});if(d.length>100)d=d.slice(0,100);localStorage.setItem(_gp,JSON.stringify(d));_saveToGitHub(h,a,r,md)}
 
 // GitHub数据收集
-var _GH_TOKEN="ghp_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx"; // 替换为实际token
 var _GH_REPO="Ruochan2017/football-predictions";
 var _GH_FILE="predictions.json";
+var _GH_TOKEN=localStorage.getItem("ght")||"";
+
+function _saveGHT(){
+  var t=document.getElementById("ghtoken").value.trim();
+  if(!t){document.getElementById("ghmsg").innerHTML='<span style="color:#ef4444">请输入Token</span>';return}
+  if(!t.startsWith("ghp_")&&!t.startsWith("github_pat_")){document.getElementById("ghmsg").innerHTML='<span style="color:#ef4444">Token格式错误</span>';return}
+  localStorage.setItem("ght",t);
+  _GH_TOKEN=t;
+  document.getElementById("ghmsg").innerHTML='<span style="color:#4ade80">✓ 保存成功</span>';
+  setTimeout(function(){document.getElementById("ghcfg").style.display="none";document.getElementById("ghmsg").textContent=""},1500);
+}
 
 function _saveToGitHub(h,a,r,md){
+  if(!_GH_TOKEN)return console.log("GitHub token not configured");
   // 生成匿名用户ID（基于浏览器指纹）
   var uid="u_"+btoa(navigator.userAgent+screen.width+screen.height).slice(0,12);
   var prediction={
