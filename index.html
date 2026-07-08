@@ -719,6 +719,17 @@ callback([]);
 
 function _renderHiLocal(d){
 document.getElementById("hb").style.display="block";
+document.getElementById("sb").style.display="block";
+// 统计准确率
+var total=d.length;
+var verified=0;
+var hits=0;
+for(var i=0;i<d.length;i++){
+if(d[i].v){verified++;if(d[i].hit)hits++}
+}
+document.getElementById("s1").textContent=total;
+document.getElementById("s2").textContent=verified;
+document.getElementById("s3").textContent=verified>0?Math.round(hits/verified*100)+"%":"0%";
 var h="";
 for(var i=0;i<Math.min(d.length,20);i++){
 var x=d[i];
