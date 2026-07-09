@@ -178,6 +178,56 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;b
 .side-contact{margin-top:12px;font-size:10px;color:#555;padding-top:8px;border-top:1px solid rgba(255,255,255,0.05)}
 @media(min-width:800px){.side-banner{display:block}}
 @media(min-width:800px){.ct{max-width:380px}}
+
+/* AI推荐区域样式 */
+.ai-rec{background:#151a2e;border-radius:14px;padding:16px;margin-bottom:14px}
+.ai-rec-title{font-size:14px;color:#6b7280;margin-bottom:12px;display:flex;align-items:center;justify-content:space-between}
+.ai-rec-title .ai-refresh{font-size:12px;color:#4ade80;cursor:pointer;background:none;border:none;padding:4px 8px}
+.ai-rec-title .ai-refresh:active{opacity:.6}
+.ai-group{margin-bottom:14px}
+.ai-group:last-child{margin-bottom:0}
+.ai-group-label{font-size:12px;font-weight:700;padding:6px 0;margin-bottom:6px;border-bottom:1px solid #1e2340;display:flex;align-items:center;gap:6px}
+.ai-group-label.single{color:#4ade80}
+.ai-group-label.double{color:#60a5fa}
+.ai-group-label.skip{color:#6b7280}
+.ai-group-label .ai-count{font-size:10px;color:#6b7280;font-weight:400;background:#1e2340;padding:1px 6px;border-radius:4px}
+.ai-card{display:flex;align-items:stretch;padding:10px 12px;margin-bottom:6px;background:#0d1117;border-radius:10px;cursor:pointer;transition:all .15s;border:1px solid transparent;gap:10px}
+.ai-card:active{transform:scale(.98);background:#0f1a15}
+.ai-card:last-child{margin-bottom:0}
+.ai-tag{display:flex;flex-direction:column;align-items:center;justify-content:center;min-width:44px;padding:4px 2px;border-radius:6px;flex-shrink:0;font-size:10px;font-weight:700;text-align:center;line-height:1.3}
+.ai-tag.single{background:#0f2818;color:#4ade80;border:1px solid #1a4a2a}
+.ai-tag.double{background:#0f1828;color:#60a5fa;border:1px solid #1a2a4a}
+.ai-tag.skip{background:#1a1a1a;color:#6b7280;border:1px solid #2a2a2a}
+.ai-card-body{flex:1;min-width:0}
+.ai-card-teams{font-size:14px;font-weight:700;color:#e0e0e0;line-height:1.5;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.ai-card-teams .vs{color:#6b7280;font-weight:400;margin:0 4px}
+.ai-card-meta{font-size:11px;color:#6b7280;margin-top:2px;display:flex;align-items:center;gap:6px;flex-wrap:wrap}
+.ai-card-meta .ai-league{color:#4ade80;font-weight:600}
+.ai-card-meta .ai-time{color:#f59e0b;font-weight:600}
+.ai-card-pred{font-size:13px;font-weight:700;margin-top:4px}
+.ai-card-pred.single-pred{color:#4ade80}
+.ai-card-pred.double-pred{color:#60a5fa}
+.ai-card-pred.skip-pred{color:#6b7280}
+.ai-card-reason{font-size:11px;color:#6b7280;margin-top:3px;line-height:1.4}
+.ai-card-conf{font-size:10px;color:#f59e0b;margin-top:2px}
+.ai-card-arrow{color:#2a2f45;font-size:16px;flex-shrink:0;align-self:center}
+.ai-loading{text-align:center;padding:24px 0;color:#6b7280;font-size:13px}
+.ai-loading .spinner{display:inline-block;width:20px;height:20px;border:2px solid #2a2f45;border-top-color:#4ade80;border-radius:50%;animation:sp .8s linear infinite;margin-right:8px;vertical-align:middle}
+.ai-empty{text-align:center;padding:20px;color:#6b7280;font-size:13px}
+
+/* 准确率面板样式 */
+.ai-acc{background:#151a2e;border-radius:14px;padding:16px;margin-bottom:14px;border-left:3px solid #4ade80}
+.ai-acc-title{font-size:14px;font-weight:700;color:#4ade80;margin-bottom:10px;display:flex;align-items:center;gap:6px}
+.ai-acc-grid{display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;margin-bottom:10px}
+.ai-acc-item{text-align:center;padding:8px 4px;background:#0d1117;border-radius:8px}
+.ai-acc-item .n{font-size:20px;font-weight:800}
+.ai-acc-item .l{font-size:10px;color:#6b7280;margin-top:2px}
+.ai-acc-row{display:flex;justify-content:space-between;align-items:center;padding:5px 0;font-size:12px;color:#9ca3af}
+.ai-acc-row .v{font-weight:700}
+.ai-acc-row .v.up{color:#4ade80}
+.ai-acc-row .v.down{color:#ef4444}
+.ai-acc-row .v.flat{color:#9ca3af}
+.ai-acc-note{font-size:10px;color:#444;margin-top:8px;text-align:center}
 </style>
 </head>
 <body>
@@ -248,6 +298,32 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;b
 <div class="league-filter" id="lf"></div>
 <div id="sl-body">
 <div class="sl-loading"><span class="spinner"></span>加载赛程中...</div>
+</div>
+</div>
+
+<!-- AI推荐准确率面板 -->
+<div class="ai-acc" id="ai-acc">
+<div class="ai-acc-title">📊 实时准确率</div>
+<div class="ai-acc-grid">
+<div class="ai-acc-item"><div class="n" id="acc-total" style="color:#e0e0e0">0</div><div class="l">总推荐</div></div>
+<div class="ai-acc-item"><div class="n" id="acc-verified" style="color:#60a5fa">0</div><div class="l">已验证</div></div>
+<div class="ai-acc-item"><div class="n" id="acc-rate" style="color:#4ade80">0%</div><div class="l">综合命中</div></div>
+</div>
+<div class="ai-acc-row"><span>单选命中</span><span class="v" id="acc-single">0/0 (0%)</span></div>
+<div class="ai-acc-row"><span>双选命中</span><span class="v" id="acc-double">0/0 (0%)</span></div>
+<div class="ai-acc-row"><span>近10场命中</span><span class="v flat" id="acc-rolling">0%</span></div>
+<div class="ai-acc-row"><span>趋势</span><span class="v flat" id="acc-trend">→ 持平</span></div>
+<div class="ai-acc-note">自动验证已结束比赛的预测结果</div>
+</div>
+
+<!-- AI推荐区域 -->
+<div class="ai-rec" id="ai-rec">
+<div class="ai-rec-title">
+<span>🎯 AI推荐</span>
+<button class="ai-refresh" onclick="_genAIRec()">🔄 重新分析</button>
+</div>
+<div id="ai-rec-body">
+<div class="ai-loading"><span class="spinner"></span>AI分析中...</div>
 </div>
 </div>
 
@@ -767,6 +843,8 @@ async function _loadSchedule(){
   _renderLeagueFilter(allMatches);
   // 渲染赛程列表
   _renderSchedule(allMatches);
+  // 触发AI推荐生成
+  setTimeout(function(){_doGenAIRec()},500);
 }
 
 // 渲染联赛筛选标签
@@ -1472,6 +1550,392 @@ setInterval(_autoCheck,600000);
 
 // 页面加载时自动拉取赛程
 _loadSchedule();
+
+// ========== AI推荐系统 ==========
+
+var _AI_KEY="ai_recommendations";
+
+// AI推荐生成：对所有未开赛的赛程自动生成预测
+function _genAIRec(){
+  var el=document.getElementById("ai-rec-body");
+  el.innerHTML='<div class="ai-loading"><span class="spinner"></span>AI分析中...</div>';
+  
+  // 等待赛程加载完成
+  if(!_allMatches||_allMatches.length===0){
+    setTimeout(function(){
+      if(_allMatches&&_allMatches.length>0){
+        _doGenAIRec();
+      }else{
+        el.innerHTML='<div class="ai-empty">📅 暂无赛程数据，请先等待赛程加载</div>';
+      }
+    },2000);
+    return;
+  }
+  _doGenAIRec();
+}
+
+function _doGenAIRec(){
+  var el=document.getElementById("ai-rec-body");
+  // 筛选未开赛的比赛
+  var upcoming=_allMatches.filter(function(m){return m.statusClass==="scheduled"});
+  
+  var recs=[];
+  var stored=JSON.parse(localStorage.getItem(_AI_KEY)||"[]");
+  var storedMap={};
+  for(var i=0;i<stored.length;i++){
+    storedMap[stored[i].matchId]=stored[i];
+  }
+  
+  // 先保留已验证的历史推荐（已结束的比赛）
+  var upcomingIds={};
+  for(var i=0;i<upcoming.length;i++){
+    upcomingIds[upcoming[i].id]=true;
+  }
+  for(var i=0;i<stored.length;i++){
+    if(stored[i].verified&&!upcomingIds[stored[i].matchId]){
+      recs.push(stored[i]);
+    }
+  }
+  
+  if(upcoming.length===0&&recs.length===0){
+    el.innerHTML='<div class="ai-empty">📅 暂无未开赛的赛程</div>';
+    return;
+  }
+  
+  // 为未开赛的比赛生成推荐
+  for(var i=0;i<upcoming.length;i++){
+    var m=upcoming[i];
+    // 如果已有推荐且比赛信息未变，复用
+    if(storedMap[m.id]&&!storedMap[m.id].needUpdate){
+      recs.push(storedMap[m.id]);
+      continue;
+    }
+    // 计算预测
+    var hw=_gs(m.home),aw=_gs(m.away),d=hw-aw;
+    var hf=0.5/(1+Math.pow(10,-d/14));
+    var df=0.28*Math.exp(-Math.abs(d)/18);
+    var af=1-hf-df;
+    var t=hf+df+af;hf/=t;df/=t;af/=t;
+    
+    var rec=_aiJudge(m,hf,df,af);
+    rec.matchId=m.id;
+    rec.home=m.home;
+    rec.away=m.away;
+    rec.league=m.leagueShort;
+    rec.leagueCode=m.league;
+    rec.date=m.dateISO;
+    rec.matchTime=m.status;
+    rec.verified=false;
+    rec.actualResult=null;
+    rec.hit=null;
+    recs.push(rec);
+  }
+  
+  // 保存到localStorage
+  _saveAIRecs(recs);
+  // 渲染（只渲染未开赛的推荐）
+  var unverified=recs.filter(function(r){return!r.verified});
+  _renderAIRec(unverified);
+  // 更新准确率
+  _updateAccPanel();
+  // 触发验证
+  _verifyAIRecs();
+}
+
+// AI判断逻辑
+function _aiJudge(m,hf,df,af){
+  var probs=[{r:"胜",p:hf},{r:"平",p:df},{r:"负",p:af}];
+  probs.sort(function(a,b){return b.p-a.p});
+  var maxProb=probs[0].p;
+  var secondProb=probs[1].p;
+  var thirdProb=probs[2].p;
+  var probDiff=maxProb-secondProb;
+  var simOdds=1/maxProb;
+  
+  // 规则1：极端热门（模拟赔率<=1.25）→ 不建议购买
+  if(simOdds<=1.25){
+    return{
+      prediction:probs[0].r,
+      type:"skip",
+      confidence:Math.round(maxProb*100),
+      reason:"赔率过低（约"+simOdds.toFixed(2)+"），平局概率偏高，投注价值极低",
+      doublePick:null
+    };
+  }
+  
+  // 规则2：maxProb>=0.60 且 probDiff>=0.20 → 单选
+  if(maxProb>=0.60&&probDiff>=0.20){
+    var reason="";
+    if(probs[0].r==="胜") reason="主队优势明显";
+    else if(probs[0].r==="负") reason="客队实力占优";
+    else reason="平局概率最高且优势显著";
+    return{
+      prediction:probs[0].r,
+      type:"single",
+      confidence:Math.round(maxProb*100),
+      reason:reason,
+      doublePick:null
+    };
+  }
+  
+  // 规则3：maxProb>=0.45 且 maxProb<0.60 → 双选
+  if(maxProb>=0.45&&maxProb<0.60){
+    return{
+      prediction:probs[0].r+"+"+probs[1].r,
+      type:"double",
+      confidence:Math.round(maxProb*100),
+      reason:"优势不够绝对，双选防冷",
+      doublePick:[probs[0].r,probs[1].r]
+    };
+  }
+  
+  // 规则4：probDiff<0.10 → 不建议购买
+  if(probDiff<0.10){
+    return{
+      prediction:probs[0].r,
+      type:"skip",
+      confidence:Math.round(maxProb*100),
+      reason:"结果太不确定，各方向概率接近",
+      doublePick:null
+    };
+  }
+  
+  // 规则5：其他情况 — maxProb>=0.50且probDiff>=0.15 → 单选，否则双选
+  if(maxProb>=0.50&&probDiff>=0.15){
+    var reason="";
+    if(probs[0].r==="胜") reason="主队较有优势";
+    else if(probs[0].r==="负") reason="客队略有优势";
+    else reason="平局倾向明显";
+    // 检查是否有盘口信号辅助
+    var hh=_simH(_gs(m.home),_gs(m.away));
+    if(hh.f&&hh.d){
+      var signalMatch=(probs[0].r==="胜"&&hh.d==="h")||(probs[0].r==="负"&&hh.d==="a");
+      if(signalMatch){
+        reason+=" · 盘口信号一致";
+      }
+    }
+    return{
+      prediction:probs[0].r,
+      type:"single",
+      confidence:Math.round(maxProb*100),
+      reason:reason,
+      doublePick:null
+    };
+  }
+  
+  // 剩余：双选
+  return{
+    prediction:probs[0].r+"+"+probs[1].r,
+    type:"double",
+    confidence:Math.round(maxProb*100),
+    reason:"方向不够明确，建议双选覆盖",
+    doublePick:[probs[0].r,probs[1].r]
+  };
+}
+
+// 渲染AI推荐
+function _renderAIRec(recs){
+  var el=document.getElementById("ai-rec-body");
+  if(recs.length===0){
+    el.innerHTML='<div class="ai-empty">暂无推荐</div>';
+    return;
+  }
+  
+  // 按类型分组
+  var singles=[],doubles=[],skips=[];
+  for(var i=0;i<recs.length;i++){
+    if(recs[i].type==="single") singles.push(recs[i]);
+    else if(recs[i].type==="double") doubles.push(recs[i]);
+    else skips.push(recs[i]);
+  }
+  
+  var h="";
+  
+  // 单选组
+  if(singles.length>0){
+    h+='<div class="ai-group">';
+    h+='<div class="ai-group-label single">✅ 建议单选 <span class="ai-count">'+singles.length+'场</span></div>';
+    for(var i=0;i<singles.length;i++){
+      h+=_renderAICard(singles[i]);
+    }
+    h+='</div>';
+  }
+  
+  // 双选组
+  if(doubles.length>0){
+    h+='<div class="ai-group">';
+    h+='<div class="ai-group-label double">🛡️ 建议双选 <span class="ai-count">'+doubles.length+'场</span></div>';
+    for(var i=0;i<doubles.length;i++){
+      h+=_renderAICard(doubles[i]);
+    }
+    h+='</div>';
+  }
+  
+  // 不建议组
+  if(skips.length>0){
+    h+='<div class="ai-group">';
+    h+='<div class="ai-group-label skip">⚠️ 不建议购买 <span class="ai-count">'+skips.length+'场</span></div>';
+    for(var i=0;i<skips.length;i++){
+      h+=_renderAICard(skips[i]);
+    }
+    h+='</div>';
+  }
+  
+  el.innerHTML=h;
+}
+
+function _renderAICard(rec){
+  var tagClass=rec.type;
+  var tagText=rec.type==="single"?"✅单选":rec.type==="double"?"🛡️双选":"⚠️跳过";
+  var predClass=rec.type==="single"?"single-pred":rec.type==="double"?"double-pred":"skip-pred";
+  var predText=rec.type==="single"?rec.prediction:rec.type==="double"?rec.prediction+"（双选）":"不建议";
+  
+  var h='<div class="ai-card" onclick="_pickMatch(\''+_esc(rec.home)+'\',\''+_esc(rec.away)+'\',\''+rec.date+'\')">';
+  h+='<div class="ai-tag '+tagClass+'">'+tagText+'</div>';
+  h+='<div class="ai-card-body">';
+  h+='<div class="ai-card-teams">'+_esc(rec.home)+'<span class="vs">对阵</span>'+_esc(rec.away)+'</div>';
+  h+='<div class="ai-card-meta">';
+  h+='<span class="ai-league">'+rec.league+'</span>';
+  h+='<span class="ai-time">🕐 '+rec.matchTime+'</span>';
+  h+='</div>';
+  h+='<div class="ai-card-pred '+predClass+'">'+predText+'</div>';
+  h+='<div class="ai-card-reason">'+rec.reason+'</div>';
+  h+='<div class="ai-card-conf">置信度 '+rec.confidence+'%</div>';
+  h+='</div>';
+  h+='<span class="ai-card-arrow">›</span>';
+  h+='</div>';
+  return h;
+}
+
+// 保存AI推荐到localStorage
+function _saveAIRecs(recs){
+  localStorage.setItem(_AI_KEY,JSON.stringify(recs));
+}
+
+// 验证AI推荐：对已结束的比赛获取赛果
+async function _verifyAIRecs(){
+  var recs=JSON.parse(localStorage.getItem(_AI_KEY)||"[]");
+  if(recs.length===0) return;
+  
+  var changed=false;
+  var today=new Date().toISOString().split("T")[0];
+  
+  for(var i=0;i<recs.length;i++){
+    var rec=recs[i];
+    if(rec.verified) continue;
+    if(rec.date>today) continue; // 未来比赛跳过
+    
+    try{
+      var score=await _getScore(rec.home,rec.away,_gl(rec.home),rec.date);
+      if(score){
+        var actualResult=score.hs>score.as?"胜":score.hs<score.as?"负":"平";
+        rec.verified=true;
+        rec.actualResult=actualResult;
+        rec.homeScore=score.hs;
+        rec.awayScore=score.as;
+        
+        // 判断命中
+        if(rec.type==="single"){
+          rec.hit=(rec.prediction===actualResult);
+        }else if(rec.type==="double"&&rec.doublePick){
+          rec.hit=(rec.doublePick.indexOf(actualResult)>=0);
+        }else{
+          rec.hit=false;
+        }
+        changed=true;
+      }
+    }catch(e){
+      console.log("Verify error for",rec.home,rec.away,e);
+    }
+  }
+  
+  if(changed){
+    _saveAIRecs(recs);
+    _updateAccPanel();
+    // 如果推荐面板正在显示，重新渲染
+    _renderAIRec(recs);
+  }
+}
+
+// 更新准确率面板
+function _updateAccPanel(){
+  var recs=JSON.parse(localStorage.getItem(_AI_KEY)||"[]");
+  
+  var total=recs.length;
+  var verified=0,verHits=0;
+  var singleTotal=0,singleHit=0;
+  var doubleTotal=0,doubleHit=0;
+  
+  for(var i=0;i<recs.length;i++){
+    if(recs[i].verified){
+      verified++;
+      if(recs[i].hit) verHits++;
+      if(recs[i].type==="single"){
+        singleTotal++;
+        if(recs[i].hit) singleHit++;
+      }else if(recs[i].type==="double"){
+        doubleTotal++;
+        if(recs[i].hit) doubleHit++;
+      }
+    }
+  }
+  
+  document.getElementById("acc-total").textContent=total;
+  document.getElementById("acc-verified").textContent=verified;
+  
+  var rate=verified>0?Math.round(verHits/verified*100):0;
+  document.getElementById("acc-rate").textContent=rate+"%";
+  
+  var sRate=singleTotal>0?Math.round(singleHit/singleTotal*100):0;
+  document.getElementById("acc-single").textContent=singleHit+"/"+singleTotal+" ("+sRate+"%)";
+  
+  var dRate=doubleTotal>0?Math.round(doubleHit/doubleTotal*100):0;
+  document.getElementById("acc-double").textContent=doubleHit+"/"+doubleTotal+" ("+dRate+"%)";
+  
+  // 近10场命中率（滚动窗口）
+  var verifiedRecs=recs.filter(function(r){return r.verified});
+  var last10=verifiedRecs.slice(-10);
+  var last10Hit=0;
+  for(var i=0;i<last10.length;i++){
+    if(last10[i].hit) last10Hit++;
+  }
+  var rollingRate=last10.length>0?Math.round(last10Hit/last10.length*100):0;
+  document.getElementById("acc-rolling").textContent=rollingRate+"%";
+  
+  // 趋势：对比前10场
+  var prev10=verifiedRecs.slice(-20,-10);
+  var prev10Hit=0;
+  for(var i=0;i<prev10.length;i++){
+    if(prev10[i].hit) prev10Hit++;
+  }
+  var prevRate=prev10.length>0?Math.round(prev10Hit/prev10.length*100):0;
+  
+  var trendEl=document.getElementById("acc-trend");
+  if(last10.length<3){
+    trendEl.textContent="→ 数据不足";
+    trendEl.className="v flat";
+  }else if(rollingRate>prevRate){
+    trendEl.textContent="↑ 上升（前段"+prevRate+"%）";
+    trendEl.className="v up";
+  }else if(rollingRate<prevRate){
+    trendEl.textContent="↓ 下降（前段"+prevRate+"%）";
+    trendEl.className="v down";
+  }else{
+    trendEl.textContent="→ 持平（前段"+prevRate+"%）";
+    trendEl.className="v flat";
+  }
+}
+
+// 页面加载后延迟生成AI推荐（等待赛程加载）
+setTimeout(function(){
+  _genAIRec();
+  _updateAccPanel();
+},3000);
+
+// 每10分钟自动验证
+setInterval(function(){
+  _verifyAIRecs();
+},600000);
 </script>
 </body>
 </html>
