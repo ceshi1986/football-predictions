@@ -211,6 +211,8 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;b
 .ai-card-reason{font-size:11px;color:#6b7280;margin-top:3px;line-height:1.4}
 .ai-card-conf{font-size:10px;color:#f59e0b;margin-top:2px}
 .ai-card-arrow{color:#2a2f45;font-size:16px;flex-shrink:0;align-self:center}
+.ai-card-skip{opacity:0.7}
+.ai-skip-tag{color:#ef4444;font-size:11px;font-weight:600;margin-left:4px}
 .ai-loading{text-align:center;padding:24px 0;color:#6b7280;font-size:13px}
 .ai-loading .spinner{display:inline-block;width:20px;height:20px;border:2px solid #2a2f45;border-top-color:#4ade80;border-radius:50%;animation:sp .8s linear infinite;margin-right:8px;vertical-align:middle}
 .ai-empty{text-align:center;padding:20px;color:#6b7280;font-size:13px}
@@ -311,9 +313,10 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;b
 </div>
 <div class="ai-acc-row"><span>单选命中</span><span class="v" id="acc-single">0/0 (0%)</span></div>
 <div class="ai-acc-row"><span>双选命中</span><span class="v" id="acc-double">0/0 (0%)</span></div>
+<div class="ai-acc-row"><span>推荐命中</span><span class="v" id="acc-recommend">0/0 (0%)</span></div>
 <div class="ai-acc-row"><span>近10场命中</span><span class="v flat" id="acc-rolling">0%</span></div>
 <div class="ai-acc-row"><span>趋势</span><span class="v flat" id="acc-trend">→ 持平</span></div>
-<div class="ai-acc-note">自动验证已结束比赛的预测结果</div>
+<div class="ai-acc-note">综合命中=全部比赛；推荐命中=仅建议购买场次</div>
 </div>
 
 <!-- AI推荐区域 -->
@@ -1155,7 +1158,14 @@ if(fg){if(fh>0.25){dir="h";lb=Math.abs(fh)}else if(fh<-0.25){dir="a";lb=Math.abs
 return{i:h.toFixed(2),n:fh.toFixed(2),f:fg,d:dir,l:lb?lb.toFixed(1):"0",t:tr};
 }
 
-function _saveP(h,a,r,hh,md){var d=JSON.parse(localStorage.getItem(_gp)||"[]");d.unshift({h:h,a:a,r:r,t:Date.now(),md:md,hh:hh?{f:hh.f,d:hh.d,l:hh.l}:null});if(d.length>100)d=d.slice(0,100);localStorage.setItem(_gp,JSON.stringify(d));_saveToGitHub(h,a,r,md)}
+function _saveP(h,a,r,hh,md){var d=JSON.parse(localStorage.getItem(_gp)||"[]");
+// 去重：同场比赛同日期不重复保存
+for(var i=0;i<d.length;i++){
+  var key1=[h,a].sort().join("|");
+  var key2=[d[i].h,d[i].a].sort().join("|");
+  if(key1===key2&&d[i].md===md){return}
+}
+d.unshift({h:h,a:a,r:r,t:Date.now(),md:md,hh:hh?{f:hh.f,d:hh.d,l:hh.l}:null});if(d.length>100)d=d.slice(0,100);localStorage.setItem(_gp,JSON.stringify(d));_saveToGitHub(h,a,r,md)}
 
 // GitHub数据收集
 var _GH_REPO="Ruochan2017/football-predictions";
@@ -1298,7 +1308,14 @@ function _saveFBToGitHub(feedbacks,sha){
   });
 }
 
-function _savePend(h,a,r,md,lid){var v=JSON.parse(localStorage.getItem(_xa)||"[]");for(var i=0;i<v.length;i++){if(v[i].h===h&&v[i].a===a&&v[i].md===md&&!v[i].done)return}v.push({h:h,a:a,r:r,md:md,lid:lid,done:false,score:null});localStorage.setItem(_xa,JSON.stringify(v))}
+function _savePend(h,a,r,md,lid){var v=JSON.parse(localStorage.getItem(_xa)||"[]");
+// 去重：同场比赛同日期不重复保存（不区分主客顺序）
+var key1=[h,a].sort().join("|");
+for(var i=0;i<v.length;i++){
+  var key2=[v[i].h,v[i].a].sort().join("|");
+  if(key1===key2&&v[i].md===md&&!v[i].done)return
+}
+v.push({h:h,a:a,r:r,md:md,lid:lid,done:false,score:null});localStorage.setItem(_xa,JSON.stringify(v))}
 function _showAV(h,a,r,md){var el=document.getElementById("av");el.className="av show";document.getElementById("avd").textContent="等待比赛结束后自动获取比分验证";document.getElementById("avr").innerHTML='<span style="color:#6b7280;font-size:12px">比赛日期：'+md+' · 系统每10分钟检查比赛状态</span>'}
 
 async function _tryFetch(){
@@ -1648,92 +1665,76 @@ function _aiJudge(m,hf,df,af){
   probs.sort(function(a,b){return b.p-a.p});
   var maxProb=probs[0].p;
   var secondProb=probs[1].p;
-  var thirdProb=probs[2].p;
   var probDiff=maxProb-secondProb;
   var simOdds=1/maxProb;
+  var skip=false; // 标记是否不建议购买
+  var skipReason="";
   
-  // 规则1：极端热门（模拟赔率<=1.25）→ 不建议购买
+  // 规则1：极端热门（模拟赔率<=1.25）→ 不建议购买，但仍给出预测
   if(simOdds<=1.25){
-    return{
-      prediction:probs[0].r,
-      type:"skip",
-      confidence:Math.round(maxProb*100),
-      reason:"赔率过低（约"+simOdds.toFixed(2)+"），平局概率偏高，投注价值极低",
-      doublePick:null
-    };
+    skip=true;
+    skipReason="赔率过低（约"+simOdds.toFixed(2)+"），投注价值极低";
   }
+  
+  // 规则4：probDiff<0.10 → 不建议购买，但仍给出预测
+  if(probDiff<0.10){
+    skip=true;
+    skipReason="结果太不确定，各方向概率接近";
+  }
+  
+  // 判断单选还是双选
+  var prediction, type, reason, doublePick;
   
   // 规则2：maxProb>=0.60 且 probDiff>=0.20 → 单选
   if(maxProb>=0.60&&probDiff>=0.20){
-    var reason="";
+    type="single";
+    prediction=probs[0].r;
+    doublePick=null;
     if(probs[0].r==="胜") reason="主队优势明显";
     else if(probs[0].r==="负") reason="客队实力占优";
     else reason="平局概率最高且优势显著";
-    return{
-      prediction:probs[0].r,
-      type:"single",
-      confidence:Math.round(maxProb*100),
-      reason:reason,
-      doublePick:null
-    };
   }
-  
   // 规则3：maxProb>=0.45 且 maxProb<0.60 → 双选
-  if(maxProb>=0.45&&maxProb<0.60){
-    return{
-      prediction:probs[0].r+"+"+probs[1].r,
-      type:"double",
-      confidence:Math.round(maxProb*100),
-      reason:"优势不够绝对，双选防冷",
-      doublePick:[probs[0].r,probs[1].r]
-    };
+  else if(maxProb>=0.45&&maxProb<0.60){
+    type="double";
+    prediction=probs[0].r+"+"+probs[1].r;
+    doublePick=[probs[0].r,probs[1].r];
+    reason="优势不够绝对，双选防冷";
   }
-  
-  // 规则4：probDiff<0.10 → 不建议购买
-  if(probDiff<0.10){
-    return{
-      prediction:probs[0].r,
-      type:"skip",
-      confidence:Math.round(maxProb*100),
-      reason:"结果太不确定，各方向概率接近",
-      doublePick:null
-    };
-  }
-  
-  // 规则5：其他情况 — maxProb>=0.50且probDiff>=0.15 → 单选，否则双选
-  if(maxProb>=0.50&&probDiff>=0.15){
-    var reason="";
+  // 规则5：maxProb>=0.50且probDiff>=0.15 → 单选
+  else if(maxProb>=0.50&&probDiff>=0.15){
+    type="single";
+    prediction=probs[0].r;
+    doublePick=null;
     if(probs[0].r==="胜") reason="主队较有优势";
     else if(probs[0].r==="负") reason="客队略有优势";
     else reason="平局倾向明显";
-    // 检查是否有盘口信号辅助
     var hh=_simH(_gs(m.home),_gs(m.away));
     if(hh.f&&hh.d){
       var signalMatch=(probs[0].r==="胜"&&hh.d==="h")||(probs[0].r==="负"&&hh.d==="a");
-      if(signalMatch){
-        reason+=" · 盘口信号一致";
-      }
+      if(signalMatch) reason+=" · 盘口信号一致";
     }
-    return{
-      prediction:probs[0].r,
-      type:"single",
-      confidence:Math.round(maxProb*100),
-      reason:reason,
-      doublePick:null
-    };
+  }
+  // 剩余：双选
+  else{
+    type="double";
+    prediction=probs[0].r+"+"+probs[1].r;
+    doublePick=[probs[0].r,probs[1].r];
+    reason="方向不够明确，双选覆盖";
   }
   
-  // 剩余：双选
   return{
-    prediction:probs[0].r+"+"+probs[1].r,
-    type:"double",
+    prediction:prediction,
+    type:type,
+    skip:skip,
+    skipReason:skipReason,
     confidence:Math.round(maxProb*100),
-    reason:"方向不够明确，建议双选覆盖",
-    doublePick:[probs[0].r,probs[1].r]
+    reason:reason,
+    doublePick:doublePick
   };
 }
 
-// 渲染AI推荐
+// 渲染AI推荐 - 统一列表，不建议购买的加标注
 function _renderAIRec(recs){
   var el=document.getElementById("ai-rec-body");
   if(recs.length===0){
@@ -1741,56 +1742,24 @@ function _renderAIRec(recs){
     return;
   }
   
-  // 按类型分组
-  var singles=[],doubles=[],skips=[];
-  for(var i=0;i<recs.length;i++){
-    if(recs[i].type==="single") singles.push(recs[i]);
-    else if(recs[i].type==="double") doubles.push(recs[i]);
-    else skips.push(recs[i]);
-  }
-  
   var h="";
-  
-  // 单选组
-  if(singles.length>0){
-    h+='<div class="ai-group">';
-    h+='<div class="ai-group-label single">✅ 建议单选 <span class="ai-count">'+singles.length+'场</span></div>';
-    for(var i=0;i<singles.length;i++){
-      h+=_renderAICard(singles[i]);
-    }
-    h+='</div>';
+  for(var i=0;i<recs.length;i++){
+    h+=_renderAICard(recs[i]);
   }
-  
-  // 双选组
-  if(doubles.length>0){
-    h+='<div class="ai-group">';
-    h+='<div class="ai-group-label double">🛡️ 建议双选 <span class="ai-count">'+doubles.length+'场</span></div>';
-    for(var i=0;i<doubles.length;i++){
-      h+=_renderAICard(doubles[i]);
-    }
-    h+='</div>';
-  }
-  
-  // 不建议组
-  if(skips.length>0){
-    h+='<div class="ai-group">';
-    h+='<div class="ai-group-label skip">⚠️ 不建议购买 <span class="ai-count">'+skips.length+'场</span></div>';
-    for(var i=0;i<skips.length;i++){
-      h+=_renderAICard(skips[i]);
-    }
-    h+='</div>';
-  }
-  
   el.innerHTML=h;
 }
 
 function _renderAICard(rec){
+  // 标签：单选/双选
   var tagClass=rec.type;
-  var tagText=rec.type==="single"?"✅单选":rec.type==="double"?"🛡️双选":"⚠️跳过";
-  var predClass=rec.type==="single"?"single-pred":rec.type==="double"?"double-pred":"skip-pred";
-  var predText=rec.type==="single"?rec.prediction:rec.type==="double"?rec.prediction+"（双选）":"不建议";
+  var tagText=rec.type==="single"?"✅单选":"🛡️双选";
+  var predClass=rec.type==="single"?"single-pred":"double-pred";
+  // 预测文本：单选显示"胜"，双选显示"胜+平"
+  var predText=rec.type==="single"?rec.prediction:rec.prediction+"（双选）";
+  // 如果不建议购买，在预测后面加标注
+  var skipTag=rec.skip?'<span class="ai-skip-tag">（不建议购买）</span>':'';
   
-  var h='<div class="ai-card" onclick="_pickMatch(\''+_esc(rec.home)+'\',\''+_esc(rec.away)+'\',\''+rec.date+'\')">';
+  var h='<div class="ai-card'+(rec.skip?' ai-card-skip':'')+'" onclick="_pickMatch(\''+_esc(rec.home)+'\',\''+_esc(rec.away)+'\',\''+rec.date+'\')">';
   h+='<div class="ai-tag '+tagClass+'">'+tagText+'</div>';
   h+='<div class="ai-card-body">';
   h+='<div class="ai-card-teams">'+_esc(rec.home)+'<span class="vs">对阵</span>'+_esc(rec.away)+'</div>';
@@ -1798,8 +1767,8 @@ function _renderAICard(rec){
   h+='<span class="ai-league">'+rec.league+'</span>';
   h+='<span class="ai-time">🕐 '+rec.matchTime+'</span>';
   h+='</div>';
-  h+='<div class="ai-card-pred '+predClass+'">'+predText+'</div>';
-  h+='<div class="ai-card-reason">'+rec.reason+'</div>';
+  h+='<div class="ai-card-pred '+predClass+'">'+predText+skipTag+'</div>';
+  h+='<div class="ai-card-reason">'+rec.reason+(rec.skip?' · '+rec.skipReason:'')+'</div>';
   h+='<div class="ai-card-conf">置信度 '+rec.confidence+'%</div>';
   h+='</div>';
   h+='<span class="ai-card-arrow">›</span>';
@@ -1865,6 +1834,7 @@ function _updateAccPanel(){
   var verified=0,verHits=0;
   var singleTotal=0,singleHit=0;
   var doubleTotal=0,doubleHit=0;
+  var recTotal=0,recHit=0; // 推荐命中（不含skip）
   
   for(var i=0;i<recs.length;i++){
     if(recs[i].verified){
@@ -1876,6 +1846,11 @@ function _updateAccPanel(){
       }else if(recs[i].type==="double"){
         doubleTotal++;
         if(recs[i].hit) doubleHit++;
+      }
+      // 推荐命中：统计非skip场次
+      if(!recs[i].skip){
+        recTotal++;
+        if(recs[i].hit) recHit++;
       }
     }
   }
@@ -1891,6 +1866,9 @@ function _updateAccPanel(){
   
   var dRate=doubleTotal>0?Math.round(doubleHit/doubleTotal*100):0;
   document.getElementById("acc-double").textContent=doubleHit+"/"+doubleTotal+" ("+dRate+"%)";
+  
+  var recRate=recTotal>0?Math.round(recHit/recTotal*100):0;
+  document.getElementById("acc-recommend").textContent=recHit+"/"+recTotal+" ("+recRate+"%)";
   
   // 近10场命中率（滚动窗口）
   var verifiedRecs=recs.filter(function(r){return r.verified});
