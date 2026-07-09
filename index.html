@@ -350,7 +350,15 @@ var _curTab=1;
 function _calc(){
 var h=document.getElementById("ht").value.trim();
 var a=document.getElementById("at").value.trim();
+var md=document.getElementById("md").value;
 if(!h||!a){alert("请输入两队队名");return}
+// 日期校验：只允许今天和未来7天内的比赛
+if(!md){alert("请选择比赛日期");return}
+var today=new Date();today.setHours(0,0,0,0);
+var selDate=new Date(md+"T00:00:00");
+var maxDate=new Date(today);maxDate.setDate(maxDate.getDate()+7);
+if(selDate<today){alert("不能选择过去的日期");return}
+if(selDate>maxDate){alert("只能预测未来7天内的比赛");return}
 document.getElementById("rs").style.display="none";
 document.getElementById("hd2").className="hd2";
 document.getElementById("av").className="av";
@@ -779,11 +787,12 @@ return resp.json();
 if(!data||!data.content){callback([]);return}
 var content=atob(data.content.replace(/\n/g,""));
 var predictions=JSON.parse(content);
-// 按比赛去重（主队+客队+比赛日期）
+// 按比赛去重（两队名称排序+比赛日期，避免主客互换重复）
 var unique={};
 for(var i=0;i<predictions.length;i++){
 var p=predictions[i];
-var key=p.home+"|"+p.away+"|"+p.matchDate;
+var teams=[p.home,p.away].sort();
+var key=teams[0]+"|"+teams[1]+"|"+p.matchDate;
 if(!unique[key]){
 unique[key]={h:p.home,a:p.away,r:p.result,t:new Date(p.predictTime).getTime(),md:p.matchDate,v:false};
 }
