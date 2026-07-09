@@ -305,7 +305,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;b
 
 <!-- AI推荐准确率面板 -->
 <div class="ai-acc" id="ai-acc">
-<div class="ai-acc-title">📊 实时准确率</div>
+<div class="ai-acc-title">📊 AI预测实时命中率</div>
 <div class="ai-acc-grid">
 <div class="ai-acc-item"><div class="n" id="acc-total" style="color:#e0e0e0">0</div><div class="l">总推荐</div></div>
 <div class="ai-acc-item"><div class="n" id="acc-verified" style="color:#60a5fa">0</div><div class="l">已验证</div></div>
@@ -322,7 +322,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;b
 <!-- AI推荐区域 -->
 <div class="ai-rec" id="ai-rec">
 <div class="ai-rec-title">
-<span>🎯 AI推荐</span>
+<span>🎯 AI赛前预测</span>
 <button class="ai-refresh" onclick="_genAIRec()">🔄 重新分析</button>
 </div>
 <div id="ai-rec-body">
@@ -480,7 +480,13 @@ var _LEAGUES={
   "arg.1":{name:"阿甲",short:"阿甲",weight:4},
   "chn.1":{name:"中超",short:"中超",weight:3},
   "jpn.1":{name:"日职",short:"日职",weight:3},
-  "kor.1":{name:"韩K",short:"韩K",weight:3}
+  "kor.1":{name:"韩K",short:"韩K",weight:3},
+  "fin.1":{name:"芬超",short:"芬超",weight:3},
+  "swe.1":{name:"瑞典超",short:"瑞超",weight:3},
+  "nor.1":{name:"挪超",short:"挪超",weight:3},
+  "bel.1":{name:"比甲",short:"比甲",weight:4},
+  "aut.1":{name:"奥甲",short:"奥甲",weight:3},
+  "tur.1":{name:"土超",short:"土超",weight:5}
 };
 
 // 全局赛程数据
@@ -709,6 +715,68 @@ var _ESPN_CN={
 "CF Monterrey":"蒙特雷","Monterrey":"蒙特雷",
 "Cruz Azul":"蓝十字","Tigres UANL":"新莱昂自治大学老虎","Tigres":"新莱昂自治大学老虎",
 "Deportivo Toluca":"托卢卡","Toluca":"托卢卡",
+// 欧罗巴资格赛球队
+"Vojvodina":"伏伊伏丁那","FK Vojvodina":"伏伊伏丁那",
+"Ferencváros":"费伦茨瓦罗斯","Ferencváros TC":"费伦茨瓦罗斯",
+"CSKA Sofia":"索菲亚中央陆军","PFC CSKA Sofia":"索菲亚中央陆军",
+"Derry City":"德里城","Derry City FC":"德里城",
+"Hajduk Split":"斯普利特海杜克","HNK Hajduk Split":"斯普利特海杜克",
+"MŠK Žilina":"日利纳","MSK Zilina":"日利纳","Zilina":"日利纳",
+// 芬超
+"Vaasan Palloseura":"瓦萨","VPS":"瓦萨",
+"SJK":"塞伊奈约基","Seiinäjoen Jalkapallokerho":"塞伊奈约基",
+"Helsinki":"赫尔辛基","HJK":"赫尔辛基","HJK Helsinki":"赫尔辛基",
+"KuPS":"库奥皮奥","Kuopion Palloseura":"库奥皮奥",
+"Inter Turku":"国际图尔库",
+"FC Lahti":"拉赫蒂","Lahti":"拉赫蒂",
+"IFK Mariehamn":"玛丽港","Mariehamn":"玛丽港",
+"FC Haka":"哈卡","Haka":"哈卡",
+"FC Honka":"洪卡","Honka":"洪卡",
+"AC Oulu":"奥卢","Oulu":"奥卢",
+"GNK Dinamo Zagreb":"萨格勒布迪纳摩",
+"FK Bodø/Glimt":"博德闪耀","Bodø/Glimt":"博德闪耀","FK Bodo/Glimt":"博德闪耀",
+"Molde FK":"莫尔德","Molde":"莫尔德",
+"Rosenborg BK":"罗森博格","Rosenborg":"罗森博格",
+// 瑞典超
+"Malmö FF":"马尔默","IF Elfsborg":"埃尔夫斯堡","Elfsborg":"埃尔夫斯堡",
+"Djurgårdens IF":"尤尔加丹","Djurgården":"尤尔加丹",
+"AIK Solna":"AIK索尔纳","AIK":"AIK索尔纳",
+"IFK Göteborg":"哥德堡","IFK Norrköping":"诺尔雪平",
+"Hammarby IF":"哈马比","Hammarby":"哈马比",
+"Kalmar FF":"卡尔马","Mjällby AIF":"米亚尔比",
+"IF Brommapojkarna":"布鲁马波卡纳","Brommapojkarna":"布鲁马波卡纳",
+"Halmstads BK":"哈尔姆斯塔德","Halmstad":"哈尔姆斯塔德",
+"Västerås SK":"韦斯特罗斯","Västerås":"韦斯特罗斯",
+// 比甲
+"Club Brugge":"布鲁日","KAA Gent":"根特","RSC Anderlecht":"安德莱赫特",
+"KRC Genk":"亨克","Royal Antwerp":"安特卫普","Antwerp":"安特卫普",
+"Standard Liège":"标准列日","Standard Liege":"标准列日",
+"Union SG":"圣吉罗斯","Kortrijk":"科特赖克","KV Kortrijk":"科特赖克",
+"KV Mechelen":"梅赫伦","Mechelen":"梅赫伦",
+"Cercle Brugge":"布鲁日塞尔日","Sint-Truiden":"圣图尔登",
+"Charleroi":"沙勒罗瓦","Oostende":"奥斯坦德",
+// 奥甲
+"SK Sturm Graz":"格拉茨风暴","SK Rapid Wien":"维也纳快速",
+"FC Red Bull Salzburg":"萨尔茨堡","LASK Linz":"林茨","LASK":"林茨",
+"Austria Wien":"奥地利维也纳","FK Austria Wien":"奥地利维也纳",
+"Wolfsberger AC":"沃尔夫斯贝格",
+"SCR Altach":"阿尔特ach","Altach":"阿尔特ach",
+"TSV Hartberg":"哈特贝格",
+// 土超
+"Galatasaray":"加拉塔萨雷","Fenerbahçe":"费内巴切","Beşiktaş":"贝西克塔斯",
+"Trabzonspor":"特拉布宗体育","İstanbul Başakşehir":"伊斯坦布尔巴萨克赛尔",
+"Kasımpaşa":"卡斯帕萨","Antalyaspor":"安塔利亚体育",
+"Alanyaspor":"阿兰亚体育","Konyaspor":"科尼亚体育",
+"Adana Demirspor":"阿达纳代米尔体育",
+"Sivasspor":"锡瓦斯体育","Gaziantep FK":"加济安泰普",
+"Kayserispor":"开塞利体育","Rizespor":"里泽体育",
+// 挪超补充
+"Viking FK":"维京","Viking":"维京",
+"Fredrikstad FK":"弗雷德里克斯塔","Fredrikstad":"弗雷德里克斯塔",
+"FK Haugesund":"海于格松","Haugesund":"海于格松",
+"Strømsgodset":"斯托姆加斯特","Sarpsborg 08":"萨尔普斯堡",
+"Sandefjord Fotball":"桑德菲杰","Sandefjord":"桑德菲杰",
+"Tromsø IL":"特罗姆瑟","Tromsø":"特罗姆瑟",
 // 世界杯/国家队
 "DRC Congo":"民主刚果","DR Congo":"民主刚果",
 "Republic of Ireland":"爱尔兰","Ireland":"爱尔兰","Northern Ireland":"北爱尔兰",
@@ -824,7 +892,7 @@ async function _loadSchedule(){
   
   var dates=_getNext7Days();
   // 要查询的联赛列表
-  var leagueCodes=["fifa.world","uefa.champions","uefa.europa","eng.1","esp.1","ger.1","ita.1","fra.1","por.1","ned.1","bra.1","arg.1","chn.1","jpn.1","kor.1"];
+  var leagueCodes=["fifa.world","uefa.champions","uefa.europa","eng.1","esp.1","ger.1","ita.1","fra.1","por.1","ned.1","bra.1","arg.1","chn.1","jpn.1","kor.1","fin.1","swe.1","nor.1","bel.1","aut.1","tur.1"];
   
   var allMatches=[];
   var seenIds={};
@@ -1492,7 +1560,8 @@ for(var i=0;i<_BT.length;i++){wc.push(_BT[i])}
 var wh=0;
 for(var i=0;i<wc.length;i++){if(wc[i].ht)wh++}
 var fl=wc;
-var h='<div style="padding:10px;background:#0d1117;border-radius:8px;margin-bottom:10px;border:1px solid #1e3a5f">';
+var h='<div style="font-size:11px;color:#666;margin-bottom:8px;padding:6px;background:#0d1117;border-radius:6px">📊 内部模型回测数据 · 基于历史赛果验证</div>';
+h+='<div style="padding:10px;background:#0d1117;border-radius:8px;margin-bottom:10px;border:1px solid #1e3a5f">';
 h+='<div style="font-size:12px;color:#60a5fa;font-weight:700;margin-bottom:6px">🏆 美加墨世界杯 '+wc.length+'场 · 命中 <span style="color:#4ade80">'+wh+'</span>场 · <span style="color:#4ade80">'+Math.round(wh/wc.length*1000)/10+'%</span></div>';
 h+='<div style="font-size:11px;color:#9ca3af;line-height:1.6;margin-bottom:4px">';
 h+='R1 54.2% · R2 <b style="color:#4ade80">83.3%</b> · R3 75.0% · R32 75.0% · R16 50.0%<br>';
