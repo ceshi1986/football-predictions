@@ -1142,7 +1142,11 @@ function _formatMatchTime(dateStr){
 
 
 function _formatDateLabel(dateStr){
-  var d=new Date(dateStr+"T00:00:00");
+  var ds=dateStr;
+  if(dateStr.length===8&&dateStr.indexOf("-")===-1){
+    ds=dateStr.substring(0,4)+"-"+dateStr.substring(4,6)+"-"+dateStr.substring(6,8);
+  }
+  var d=new Date(ds+"T00:00:00");
   var today=new Date();today.setHours(0,0,0,0);
   var diff=Math.round((d-today)/(1000*60*60*24));
   var weekDay=["周日","周一","周二","周三","周四","周五","周六"][d.getDay()];
