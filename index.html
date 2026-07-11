@@ -1497,7 +1497,7 @@ for(var i=0;i<d.length;i++){
 d.unshift({h:h,a:a,r:r,t:Date.now(),md:md,hh:hh?{f:hh.f,d:hh.d,l:hh.l}:null});if(d.length>100)d=d.slice(0,100);localStorage.setItem(_gp,JSON.stringify(d));_saveToGitHub(h,a,r,md)}
 
 // GitHub数据收集
-var _GH_REPO="Ruochan2017/football-predictions";
+var _GH_REPO="ceshi1986/football-predictions";
 var _GH_FILE="predictions.json";
 var _GH_TOKEN=localStorage.getItem("ght")||"";
 
@@ -1523,7 +1523,7 @@ function _saveToGitHub(h,a,r,md){
     userId:uid
   };
   
-  var url="https://api.github.com/repos/Ruochan2017/football-predictions/contents/feedback.json";
+  var url="https://api.github.com/repos/ceshi1986/football-predictions/contents/feedback.json";
   fetch(url,{
     headers:{"Authorization":"token "+_GH_TOKEN,"Accept":"application/vnd.github.v3+json"}
   }).then(function(resp){
@@ -1910,7 +1910,7 @@ var _AI_KEY="ai_recommendations";
 
 // === Server-side sync (GitHub API) ===
 var _TK1="ghp_amIkC",_TK2="bXu4RykU3lN5bSk1inolgG8zE0fTUOu";
-var _AI_REPO="Ruochan2017/football-predictions";
+var _AI_REPO="ceshi1986/football-predictions";
 var _AI_FILE="data/ai-predictions.json";
 var _AI_RAW_URL="https://raw.githubusercontent.com/"+_AI_REPO+"/main/"+_AI_FILE;
 var _AI_API_URL="https://api.github.com/repos/"+_AI_REPO+"/contents/"+_AI_FILE;
