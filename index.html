@@ -575,6 +575,36 @@ var _LEAGUES={
 
 
 var _allMatches=[];
+
+// 竞彩网真实赔率缓存
+var _realOddsCache=null;
+var _oddsCacheTime=0;
+var _ODDS_TTL=30*60*1000;
+
+async function _fetchRealOdds(){
+  var now=Date.now();
+  if(_realOddsCache&&(now-_oddsCacheTime)<_ODDS_TTL)return _realOddsCache;
+  try{
+    var r=await fetch('https://metaphyai-api-v-cwpuwzgtdx.cn-shanghai.fcapp.run/odds',{cache:'no-cache'});
+    if(r.ok){var d=await r.json();if(d&&d.matches){_realOddsCache=d.matches;_oddsCacheTime=now;console.log('Loaded '+d.matches.length+' real odds');return _realOddsCache;}}
+  }catch(e){console.log('Odds fetch failed:',e);}
+  return null;
+}
+
+function _matchRealOdds(home,away,list){
+  if(!list)return null;
+  var hn=home.replace(/\s+/g,'').toLowerCase();
+  var an=away.replace(/\s+/g,'').toLowerCase();
+  for(var i=0;i<list.length;i++){
+    var o=list[i];
+    var oh=(o.home||'').replace(/\s+/g,'').toLowerCase();
+    var oa=(o.away||'').replace(/\s+/g,'').toLowerCase();
+    if(hn===oh&&an===oa)return o;
+    if((hn.indexOf(oh)>=0||oh.indexOf(hn)>=0)&&(an.indexOf(oa)>=0||oa.indexOf(an)>=0))return o;
+  }
+  return null;
+}
+
 var _activeFilter="all";
 
 
@@ -1168,6 +1198,7 @@ async function _loadSchedule(){
         });
         _allMatches=allMatches;
         _renderLeagueFilter(allMatches);
+        _fetchRealOdds();
         _renderSchedule(allMatches);
         setTimeout(function(){_doGenAIRec()},500);
         return;
@@ -1419,8 +1450,10 @@ var maxProb=Math.max(hf,df,af);
 var minProb=Math.min(hf,df,af);
 var probDiff=maxProb-minProb;
 
-// 计算模拟赔率（用于建议）
-var simOdds=1/maxProb;
+// 获取真实赔率或模拟赔率（用于建议）
+var realOdds=_matchRealOdds(h,a,_realOddsCache);
+var simOdds=realOdds?realOdds.odds.w:(1/maxProb);
+var isRealOdds=!!realOdds;
 var isExtremeFav=simOdds<=1.25; // 极端热门
 var isStrongFav=simOdds>1.25&&simOdds<=1.7; // 强队但不过热
 var isMediumFav=simOdds>1.7&&simOdds<=2.2; // 中等优势
@@ -1428,7 +1461,7 @@ var isUncertain=simOdds>2.2; // 不确定
 
 if(isExtremeFav){
   adviceHtml='<div class="ba-skip">⚠️ 建议放弃购买</div>';
-  adviceHtml+='<div>赔率过低（约'+simOdds.toFixed(2)+'），虽然胜率高达'+Math.round(maxProb*100)+'%，但此类比赛平局概率异常偏高（约15-20%），投注价值极低。</div>';
+  adviceHtml+='<div>赔率过低（约'+simOdds.toFixed(2)+(isRealOdds?' 竞彩':' 估算')+'），虽然胜率高达'+Math.round(maxProb*100)+'%，但此类比赛平局概率异常偏高（约15-20%），投注价值极低。</div>';
   adviceHtml+='<div class="ba-detail">数据支撑：回测中赔率≤1.2的比赛，平局率是正常比赛的2倍以上</div>';
 }else if(isStrongFav&&probDiff>0.35){
   adviceHtml='<div class="ba-recommend">✅ 值得单选</div>';
