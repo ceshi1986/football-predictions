@@ -1467,7 +1467,7 @@ var probDiff=maxProb-minProb;
 
 // 获取真实赔率或模拟赔率（用于建议）
 var realOdds=_matchRealOdds(h,a,_realOddsCache);
-var simOdds=realOdds?realOdds.odds.w:Math.max(1.30,1/maxProb);
+var simOdds=realOdds?(r==="胜"?realOdds.odds.w:r==="平"?realOdds.odds.d:realOdds.odds.l):Math.max(1.30,1/maxProb);
 var isRealOdds=!!realOdds;
 var oddsSource=isRealOdds?'竞彩数据':'模型估算';
 var isExtremeFav=simOdds<=1.25; // 极端热门
