@@ -2227,86 +2227,88 @@ function _renderUpcoming(){
 }
 
 function _aiJudge(m,hf,df,af){
-  var probs=[{r:"胜",p:hf},{r:"平",p:df},{r:"负",p:af}];
-  probs.sort(function(a,b){return b.p-a.p});
+  // 赔率驱动版 v2：有真实赔率时用赔率隐含概率为主信号
+  var modelP={胜:hf,平:df,负:af};
+  var probs,minOdds=999,frogNote="",effConf;
+  var usedOdds=m.odds&&m.odds.w&&m.odds.d&&m.odds.l;
+  
+  if(usedOdds){
+    var w=m.odds.w,d=m.odds.d,l=m.odds.l;
+    // 计算隐含概率和返还率
+    var total=1/w+1/d+1/l;
+    var R=1/total;
+    var pw=R/w,pd=R/d,pl=R/l;
+    // 80%赔率+20%模型混合
+    var fp={胜:0.8*pw+0.2*hf,平:0.8*pd+0.2*df,负:0.8*pl+0.2*af};
+    probs=[{r:"胜",p:fp.胜},{r:"平",p:fp.平},{r:"负",p:fp.负}];
+    probs.sort(function(a,b){return b.p-a.p});
+    minOdds=Math.min(w,d,l);
+    
+    // 蛙跳检测（如果有初始赔率数据）
+    if(m.initOdds&&m.initOdds.w){
+      var io=m.initOdds;
+      var changes={};
+      var cw=io.w>0?(w-io.w)/io.w:0;
+      var cd=io.d>0?(d-io.d)/io.d:0;
+      var cl=io.l>0?(l-io.l)/io.l:0;
+      var minC=Math.min(cw,cd,cl);
+      if(minC<-0.10){
+        var dirMap={w:"胜",d:"平",l:"负"};
+        var dir=cw===minC?"w":(cd===minC?"d":"l");
+        var frogR=dirMap[dir]||"";
+        if(frogR===probs[0].r){
+          frogNote=" · 蛙跳"+frogR;
+        }else if(frogR){
+          frogNote=" · 蛙跳"+frogR+"↔预测"+probs[0].r;
+        }
+      }
+    }
+    effConf=probs[0].p+(frogNote&&frogNote.indexOf("↔")<0?0.05:(frogNote?-0.03:0));
+  }else{
+    probs=[{r:"胜",p:hf},{r:"平",p:df},{r:"负",p:af}];
+    probs.sort(function(a,b){return b.p-a.p});
+    effConf=probs[0].p;
+    minOdds=1/probs[0].p;
+  }
+  
   var maxProb=probs[0].p;
-  var secondProb=probs[1].p;
-  var probDiff=maxProb-secondProb;
-  var simOdds=Math.max(1.30,1/maxProb);
-  var skip=false; 
-  var skipReason="";
+  var probDiff=probs[0].p-probs[1].p;
+  var simOdds=usedOdds?Math.min(m.odds.w,m.odds.d,m.odds.l):Math.max(1.30,1/maxProb);
+  var skip=false,skipReason="";
   
+  if(simOdds<=1.25){skip=true;skipReason="赔率过低（约"+simOdds.toFixed(2)+"），投注价值极低";}
+  if(probDiff<0.08){skip=true;skipReason="结果太不确定，各方向概率接近";}
   
-  if(simOdds<=1.25){
-    skip=true;
-    skipReason="赔率过低（约"+simOdds.toFixed(2)+"），投注价值极低";
-  }
+  var prediction,type,reason,doublePick;
   
-  
-  if(probDiff<0.10){
-    skip=true;
-    skipReason="结果太不确定，各方向概率接近";
-  }
-  
-  
-  var prediction, type, reason, doublePick;
-  
-  
-  if(maxProb>=0.60&&probDiff>=0.20){
+  // 单选：信心>=60% + 差距>=20% + 最低赔率>=1.40
+  if(effConf>=0.60&&probDiff>=0.20&&minOdds>=1.40){
     type="single";
     prediction=probs[0].r;
     doublePick=null;
-    if(probs[0].r==="胜") reason="主队优势明显";
-    else if(probs[0].r==="负") reason="客队实力占优";
-    else reason="平局概率最高且优势显著";
-  }
-  
-  else if(maxProb>=0.45&&maxProb<0.60){
+    if(probs[0].r==="胜")reason="赔率看好主队("+Math.round(effConf*100)+"%)";
+    else if(probs[0].r==="负")reason="赔率看好客队("+Math.round(effConf*100)+"%)";
+    else reason="赔率倾向平局("+Math.round(effConf*100)+"%)";
+    reason+=frogNote;
+    if(usedOdds)reason+=" · 竞彩网赔率";
+  }else{
     type="double";
     var mainPick=probs[0].r;
     var remaining=[];
-    if(m.odds){
+    if(usedOdds){
       var keys=[["胜","w"],["平","d"],["负","l"]];
       for(var i=0;i<3;i++){
-        if(keys[i][0]!==mainPick) remaining.push([keys[i][0],m.odds[keys[i][1]]||1]);
+        if(keys[i][0]!==mainPick)remaining.push([keys[i][0],m.odds[keys[i][1]]||1]);
       }
       remaining.sort(function(a,b){return b[1]-a[1]});
     }
     var upset=remaining.length>0?remaining[0][0]:(mainPick==="胜"?"负":"胜");
     prediction=mainPick+"+"+upset;
     doublePick=[mainPick,upset];
-    reason="优势不够绝对，双选防冷";
-  }
-  
-  else if(maxProb>=0.50&&probDiff>=0.15){
-    type="single";
-    prediction=probs[0].r;
-    doublePick=null;
-    if(probs[0].r==="胜") reason="主队较有优势";
-    else if(probs[0].r==="负") reason="客队略有优势";
-    else reason="平局倾向明显";
-    var hh=_simH(_gs(m.home),_gs(m.away));
-    if(hh.f&&hh.d){
-      var signalMatch=(probs[0].r==="胜"&&hh.d==="h")||(probs[0].r==="负"&&hh.d==="a");
-      if(signalMatch) reason+=" · 盘口信号一致";
-    }
-  }
-  
-  else{
-    type="double";
-    var mainPick2=probs[0].r;
-    var remaining2=[];
-    if(m.odds){
-      var keys2=[["胜","w"],["平","d"],["负","l"]];
-      for(var i=0;i<3;i++){
-        if(keys2[i][0]!==mainPick2) remaining2.push([keys2[i][0],m.odds[keys2[i][1]]||1]);
-      }
-      remaining2.sort(function(a,b){return b[1]-a[1]});
-    }
-    var upset2=remaining2.length>0?remaining2[0][0]:(mainPick2==="胜"?"负":"胜");
-    prediction=mainPick2+"+"+upset2;
-    doublePick=[mainPick2,upset2];
-    reason="方向不够明确，双选覆盖";
+    if(effConf>=0.50&&probDiff>=0.10)reason="方向偏"+mainPick+"("+Math.round(effConf*100)+"%)，双选防冷";
+    else reason="方向不够明确，双选覆盖";
+    reason+=frogNote;
+    if(usedOdds)reason+=" · 竞彩网赔率";
   }
   
   return{
