@@ -1,17 +1,7 @@
 {
-  "lastUpdated": "2026-07-12T22:09:23.265Z",
+  "lastUpdated": "2026-07-12T22:23:54.371Z",
   "predictions": [
     {
-      "prediction": "胜+负",
-      "type": "double",
-      "skip": false,
-      "skipReason": "",
-      "confidence": 53,
-      "reason": "方向偏胜(53%)，双选防冷 · 竞彩网赔率",
-      "doublePick": [
-        "胜",
-        "负"
-      ],
       "matchId": "760642",
       "home": "西班牙",
       "away": "比利时",
@@ -19,21 +9,23 @@
       "leagueCode": "fifa.world",
       "date": "20260711",
       "matchTime": "07/11 周六 03:00",
-      "verified": false,
-      "actualResult": null,
-      "hit": null
-    },
-    {
       "prediction": "负+胜",
       "type": "double",
+      "confidence": 45,
       "skip": false,
       "skipReason": "",
-      "confidence": 57,
-      "reason": "方向偏负(57%)，双选防冷 · 竞彩网赔率",
+      "reason": "方向不够明确，双选覆盖（置信度45%）",
       "doublePick": [
         "负",
         "胜"
       ],
+      "verified": true,
+      "actualResult": "胜",
+      "hit": true,
+      "homeScore": 2,
+      "awayScore": 1
+    },
+    {
       "matchId": "760665",
       "home": "挪威",
       "away": "英格兰",
@@ -41,21 +33,20 @@
       "leagueCode": "fifa.world",
       "date": "20260712",
       "matchTime": "07/12 周日 05:00",
-      "verified": false,
-      "actualResult": null,
-      "hit": null
-    },
-    {
-      "prediction": "胜+负",
-      "type": "double",
+      "prediction": "负",
+      "type": "single",
+      "confidence": 76,
       "skip": false,
       "skipReason": "",
-      "confidence": 53,
-      "reason": "方向偏胜(53%)，双选防冷 · 竞彩网赔率",
-      "doublePick": [
-        "胜",
-        "负"
-      ],
+      "reason": "模型预测客胜概率76%",
+      "doublePick": null,
+      "verified": true,
+      "actualResult": "负",
+      "hit": true,
+      "homeScore": 1,
+      "awayScore": 2
+    },
+    {
       "matchId": "760601",
       "home": "阿根廷",
       "away": "瑞士",
@@ -63,21 +54,23 @@
       "leagueCode": "fifa.world",
       "date": "20260712",
       "matchTime": "07/12 周日 09:00",
-      "verified": false,
-      "actualResult": null,
-      "hit": null
+      "prediction": "负+胜",
+      "type": "double",
+      "confidence": 42,
+      "skip": true,
+      "skipReason": "结果太不确定，各方向概率接近",
+      "reason": "方向不够明确，双选覆盖（置信度42%）",
+      "doublePick": [
+        "负",
+        "胜"
+      ],
+      "verified": true,
+      "actualResult": "胜",
+      "hit": true,
+      "homeScore": 3,
+      "awayScore": 1
     },
     {
-      "prediction": "胜+平",
-      "type": "double",
-      "skip": false,
-      "skipReason": "",
-      "confidence": 47,
-      "reason": "方向不够明确，双选覆盖 · 竞彩网赔率",
-      "doublePick": [
-        "胜",
-        "平"
-      ],
       "matchId": "760634",
       "home": "瓦萨",
       "away": "塞伊奈约基",
@@ -85,21 +78,23 @@
       "leagueCode": "fin.1",
       "date": "20260711",
       "matchTime": "07/11 周六 00:00",
-      "verified": false,
-      "actualResult": null,
-      "hit": null
-    },
-    {
-      "prediction": "负+平",
+      "prediction": "负+胜",
       "type": "double",
+      "confidence": 46,
       "skip": false,
       "skipReason": "",
-      "confidence": 44,
-      "reason": "方向不够明确，双选覆盖 · 竞彩网赔率",
+      "reason": "方向不够明确，双选覆盖（置信度46%）",
       "doublePick": [
         "负",
-        "平"
+        "胜"
       ],
+      "verified": true,
+      "actualResult": "胜",
+      "hit": true,
+      "homeScore": 1,
+      "awayScore": 0
+    },
+    {
       "matchId": "760653",
       "home": "腓特烈斯塔",
       "away": "利勒斯特伦",
@@ -107,21 +102,23 @@
       "leagueCode": "nor.1",
       "date": "20260711",
       "matchTime": "07/11 周六 20:00",
-      "verified": false,
-      "actualResult": null,
-      "hit": null
-    },
-    {
-      "prediction": "负+平",
+      "prediction": "负+胜",
       "type": "double",
-      "skip": false,
-      "skipReason": "",
-      "confidence": 42,
-      "reason": "方向不够明确，双选覆盖 · 竞彩网赔率",
+      "confidence": 44,
+      "skip": true,
+      "skipReason": "结果太不确定，各方向概率接近",
+      "reason": "方向不够明确，双选覆盖（置信度44%）",
       "doublePick": [
         "负",
-        "平"
+        "胜"
       ],
+      "verified": true,
+      "actualResult": "负",
+      "hit": true,
+      "homeScore": 0,
+      "awayScore": 2
+    },
+    {
       "matchId": "760654",
       "home": "拉赫蒂",
       "away": "赫尔辛基",
@@ -129,21 +126,23 @@
       "leagueCode": "fin.1",
       "date": "20260711",
       "matchTime": "07/11 周六 20:00",
-      "verified": false,
-      "actualResult": null,
-      "hit": null
+      "prediction": "负+胜",
+      "type": "double",
+      "confidence": 45,
+      "skip": false,
+      "skipReason": "",
+      "reason": "方向不够明确，双选覆盖（置信度45%）",
+      "doublePick": [
+        "负",
+        "胜"
+      ],
+      "verified": true,
+      "actualResult": "胜",
+      "hit": true,
+      "homeScore": 2,
+      "awayScore": 0
     },
     {
-      "prediction": "胜+平",
-      "type": "double",
-      "skip": true,
-      "skipReason": "结果太不确定，各方向概率接近",
-      "confidence": 39,
-      "reason": "方向不够明确，双选覆盖 · 竞彩网赔率",
-      "doublePick": [
-        "胜",
-        "平"
-      ],
       "matchId": "760655",
       "home": "米亚尔比",
       "away": "AIK索尔纳",
@@ -151,21 +150,23 @@
       "leagueCode": "swe.1",
       "date": "20260711",
       "matchTime": "07/11 周六 21:00",
-      "verified": false,
-      "actualResult": null,
-      "hit": null
-    },
-    {
-      "prediction": "负+平",
+      "prediction": "负+胜",
       "type": "double",
+      "confidence": 45,
       "skip": false,
       "skipReason": "",
-      "confidence": 50,
-      "reason": "方向不够明确，双选覆盖 · 竞彩网赔率",
+      "reason": "方向不够明确，双选覆盖（置信度45%）",
       "doublePick": [
         "负",
-        "平"
+        "胜"
       ],
+      "verified": true,
+      "actualResult": "负",
+      "hit": true,
+      "homeScore": 1,
+      "awayScore": 2
+    },
+    {
       "matchId": "760658",
       "home": "奥勒松",
       "away": "莫尔德",
@@ -173,21 +174,20 @@
       "leagueCode": "nor.1",
       "date": "20260711",
       "matchTime": "07/11 周六 22:00",
-      "verified": false,
-      "actualResult": null,
-      "hit": null
-    },
-    {
-      "prediction": "胜+负",
-      "type": "double",
+      "prediction": "负",
+      "type": "single",
+      "confidence": 66,
       "skip": false,
       "skipReason": "",
-      "confidence": 62,
-      "reason": "方向偏胜(62%)，双选防冷 · 竞彩网赔率",
-      "doublePick": [
-        "胜",
-        "负"
-      ],
+      "reason": "模型预测客胜概率66%",
+      "doublePick": null,
+      "verified": true,
+      "actualResult": "平",
+      "hit": false,
+      "homeScore": 2,
+      "awayScore": 2
+    },
+    {
       "matchId": "760659",
       "home": "格尼斯坦",
       "away": "玛丽港",
@@ -195,21 +195,20 @@
       "leagueCode": "fin.1",
       "date": "20260711",
       "matchTime": "07/11 周六 22:00",
-      "verified": false,
-      "actualResult": null,
-      "hit": null
+      "prediction": "负",
+      "type": "single",
+      "confidence": 64,
+      "skip": false,
+      "skipReason": "",
+      "reason": "模型预测客胜概率64%",
+      "doublePick": null,
+      "verified": true,
+      "actualResult": "胜",
+      "hit": false,
+      "homeScore": 4,
+      "awayScore": 2
     },
     {
-      "prediction": "负+平",
-      "type": "double",
-      "skip": true,
-      "skipReason": "结果太不确定，各方向概率接近",
-      "confidence": 37,
-      "reason": "方向不够明确，双选覆盖 · 竞彩网赔率",
-      "doublePick": [
-        "负",
-        "平"
-      ],
       "matchId": "760660",
       "home": "TPS图尔库",
       "away": "AC奥卢",
@@ -217,18 +216,20 @@
       "leagueCode": "fin.1",
       "date": "20260711",
       "matchTime": "07/11 周六 22:00",
-      "verified": false,
-      "actualResult": null,
-      "hit": null
-    },
-    {
       "prediction": "负",
       "type": "single",
-      "skip": false,
-      "skipReason": "",
-      "confidence": 63,
-      "reason": "赔率看好客队(63%) · 竞彩网赔率",
+      "confidence": 81,
+      "skip": true,
+      "skipReason": "赔率过低（约1.23），投注价值极低",
+      "reason": "模型预测客胜概率81%",
       "doublePick": null,
+      "verified": true,
+      "actualResult": "胜",
+      "hit": false,
+      "homeScore": 3,
+      "awayScore": 0
+    },
+    {
       "matchId": "760661",
       "home": "厄尔格里特",
       "away": "赫根",
@@ -236,21 +237,23 @@
       "leagueCode": "swe.1",
       "date": "20260711",
       "matchTime": "07/11 周六 23:30",
-      "verified": false,
-      "actualResult": null,
-      "hit": null
-    },
-    {
-      "prediction": "胜+负",
+      "prediction": "负+胜",
       "type": "double",
+      "confidence": 46,
       "skip": false,
       "skipReason": "",
-      "confidence": 48,
-      "reason": "方向不够明确，双选覆盖 · 竞彩网赔率",
+      "reason": "方向不够明确，双选覆盖（置信度46%）",
       "doublePick": [
-        "胜",
-        "负"
+        "负",
+        "胜"
       ],
+      "verified": true,
+      "actualResult": "胜",
+      "hit": true,
+      "homeScore": 4,
+      "awayScore": 3
+    },
+    {
       "matchId": "760662",
       "home": "特罗姆瑟",
       "away": "瓦勒伦加",
@@ -258,21 +261,23 @@
       "leagueCode": "nor.1",
       "date": "20260712",
       "matchTime": "07/12 周日 00:00",
-      "verified": false,
-      "actualResult": null,
-      "hit": null
-    },
-    {
-      "prediction": "胜+负",
+      "prediction": "负+平",
       "type": "double",
+      "confidence": 54,
       "skip": false,
       "skipReason": "",
-      "confidence": 61,
-      "reason": "方向偏胜(61%)，双选防冷 · 竞彩网赔率",
+      "reason": "方向不够明确，双选覆盖（置信度54%）",
       "doublePick": [
-        "胜",
-        "负"
+        "负",
+        "平"
       ],
+      "verified": true,
+      "actualResult": "胜",
+      "hit": false,
+      "homeScore": 4,
+      "awayScore": 0
+    },
+    {
       "matchId": "760607",
       "home": "哈马比",
       "away": "卡尔马",
@@ -280,21 +285,23 @@
       "leagueCode": "swe.1",
       "date": "20260712",
       "matchTime": "07/12 周日 20:00",
-      "verified": false,
-      "actualResult": null,
-      "hit": null
+      "prediction": "负+胜",
+      "type": "double",
+      "confidence": 44,
+      "skip": true,
+      "skipReason": "结果太不确定，各方向概率接近",
+      "reason": "方向不够明确，双选覆盖（置信度44%）",
+      "doublePick": [
+        "负",
+        "胜"
+      ],
+      "verified": true,
+      "actualResult": "胜",
+      "hit": true,
+      "homeScore": 2,
+      "awayScore": 0
     },
     {
-      "prediction": "胜+平",
-      "type": "double",
-      "skip": false,
-      "skipReason": "",
-      "confidence": 47,
-      "reason": "方向不够明确，双选覆盖 · 竞彩网赔率",
-      "doublePick": [
-        "胜",
-        "平"
-      ],
       "matchId": "760608",
       "home": "马尔默",
       "away": "哥德堡",
@@ -302,21 +309,23 @@
       "leagueCode": "swe.1",
       "date": "20260712",
       "matchTime": "07/12 周日 20:00",
-      "verified": false,
-      "actualResult": null,
-      "hit": null
+      "prediction": "负+胜",
+      "type": "double",
+      "confidence": 44,
+      "skip": true,
+      "skipReason": "结果太不确定，各方向概率接近",
+      "reason": "方向不够明确，双选覆盖（置信度44%）",
+      "doublePick": [
+        "负",
+        "胜"
+      ],
+      "verified": true,
+      "actualResult": "胜",
+      "hit": true,
+      "homeScore": 4,
+      "awayScore": 0
     },
     {
-      "prediction": "胜+负",
-      "type": "double",
-      "skip": false,
-      "skipReason": "",
-      "confidence": 43,
-      "reason": "方向不够明确，双选覆盖 · 竞彩网赔率",
-      "doublePick": [
-        "胜",
-        "负"
-      ],
       "matchId": "760609",
       "home": "韦斯特罗斯",
       "away": "代格福什",
@@ -324,18 +333,23 @@
       "leagueCode": "swe.1",
       "date": "20260712",
       "matchTime": "07/12 周日 20:00",
-      "verified": false,
-      "actualResult": null,
-      "hit": null
-    },
-    {
-      "prediction": "负",
-      "type": "single",
+      "prediction": "负+胜",
+      "type": "double",
+      "confidence": 45,
       "skip": false,
       "skipReason": "",
-      "confidence": 63,
-      "reason": "赔率看好客队(63%) · 竞彩网赔率",
-      "doublePick": null,
+      "reason": "方向不够明确，双选覆盖（置信度45%）",
+      "doublePick": [
+        "负",
+        "胜"
+      ],
+      "verified": true,
+      "actualResult": "胜",
+      "hit": true,
+      "homeScore": 2,
+      "awayScore": 0
+    },
+    {
       "matchId": "760610",
       "home": "KFUM奥斯陆",
       "away": "博德闪耀",
@@ -343,21 +357,20 @@
       "leagueCode": "nor.1",
       "date": "20260712",
       "matchTime": "07/12 周日 20:30",
-      "verified": false,
-      "actualResult": null,
-      "hit": null
-    },
-    {
-      "prediction": "胜+负",
-      "type": "double",
+      "prediction": "负",
+      "type": "single",
+      "confidence": 71,
       "skip": false,
       "skipReason": "",
-      "confidence": 43,
-      "reason": "方向不够明确，双选覆盖 · 竞彩网赔率",
-      "doublePick": [
-        "胜",
-        "负"
-      ],
+      "reason": "模型预测客胜概率71%",
+      "doublePick": null,
+      "verified": true,
+      "actualResult": "负",
+      "hit": true,
+      "homeScore": 0,
+      "awayScore": 2
+    },
+    {
       "matchId": "760612",
       "home": "加尔斯",
       "away": "埃尔夫斯堡",
@@ -365,21 +378,20 @@
       "leagueCode": "swe.1",
       "date": "20260712",
       "matchTime": "07/12 周日 22:30",
-      "verified": false,
-      "actualResult": null,
-      "hit": null
-    },
-    {
-      "prediction": "负+胜",
-      "type": "double",
+      "prediction": "负",
+      "type": "single",
+      "confidence": 80,
       "skip": false,
       "skipReason": "",
-      "confidence": 56,
-      "reason": "方向偏负(56%)，双选防冷 · 竞彩网赔率",
-      "doublePick": [
-        "负",
-        "胜"
-      ],
+      "reason": "模型预测客胜概率80%",
+      "doublePick": null,
+      "verified": true,
+      "actualResult": "胜",
+      "hit": false,
+      "homeScore": 1,
+      "awayScore": 0
+    },
+    {
       "matchId": "760613",
       "home": "布鲁马波卡纳",
       "away": "天狼星",
@@ -387,21 +399,23 @@
       "leagueCode": "swe.1",
       "date": "20260712",
       "matchTime": "07/12 周日 22:30",
-      "verified": false,
-      "actualResult": null,
-      "hit": null
-    },
-    {
-      "prediction": "胜+负",
+      "prediction": "负+平",
       "type": "double",
+      "confidence": 54,
       "skip": false,
       "skipReason": "",
-      "confidence": 60,
-      "reason": "方向偏胜(60%)，双选防冷 · 竞彩网赔率",
+      "reason": "方向不够明确，双选覆盖（置信度54%）",
       "doublePick": [
-        "胜",
-        "负"
+        "负",
+        "平"
       ],
+      "verified": true,
+      "actualResult": "负",
+      "hit": true,
+      "homeScore": 1,
+      "awayScore": 2
+    },
+    {
       "matchId": "760614",
       "home": "布兰",
       "away": "斯达",
@@ -409,21 +423,23 @@
       "leagueCode": "nor.1",
       "date": "20260712",
       "matchTime": "07/12 周日 23:00",
-      "verified": false,
-      "actualResult": null,
-      "hit": null
-    },
-    {
       "prediction": "胜+负",
       "type": "double",
-      "skip": false,
-      "skipReason": "",
-      "confidence": 53,
-      "reason": "方向偏胜(53%)，双选防冷 · 竞彩网赔率",
+      "confidence": 44,
+      "skip": true,
+      "skipReason": "结果太不确定，各方向概率接近",
+      "reason": "方向不够明确，双选覆盖（置信度44%）",
       "doublePick": [
         "胜",
         "负"
       ],
+      "verified": true,
+      "actualResult": "胜",
+      "hit": true,
+      "homeScore": 2,
+      "awayScore": 1
+    },
+    {
       "matchId": "760615",
       "home": "罗森博格",
       "away": "克里斯蒂安松",
@@ -431,21 +447,23 @@
       "leagueCode": "nor.1",
       "date": "20260712",
       "matchTime": "07/12 周日 23:00",
-      "verified": false,
-      "actualResult": null,
-      "hit": null
+      "prediction": "负+胜",
+      "type": "double",
+      "confidence": 44,
+      "skip": true,
+      "skipReason": "结果太不确定，各方向概率接近",
+      "reason": "方向不够明确，双选覆盖（置信度44%）",
+      "doublePick": [
+        "负",
+        "胜"
+      ],
+      "verified": true,
+      "actualResult": "胜",
+      "hit": true,
+      "homeScore": 3,
+      "awayScore": 0
     },
     {
-      "prediction": "胜+负",
-      "type": "double",
-      "skip": false,
-      "skipReason": "",
-      "confidence": 46,
-      "reason": "方向不够明确，双选覆盖 · 竞彩网赔率",
-      "doublePick": [
-        "胜",
-        "负"
-      ],
       "matchId": "760616",
       "home": "桑讷菲尤尔",
       "away": "汉坎",
@@ -453,21 +471,23 @@
       "leagueCode": "nor.1",
       "date": "20260712",
       "matchTime": "07/12 周日 23:00",
-      "verified": false,
-      "actualResult": null,
-      "hit": null
-    },
-    {
       "prediction": "负+平",
       "type": "double",
+      "confidence": 51,
       "skip": false,
       "skipReason": "",
-      "confidence": 54,
-      "reason": "方向偏负(54%)，双选防冷 · 竞彩网赔率",
+      "reason": "方向不够明确，双选覆盖（置信度51%）",
       "doublePick": [
         "负",
         "平"
       ],
+      "verified": true,
+      "actualResult": "平",
+      "hit": true,
+      "homeScore": 2,
+      "awayScore": 2
+    },
+    {
       "matchId": "760617",
       "home": "萨尔普斯堡",
       "away": "维京",
@@ -475,21 +495,23 @@
       "leagueCode": "nor.1",
       "date": "20260713",
       "matchTime": "07/13 周一 01:15",
+      "prediction": "负+平",
+      "type": "double",
+      "confidence": 57,
+      "skip": false,
+      "skipReason": "",
+      "reason": "方向不够明确，双选覆盖（置信度57%）",
+      "doublePick": [
+        "负",
+        "平"
+      ],
       "verified": false,
       "actualResult": null,
-      "hit": null
+      "hit": null,
+      "homeScore": null,
+      "awayScore": null
     },
     {
-      "prediction": "胜+负",
-      "type": "double",
-      "skip": true,
-      "skipReason": "赔率过低（约1.23），投注价值极低",
-      "confidence": 67,
-      "reason": "方向偏胜(67%)，双选防冷 · 竞彩网赔率",
-      "doublePick": [
-        "胜",
-        "负"
-      ],
       "matchId": "760627",
       "home": "佐加顿斯",
       "away": "哈尔姆斯塔德",
@@ -497,21 +519,20 @@
       "leagueCode": "swe.1",
       "date": "20260714",
       "matchTime": "07/14 周二 01:00",
-      "verified": false,
-      "actualResult": null,
-      "hit": null
-    },
-    {
-      "prediction": "胜+负",
-      "type": "double",
+      "prediction": "负",
+      "type": "single",
+      "confidence": 74,
       "skip": false,
       "skipReason": "",
-      "confidence": 47,
-      "reason": "方向不够明确，双选覆盖 · 竞彩网赔率",
-      "doublePick": [
-        "胜",
-        "负"
-      ],
+      "reason": "模型预测客胜概率74%",
+      "doublePick": null,
+      "verified": false,
+      "actualResult": null,
+      "hit": null,
+      "homeScore": null,
+      "awayScore": null
+    },
+    {
       "matchId": "760631",
       "home": "水原FC",
       "away": "全南天龙",
@@ -519,21 +540,23 @@
       "leagueCode": "kor.k2",
       "date": "20260710",
       "matchTime": "07/10 周五 18:30",
-      "verified": false,
-      "actualResult": null,
-      "hit": null
-    },
-    {
       "prediction": "胜+负",
       "type": "double",
-      "skip": false,
-      "skipReason": "",
-      "confidence": 46,
-      "reason": "方向不够明确，双选覆盖 · 竞彩网赔率",
+      "confidence": 44,
+      "skip": true,
+      "skipReason": "结果太不确定，各方向概率接近",
+      "reason": "方向不够明确，双选覆盖（置信度44%）",
       "doublePick": [
         "胜",
         "负"
       ],
+      "verified": true,
+      "actualResult": "胜",
+      "hit": true,
+      "homeScore": 5,
+      "awayScore": 0
+    },
+    {
       "matchId": "760632",
       "home": "天安城",
       "away": "金海FC",
@@ -541,21 +564,23 @@
       "leagueCode": "kor.k2",
       "date": "20260710",
       "matchTime": "07/10 周五 18:30",
-      "verified": false,
-      "actualResult": null,
-      "hit": null
-    },
-    {
-      "prediction": "胜+负",
+      "prediction": "负+平",
       "type": "double",
+      "confidence": 57,
       "skip": false,
       "skipReason": "",
-      "confidence": 60,
-      "reason": "方向偏胜(60%)，双选防冷 · 竞彩网赔率",
+      "reason": "方向不够明确，双选覆盖（置信度57%）",
       "doublePick": [
-        "胜",
-        "负"
+        "负",
+        "平"
       ],
+      "verified": true,
+      "actualResult": "负",
+      "hit": true,
+      "homeScore": 0,
+      "awayScore": 1
+    },
+    {
       "matchId": "760633",
       "home": "KTP科特卡",
       "away": "耶尔文佩",
@@ -563,21 +588,23 @@
       "leagueCode": "fin.2",
       "date": "20260710",
       "matchTime": "07/10 周五 23:30",
-      "verified": false,
-      "actualResult": null,
-      "hit": null
+      "prediction": "负+胜",
+      "type": "double",
+      "confidence": 42,
+      "skip": true,
+      "skipReason": "结果太不确定，各方向概率接近",
+      "reason": "方向不够明确，双选覆盖（置信度42%）",
+      "doublePick": [
+        "负",
+        "胜"
+      ],
+      "verified": true,
+      "actualResult": "胜",
+      "hit": true,
+      "homeScore": 4,
+      "awayScore": 1
     },
     {
-      "prediction": "胜+负",
-      "type": "double",
-      "skip": false,
-      "skipReason": "",
-      "confidence": 50,
-      "reason": "方向不够明确，双选覆盖 · 竞彩网赔率",
-      "doublePick": [
-        "胜",
-        "负"
-      ],
       "matchId": "760635",
       "home": "PK-35",
       "away": "卡帕",
@@ -585,21 +612,23 @@
       "leagueCode": "fin.2",
       "date": "20260711",
       "matchTime": "07/11 周六 00:00",
-      "verified": false,
-      "actualResult": null,
-      "hit": null
-    },
-    {
-      "prediction": "胜+负",
+      "prediction": "负+平",
       "type": "double",
+      "confidence": 51,
       "skip": false,
       "skipReason": "",
-      "confidence": 50,
-      "reason": "方向偏胜(50%)，双选防冷 · 竞彩网赔率",
+      "reason": "方向不够明确，双选覆盖（置信度51%）",
       "doublePick": [
-        "胜",
-        "负"
+        "负",
+        "平"
       ],
+      "verified": true,
+      "actualResult": "胜",
+      "hit": false,
+      "homeScore": 3,
+      "awayScore": 1
+    },
+    {
       "matchId": "760636",
       "home": "邓多克",
       "away": "德罗赫达联",
@@ -607,21 +636,23 @@
       "leagueCode": "irl.1",
       "date": "20260711",
       "matchTime": "07/11 周六 02:45",
-      "verified": false,
-      "actualResult": null,
-      "hit": null
+      "prediction": "负+胜",
+      "type": "double",
+      "confidence": 46,
+      "skip": false,
+      "skipReason": "",
+      "reason": "方向不够明确，双选覆盖（置信度46%）",
+      "doublePick": [
+        "负",
+        "胜"
+      ],
+      "verified": true,
+      "actualResult": "负",
+      "hit": true,
+      "homeScore": 1,
+      "awayScore": 2
     },
     {
-      "prediction": "胜+平",
-      "type": "double",
-      "skip": true,
-      "skipReason": "结果太不确定，各方向概率接近",
-      "confidence": 37,
-      "reason": "方向不够明确，双选覆盖 · 竞彩网赔率",
-      "doublePick": [
-        "胜",
-        "平"
-      ],
       "matchId": "760637",
       "home": "布雷流浪者",
       "away": "都柏林大学",
@@ -629,21 +660,23 @@
       "leagueCode": "irl.2",
       "date": "20260711",
       "matchTime": "07/11 周六 02:45",
-      "verified": false,
-      "actualResult": null,
-      "hit": null
+      "prediction": "负+胜",
+      "type": "double",
+      "confidence": 42,
+      "skip": true,
+      "skipReason": "结果太不确定，各方向概率接近",
+      "reason": "方向不够明确，双选覆盖（置信度42%）",
+      "doublePick": [
+        "负",
+        "胜"
+      ],
+      "verified": true,
+      "actualResult": "胜",
+      "hit": true,
+      "homeScore": 6,
+      "awayScore": 0
     },
     {
-      "prediction": "胜+负",
-      "type": "double",
-      "skip": false,
-      "skipReason": "",
-      "confidence": 62,
-      "reason": "方向偏胜(62%)，双选防冷 · 竞彩网赔率",
-      "doublePick": [
-        "胜",
-        "负"
-      ],
       "matchId": "760638",
       "home": "科克城",
       "away": "朗福德城",
@@ -651,21 +684,23 @@
       "leagueCode": "irl.2",
       "date": "20260711",
       "matchTime": "07/11 周六 02:45",
-      "verified": false,
-      "actualResult": null,
-      "hit": null
-    },
-    {
-      "prediction": "负+平",
+      "prediction": "负+胜",
       "type": "double",
+      "confidence": 43,
       "skip": true,
       "skipReason": "结果太不确定，各方向概率接近",
-      "confidence": 38,
-      "reason": "方向不够明确，双选覆盖 · 竞彩网赔率",
+      "reason": "方向不够明确，双选覆盖（置信度43%）",
       "doublePick": [
         "负",
-        "平"
+        "胜"
       ],
+      "verified": true,
+      "actualResult": "负",
+      "hit": true,
+      "homeScore": 3,
+      "awayScore": 4
+    },
+    {
       "matchId": "760639",
       "home": "费恩哈普",
       "away": "条约联",
@@ -673,21 +708,20 @@
       "leagueCode": "irl.2",
       "date": "20260711",
       "matchTime": "07/11 周六 02:45",
-      "verified": false,
-      "actualResult": null,
-      "hit": null
-    },
-    {
-      "prediction": "胜+负",
-      "type": "double",
+      "prediction": "负",
+      "type": "single",
+      "confidence": 61,
       "skip": false,
       "skipReason": "",
-      "confidence": 42,
-      "reason": "方向不够明确，双选覆盖 · 竞彩网赔率",
-      "doublePick": [
-        "胜",
-        "负"
-      ],
+      "reason": "模型预测客胜概率61%",
+      "doublePick": null,
+      "verified": true,
+      "actualResult": "负",
+      "hit": true,
+      "homeScore": 0,
+      "awayScore": 1
+    },
+    {
       "matchId": "760640",
       "home": "韦克斯福德",
       "away": "凯里",
@@ -695,21 +729,20 @@
       "leagueCode": "irl.2",
       "date": "20260711",
       "matchTime": "07/11 周六 02:45",
-      "verified": false,
-      "actualResult": null,
-      "hit": null
+      "prediction": "负",
+      "type": "single",
+      "confidence": 92,
+      "skip": true,
+      "skipReason": "赔率过低（约1.09），投注价值极低",
+      "reason": "模型预测客胜概率92%",
+      "doublePick": null,
+      "verified": true,
+      "actualResult": "平",
+      "hit": false,
+      "homeScore": 2,
+      "awayScore": 2
     },
     {
-      "prediction": "负+平",
-      "type": "double",
-      "skip": true,
-      "skipReason": "结果太不确定，各方向概率接近",
-      "confidence": 37,
-      "reason": "方向不够明确，双选覆盖 · 竞彩网赔率",
-      "doublePick": [
-        "负",
-        "平"
-      ],
       "matchId": "760641",
       "home": "阿斯隆城",
       "away": "科夫漫步者",
@@ -717,21 +750,20 @@
       "leagueCode": "irl.2",
       "date": "20260711",
       "matchTime": "07/11 周六 02:45",
-      "verified": false,
-      "actualResult": null,
-      "hit": null
-    },
-    {
-      "prediction": "负+胜",
-      "type": "double",
+      "prediction": "负",
+      "type": "single",
+      "confidence": 66,
       "skip": false,
       "skipReason": "",
-      "confidence": 56,
-      "reason": "方向偏负(56%)，双选防冷 · 竞彩网赔率",
-      "doublePick": [
-        "负",
-        "胜"
-      ],
+      "reason": "模型预测客胜概率66%",
+      "doublePick": null,
+      "verified": true,
+      "actualResult": "胜",
+      "hit": false,
+      "homeScore": 2,
+      "awayScore": 0
+    },
+    {
       "matchId": "760643",
       "home": "沃特福德FC",
       "away": "圣帕特里克竞技",
@@ -739,21 +771,23 @@
       "leagueCode": "irl.1",
       "date": "20260711",
       "matchTime": "07/11 周六 03:00",
-      "verified": false,
-      "actualResult": null,
-      "hit": null
-    },
-    {
       "prediction": "胜+负",
       "type": "double",
-      "skip": false,
-      "skipReason": "",
-      "confidence": 44,
-      "reason": "方向不够明确，双选覆盖 · 竞彩网赔率",
+      "confidence": 47,
+      "skip": true,
+      "skipReason": "结果太不确定，各方向概率接近",
+      "reason": "方向不够明确，双选覆盖（置信度47%）",
       "doublePick": [
         "胜",
         "负"
       ],
+      "verified": true,
+      "actualResult": "平",
+      "hit": false,
+      "homeScore": 1,
+      "awayScore": 1
+    },
+    {
       "matchId": "760644",
       "home": "尤文图德",
       "away": "维拉诺瓦",
@@ -761,21 +795,20 @@
       "leagueCode": "bra.2",
       "date": "20260711",
       "matchTime": "07/11 周六 06:00",
-      "verified": false,
-      "actualResult": null,
-      "hit": null
+      "prediction": "负",
+      "type": "single",
+      "confidence": 90,
+      "skip": true,
+      "skipReason": "赔率过低（约1.11），投注价值极低",
+      "reason": "模型预测客胜概率90%",
+      "doublePick": null,
+      "verified": true,
+      "actualResult": "胜",
+      "hit": false,
+      "homeScore": 1,
+      "awayScore": 0
     },
     {
-      "prediction": "胜+负",
-      "type": "double",
-      "skip": false,
-      "skipReason": "",
-      "confidence": 42,
-      "reason": "方向不够明确，双选覆盖 · 竞彩网赔率",
-      "doublePick": [
-        "胜",
-        "负"
-      ],
       "matchId": "760645",
       "home": "累西腓体育",
       "away": "博塔弗戈SP",
@@ -783,21 +816,23 @@
       "leagueCode": "bra.2",
       "date": "20260711",
       "matchTime": "07/11 周六 07:00",
-      "verified": false,
-      "actualResult": null,
-      "hit": null
-    },
-    {
-      "prediction": "负+平",
+      "prediction": "负+胜",
       "type": "double",
+      "confidence": 45,
       "skip": false,
       "skipReason": "",
-      "confidence": 41,
-      "reason": "方向不够明确，双选覆盖 · 竞彩网赔率",
+      "reason": "方向不够明确，双选覆盖（置信度45%）",
       "doublePick": [
         "负",
-        "平"
+        "胜"
       ],
+      "verified": true,
+      "actualResult": "平",
+      "hit": false,
+      "homeScore": 3,
+      "awayScore": 3
+    },
+    {
       "matchId": "760646",
       "home": "蔚山HD",
       "away": "全北现代",
@@ -805,21 +840,20 @@
       "leagueCode": "kor.k1",
       "date": "20260711",
       "matchTime": "07/11 周六 18:30",
-      "verified": false,
-      "actualResult": null,
-      "hit": null
+      "prediction": "负",
+      "type": "single",
+      "confidence": 83,
+      "skip": true,
+      "skipReason": "赔率过低（约1.21），投注价值极低",
+      "reason": "模型预测客胜概率83%",
+      "doublePick": null,
+      "verified": true,
+      "actualResult": "负",
+      "hit": true,
+      "homeScore": 1,
+      "awayScore": 3
     },
     {
-      "prediction": "胜+负",
-      "type": "double",
-      "skip": false,
-      "skipReason": "",
-      "confidence": 43,
-      "reason": "方向不够明确，双选覆盖 · 竞彩网赔率",
-      "doublePick": [
-        "胜",
-        "负"
-      ],
       "matchId": "760647",
       "home": "金泉尚武",
       "away": "富川1995",
@@ -827,21 +861,20 @@
       "leagueCode": "kor.k1",
       "date": "20260711",
       "matchTime": "07/11 周六 18:30",
-      "verified": false,
-      "actualResult": null,
-      "hit": null
+      "prediction": "负",
+      "type": "single",
+      "confidence": 89,
+      "skip": true,
+      "skipReason": "赔率过低（约1.12），投注价值极低",
+      "reason": "模型预测客胜概率89%",
+      "doublePick": null,
+      "verified": true,
+      "actualResult": "平",
+      "hit": false,
+      "homeScore": 1,
+      "awayScore": 1
     },
     {
-      "prediction": "负+胜",
-      "type": "double",
-      "skip": false,
-      "skipReason": "",
-      "confidence": 54,
-      "reason": "方向偏负(54%)，双选防冷 · 竞彩网赔率",
-      "doublePick": [
-        "负",
-        "胜"
-      ],
       "matchId": "760648",
       "home": "光州FC",
       "away": "浦项铁人",
@@ -849,21 +882,20 @@
       "leagueCode": "kor.k1",
       "date": "20260711",
       "matchTime": "07/11 周六 18:30",
-      "verified": false,
-      "actualResult": null,
-      "hit": null
+      "prediction": "负",
+      "type": "single",
+      "confidence": 91,
+      "skip": true,
+      "skipReason": "赔率过低（约1.10），投注价值极低",
+      "reason": "模型预测客胜概率91%",
+      "doublePick": null,
+      "verified": true,
+      "actualResult": "负",
+      "hit": true,
+      "homeScore": 0,
+      "awayScore": 3
     },
     {
-      "prediction": "负+胜",
-      "type": "double",
-      "skip": false,
-      "skipReason": "",
-      "confidence": 65,
-      "reason": "方向偏负(65%)，双选防冷 · 竞彩网赔率",
-      "doublePick": [
-        "负",
-        "胜"
-      ],
       "matchId": "760649",
       "home": "安山绿人",
       "away": "水原三星蓝翼",
@@ -871,21 +903,23 @@
       "leagueCode": "kor.k2",
       "date": "20260711",
       "matchTime": "07/11 周六 18:30",
-      "verified": false,
-      "actualResult": null,
-      "hit": null
+      "prediction": "负+胜",
+      "type": "double",
+      "confidence": 42,
+      "skip": true,
+      "skipReason": "结果太不确定，各方向概率接近",
+      "reason": "方向不够明确，双选覆盖（置信度42%）",
+      "doublePick": [
+        "负",
+        "胜"
+      ],
+      "verified": true,
+      "actualResult": "胜",
+      "hit": true,
+      "homeScore": 2,
+      "awayScore": 1
     },
     {
-      "prediction": "胜+负",
-      "type": "double",
-      "skip": false,
-      "skipReason": "",
-      "confidence": 48,
-      "reason": "方向不够明确，双选覆盖 · 竞彩网赔率",
-      "doublePick": [
-        "胜",
-        "负"
-      ],
       "matchId": "760650",
       "home": "大邱FC",
       "away": "城南FC",
@@ -893,21 +927,23 @@
       "leagueCode": "kor.k2",
       "date": "20260711",
       "matchTime": "07/11 周六 18:30",
-      "verified": false,
-      "actualResult": null,
-      "hit": null
-    },
-    {
-      "prediction": "胜+负",
+      "prediction": "负+胜",
       "type": "double",
+      "confidence": 46,
       "skip": false,
       "skipReason": "",
-      "confidence": 48,
-      "reason": "方向不够明确，双选覆盖 · 竞彩网赔率",
+      "reason": "方向不够明确，双选覆盖（置信度46%）",
       "doublePick": [
-        "胜",
-        "负"
+        "负",
+        "胜"
       ],
+      "verified": true,
+      "actualResult": "胜",
+      "hit": true,
+      "homeScore": 3,
+      "awayScore": 2
+    },
+    {
       "matchId": "760651",
       "home": "华城FC",
       "away": "坡州前沿",
@@ -915,21 +951,23 @@
       "leagueCode": "kor.k2",
       "date": "20260711",
       "matchTime": "07/11 周六 18:30",
-      "verified": false,
-      "actualResult": null,
-      "hit": null
-    },
-    {
-      "prediction": "胜+平",
+      "prediction": "负+胜",
       "type": "double",
+      "confidence": 42,
       "skip": true,
       "skipReason": "结果太不确定，各方向概率接近",
-      "confidence": 38,
-      "reason": "方向不够明确，双选覆盖 · 竞彩网赔率",
+      "reason": "方向不够明确，双选覆盖（置信度42%）",
       "doublePick": [
-        "胜",
-        "平"
+        "负",
+        "胜"
       ],
+      "verified": true,
+      "actualResult": "负",
+      "hit": true,
+      "homeScore": 1,
+      "awayScore": 2
+    },
+    {
       "matchId": "760652",
       "home": "龙仁FC",
       "away": "忠北清州FC",
@@ -937,21 +975,20 @@
       "leagueCode": "kor.k2",
       "date": "20260711",
       "matchTime": "07/11 周六 18:30",
-      "verified": false,
-      "actualResult": null,
-      "hit": null
+      "prediction": "负",
+      "type": "single",
+      "confidence": 86,
+      "skip": true,
+      "skipReason": "赔率过低（约1.16），投注价值极低",
+      "reason": "模型预测客胜概率86%",
+      "doublePick": null,
+      "verified": true,
+      "actualResult": "平",
+      "hit": false,
+      "homeScore": 1,
+      "awayScore": 1
     },
     {
-      "prediction": "胜+负",
-      "type": "double",
-      "skip": false,
-      "skipReason": "",
-      "confidence": 54,
-      "reason": "方向偏胜(54%)，双选防冷 · 竞彩网赔率",
-      "doublePick": [
-        "胜",
-        "负"
-      ],
       "matchId": "760656",
       "home": "哈卡",
       "away": "EIF埃克奈斯",
@@ -959,21 +996,23 @@
       "leagueCode": "fin.2",
       "date": "20260711",
       "matchTime": "07/11 周六 21:00",
-      "verified": false,
-      "actualResult": null,
-      "hit": null
-    },
-    {
-      "prediction": "负+平",
+      "prediction": "胜+负",
       "type": "double",
+      "confidence": 49,
       "skip": true,
       "skipReason": "结果太不确定，各方向概率接近",
-      "confidence": 39,
-      "reason": "方向不够明确，双选覆盖 · 竞彩网赔率",
+      "reason": "方向不够明确，双选覆盖（置信度49%）",
       "doublePick": [
-        "负",
-        "平"
+        "胜",
+        "负"
       ],
+      "verified": true,
+      "actualResult": "胜",
+      "hit": true,
+      "homeScore": 3,
+      "awayScore": 1
+    },
+    {
       "matchId": "760657",
       "home": "塞伊奈约基学院",
       "away": "MP米凯利",
@@ -981,21 +1020,20 @@
       "leagueCode": "fin.2",
       "date": "20260711",
       "matchTime": "07/11 周六 21:00",
-      "verified": false,
-      "actualResult": null,
-      "hit": null
+      "prediction": "负",
+      "type": "single",
+      "confidence": 90,
+      "skip": true,
+      "skipReason": "赔率过低（约1.11），投注价值极低",
+      "reason": "模型预测客胜概率90%",
+      "doublePick": null,
+      "verified": true,
+      "actualResult": "平",
+      "hit": false,
+      "homeScore": 1,
+      "awayScore": 1
     },
     {
-      "prediction": "胜+负",
-      "type": "double",
-      "skip": false,
-      "skipReason": "",
-      "confidence": 48,
-      "reason": "方向不够明确，双选覆盖 · 竞彩网赔率",
-      "doublePick": [
-        "胜",
-        "负"
-      ],
       "matchId": "760663",
       "home": "戈尔韦联",
       "away": "斯莱戈流浪者",
@@ -1003,21 +1041,20 @@
       "leagueCode": "irl.1",
       "date": "20260712",
       "matchTime": "07/12 周日 00:00",
-      "verified": false,
-      "actualResult": null,
-      "hit": null
-    },
-    {
-      "prediction": "负+胜",
-      "type": "double",
+      "prediction": "负",
+      "type": "single",
+      "confidence": 78,
       "skip": false,
       "skipReason": "",
-      "confidence": 52,
-      "reason": "方向偏负(52%)，双选防冷 · 竞彩网赔率",
-      "doublePick": [
-        "负",
-        "胜"
-      ],
+      "reason": "模型预测客胜概率78%",
+      "doublePick": null,
+      "verified": true,
+      "actualResult": "胜",
+      "hit": false,
+      "homeScore": 3,
+      "awayScore": 2
+    },
+    {
       "matchId": "760664",
       "home": "赫尔辛基预备队",
       "away": "吉波",
@@ -1025,21 +1062,20 @@
       "leagueCode": "fin.2",
       "date": "20260712",
       "matchTime": "07/12 周日 00:00",
-      "verified": false,
-      "actualResult": null,
-      "hit": null
-    },
-    {
-      "prediction": "负+平",
-      "type": "double",
+      "prediction": "负",
+      "type": "single",
+      "confidence": 78,
       "skip": false,
       "skipReason": "",
-      "confidence": 40,
-      "reason": "方向不够明确，双选覆盖 · 竞彩网赔率",
-      "doublePick": [
-        "负",
-        "平"
-      ],
+      "reason": "模型预测客胜概率78%",
+      "doublePick": null,
+      "verified": true,
+      "actualResult": "负",
+      "hit": true,
+      "homeScore": 0,
+      "awayScore": 2
+    },
+    {
       "matchId": "760602",
       "home": "济州SK",
       "away": "大田韩亚市民",
@@ -1047,21 +1083,23 @@
       "leagueCode": "kor.k1",
       "date": "20260712",
       "matchTime": "07/12 周日 18:30",
-      "verified": false,
-      "actualResult": null,
-      "hit": null
+      "prediction": "负+胜",
+      "type": "double",
+      "confidence": 44,
+      "skip": true,
+      "skipReason": "结果太不确定，各方向概率接近",
+      "reason": "方向不够明确，双选覆盖（置信度44%）",
+      "doublePick": [
+        "负",
+        "胜"
+      ],
+      "verified": true,
+      "actualResult": "平",
+      "hit": false,
+      "homeScore": 0,
+      "awayScore": 0
     },
     {
-      "prediction": "胜+负",
-      "type": "double",
-      "skip": false,
-      "skipReason": "",
-      "confidence": 41,
-      "reason": "方向不够明确，双选覆盖 · 竞彩网赔率",
-      "doublePick": [
-        "胜",
-        "负"
-      ],
       "matchId": "760603",
       "home": "仁川联",
       "away": "FC安养",
@@ -1069,21 +1107,23 @@
       "leagueCode": "kor.k1",
       "date": "20260712",
       "matchTime": "07/12 周日 18:30",
-      "verified": false,
-      "actualResult": null,
-      "hit": null
-    },
-    {
       "prediction": "胜+负",
       "type": "double",
+      "confidence": 45,
       "skip": true,
       "skipReason": "结果太不确定，各方向概率接近",
-      "confidence": 36,
-      "reason": "方向不够明确，双选覆盖 · 竞彩网赔率",
+      "reason": "方向不够明确，双选覆盖（置信度45%）",
       "doublePick": [
         "胜",
         "负"
       ],
+      "verified": true,
+      "actualResult": "负",
+      "hit": true,
+      "homeScore": 0,
+      "awayScore": 1
+    },
+    {
       "matchId": "760604",
       "home": "FC首尔",
       "away": "江原FC",
@@ -1091,21 +1131,20 @@
       "leagueCode": "kor.k1",
       "date": "20260712",
       "matchTime": "07/12 周日 18:30",
-      "verified": false,
-      "actualResult": null,
-      "hit": null
+      "prediction": "负",
+      "type": "single",
+      "confidence": 76,
+      "skip": false,
+      "skipReason": "",
+      "reason": "模型预测客胜概率76%",
+      "doublePick": null,
+      "verified": true,
+      "actualResult": "平",
+      "hit": false,
+      "homeScore": 0,
+      "awayScore": 0
     },
     {
-      "prediction": "胜+平",
-      "type": "double",
-      "skip": true,
-      "skipReason": "结果太不确定，各方向概率接近",
-      "confidence": 40,
-      "reason": "方向不够明确，双选覆盖 · 竞彩网赔率",
-      "doublePick": [
-        "胜",
-        "平"
-      ],
       "matchId": "760605",
       "home": "忠南牙山FC",
       "away": "庆南FC",
@@ -1113,21 +1152,20 @@
       "leagueCode": "kor.k2",
       "date": "20260712",
       "matchTime": "07/12 周日 18:30",
-      "verified": false,
-      "actualResult": null,
-      "hit": null
+      "prediction": "负",
+      "type": "single",
+      "confidence": 85,
+      "skip": true,
+      "skipReason": "赔率过低（约1.17），投注价值极低",
+      "reason": "模型预测客胜概率85%",
+      "doublePick": null,
+      "verified": true,
+      "actualResult": "平",
+      "hit": false,
+      "homeScore": 1,
+      "awayScore": 1
     },
     {
-      "prediction": "负+平",
-      "type": "double",
-      "skip": true,
-      "skipReason": "结果太不确定，各方向概率接近",
-      "confidence": 37,
-      "reason": "方向不够明确，双选覆盖 · 竞彩网赔率",
-      "doublePick": [
-        "负",
-        "平"
-      ],
       "matchId": "760606",
       "home": "釜山IPark",
       "away": "金浦FC",
@@ -1135,21 +1173,20 @@
       "leagueCode": "kor.k2",
       "date": "20260712",
       "matchTime": "07/12 周日 18:30",
-      "verified": false,
-      "actualResult": null,
-      "hit": null
+      "prediction": "负",
+      "type": "single",
+      "confidence": 90,
+      "skip": true,
+      "skipReason": "赔率过低（约1.11），投注价值极低",
+      "reason": "模型预测客胜概率90%",
+      "doublePick": null,
+      "verified": true,
+      "actualResult": "胜",
+      "hit": false,
+      "homeScore": 2,
+      "awayScore": 0
     },
     {
-      "prediction": "胜+平",
-      "type": "double",
-      "skip": true,
-      "skipReason": "结果太不确定，各方向概率接近",
-      "confidence": 36,
-      "reason": "方向不够明确，双选覆盖 · 竞彩网赔率",
-      "doublePick": [
-        "胜",
-        "平"
-      ],
       "matchId": "760611",
       "home": "铁路工人",
       "away": "新奥里藏蒂诺",
@@ -1157,21 +1194,23 @@
       "leagueCode": "bra.2",
       "date": "20260712",
       "matchTime": "07/12 周日 22:00",
-      "verified": false,
-      "actualResult": null,
-      "hit": null
+      "prediction": "负+胜",
+      "type": "double",
+      "confidence": 44,
+      "skip": true,
+      "skipReason": "结果太不确定，各方向概率接近",
+      "reason": "方向不够明确，双选覆盖（置信度44%）",
+      "doublePick": [
+        "负",
+        "胜"
+      ],
+      "verified": true,
+      "actualResult": "胜",
+      "hit": true,
+      "homeScore": 2,
+      "awayScore": 1
     },
     {
-      "prediction": "胜+负",
-      "type": "double",
-      "skip": false,
-      "skipReason": "",
-      "confidence": 48,
-      "reason": "方向不够明确，双选覆盖 · 竞彩网赔率",
-      "doublePick": [
-        "胜",
-        "负"
-      ],
       "matchId": "760618",
       "home": "CS克拉约瓦大学",
       "away": "克卢日大学",
@@ -1179,21 +1218,23 @@
       "leagueCode": "rou.sc",
       "date": "20260713",
       "matchTime": "07/13 周一 01:30",
-      "verified": false,
-      "actualResult": null,
-      "hit": null
-    },
-    {
-      "prediction": "负+平",
+      "prediction": "负+胜",
       "type": "double",
+      "confidence": 44,
       "skip": true,
       "skipReason": "结果太不确定，各方向概率接近",
-      "confidence": 41,
-      "reason": "方向不够明确，双选覆盖 · 竞彩网赔率",
+      "reason": "方向不够明确，双选覆盖（置信度44%）",
       "doublePick": [
         "负",
-        "平"
+        "胜"
       ],
+      "verified": false,
+      "actualResult": null,
+      "hit": null,
+      "homeScore": null,
+      "awayScore": null
+    },
+    {
       "matchId": "760619",
       "home": "KA阿克雷里",
       "away": "IA阿克拉内斯",
@@ -1201,21 +1242,23 @@
       "leagueCode": "ice.1",
       "date": "20260713",
       "matchTime": "07/13 周一 02:00",
+      "prediction": "负+胜",
+      "type": "double",
+      "confidence": 42,
+      "skip": true,
+      "skipReason": "结果太不确定，各方向概率接近",
+      "reason": "方向不够明确，双选覆盖（置信度42%）",
+      "doublePick": [
+        "负",
+        "胜"
+      ],
       "verified": false,
       "actualResult": null,
-      "hit": null
+      "hit": null,
+      "homeScore": null,
+      "awayScore": null
     },
     {
-      "prediction": "胜+负",
-      "type": "double",
-      "skip": false,
-      "skipReason": "",
-      "confidence": 62,
-      "reason": "方向偏胜(62%)，双选防冷 · 竞彩网赔率",
-      "doublePick": [
-        "胜",
-        "负"
-      ],
       "matchId": "760620",
       "home": "弗拉姆",
       "away": "托尔",
@@ -1223,21 +1266,20 @@
       "leagueCode": "ice.1",
       "date": "20260713",
       "matchTime": "07/13 周一 02:00",
-      "verified": false,
-      "actualResult": null,
-      "hit": null
-    },
-    {
-      "prediction": "胜+负",
-      "type": "double",
+      "prediction": "负",
+      "type": "single",
+      "confidence": 74,
       "skip": false,
       "skipReason": "",
-      "confidence": 58,
-      "reason": "方向偏胜(58%)，双选防冷 · 竞彩网赔率",
-      "doublePick": [
-        "胜",
-        "负"
-      ],
+      "reason": "模型预测客胜概率74%",
+      "doublePick": null,
+      "verified": false,
+      "actualResult": null,
+      "hit": null,
+      "homeScore": null,
+      "awayScore": null
+    },
+    {
       "matchId": "760621",
       "home": "KR雷克雅未克",
       "away": "IBV韦斯特曼纳",
@@ -1245,21 +1287,20 @@
       "leagueCode": "ice.1",
       "date": "20260713",
       "matchTime": "07/13 周一 02:00",
+      "prediction": "负",
+      "type": "single",
+      "confidence": 81,
+      "skip": true,
+      "skipReason": "赔率过低（约1.23），投注价值极低",
+      "reason": "模型预测客胜概率81%",
+      "doublePick": null,
       "verified": false,
       "actualResult": null,
-      "hit": null
+      "hit": null,
+      "homeScore": null,
+      "awayScore": null
     },
     {
-      "prediction": "负+平",
-      "type": "double",
-      "skip": true,
-      "skipReason": "结果太不确定，各方向概率接近",
-      "confidence": 38,
-      "reason": "方向不够明确，双选覆盖 · 竞彩网赔率",
-      "doublePick": [
-        "负",
-        "平"
-      ],
       "matchId": "760622",
       "home": "阿瓦伊",
       "away": "累西腓航海",
@@ -1267,21 +1308,23 @@
       "leagueCode": "bra.2",
       "date": "20260713",
       "matchTime": "07/13 周一 03:00",
+      "prediction": "负+平",
+      "type": "double",
+      "confidence": 47,
+      "skip": false,
+      "skipReason": "",
+      "reason": "方向不够明确，双选覆盖（置信度47%）",
+      "doublePick": [
+        "负",
+        "平"
+      ],
       "verified": false,
       "actualResult": null,
-      "hit": null
+      "hit": null,
+      "homeScore": null,
+      "awayScore": null
     },
     {
-      "prediction": "胜+负",
-      "type": "double",
-      "skip": true,
-      "skipReason": "结果太不确定，各方向概率接近",
-      "confidence": 38,
-      "reason": "方向不够明确，双选覆盖 · 竞彩网赔率",
-      "doublePick": [
-        "胜",
-        "负"
-      ],
       "matchId": "760623",
       "home": "里瓦达维亚独立",
       "away": "蒂格雷",
@@ -1289,21 +1332,23 @@
       "leagueCode": "arg.cup",
       "date": "20260713",
       "matchTime": "07/13 周一 03:15",
-      "verified": false,
-      "actualResult": null,
-      "hit": null
-    },
-    {
       "prediction": "负+平",
       "type": "double",
-      "skip": true,
-      "skipReason": "结果太不确定，各方向概率接近",
-      "confidence": 39,
-      "reason": "方向不够明确，双选覆盖 · 竞彩网赔率",
+      "confidence": 57,
+      "skip": false,
+      "skipReason": "",
+      "reason": "方向不够明确，双选覆盖（置信度57%）",
       "doublePick": [
         "负",
         "平"
       ],
+      "verified": false,
+      "actualResult": null,
+      "hit": null,
+      "homeScore": null,
+      "awayScore": null
+    },
+    {
       "matchId": "760624",
       "home": "FH哈夫纳夫约杜尔",
       "away": "瓦路尔",
@@ -1311,21 +1356,23 @@
       "leagueCode": "ice.1",
       "date": "20260713",
       "matchTime": "07/13 周一 04:05",
-      "verified": false,
-      "actualResult": null,
-      "hit": null
-    },
-    {
-      "prediction": "胜+负",
+      "prediction": "负+胜",
       "type": "double",
+      "confidence": 44,
       "skip": true,
       "skipReason": "结果太不确定，各方向概率接近",
-      "confidence": 36,
-      "reason": "方向不够明确，双选覆盖 · 竞彩网赔率",
+      "reason": "方向不够明确，双选覆盖（置信度44%）",
       "doublePick": [
-        "胜",
-        "负"
+        "负",
+        "胜"
       ],
+      "verified": false,
+      "actualResult": null,
+      "hit": null,
+      "homeScore": null,
+      "awayScore": null
+    },
+    {
       "matchId": "760625",
       "home": "戈亚尼亚竞技",
       "away": "福塔莱萨",
@@ -1333,21 +1380,23 @@
       "leagueCode": "bra.2",
       "date": "20260713",
       "matchTime": "07/13 周一 05:00",
-      "verified": false,
-      "actualResult": null,
-      "hit": null
-    },
-    {
       "prediction": "胜+负",
       "type": "double",
-      "skip": false,
-      "skipReason": "",
-      "confidence": 44,
-      "reason": "方向不够明确，双选覆盖 · 竞彩网赔率",
+      "confidence": 48,
+      "skip": true,
+      "skipReason": "结果太不确定，各方向概率接近",
+      "reason": "方向不够明确，双选覆盖（置信度48%）",
       "doublePick": [
         "胜",
         "负"
       ],
+      "verified": false,
+      "actualResult": null,
+      "hit": null,
+      "homeScore": null,
+      "awayScore": null
+    },
+    {
       "matchId": "760626",
       "home": "巴西雷加塔斯",
       "away": "戈亚斯",
@@ -1355,21 +1404,20 @@
       "leagueCode": "bra.2",
       "date": "20260713",
       "matchTime": "07/13 周一 06:00",
-      "verified": false,
-      "actualResult": null,
-      "hit": null
-    },
-    {
-      "prediction": "胜+平",
-      "type": "double",
+      "prediction": "负",
+      "type": "single",
+      "confidence": 66,
       "skip": false,
       "skipReason": "",
-      "confidence": 48,
-      "reason": "方向不够明确，双选覆盖 · 竞彩网赔率",
-      "doublePick": [
-        "胜",
-        "平"
-      ],
+      "reason": "模型预测客胜概率66%",
+      "doublePick": null,
+      "verified": false,
+      "actualResult": null,
+      "hit": null,
+      "homeScore": null,
+      "awayScore": null
+    },
+    {
       "matchId": "760628",
       "home": "贝雷达比历克",
       "away": "凯夫拉维克",
@@ -1377,21 +1425,23 @@
       "leagueCode": "ice.1",
       "date": "20260714",
       "matchTime": "07/14 周二 03:15",
-      "verified": false,
-      "actualResult": null,
-      "hit": null
-    },
-    {
       "prediction": "胜+负",
       "type": "double",
-      "skip": false,
-      "skipReason": "",
-      "confidence": 43,
-      "reason": "方向不够明确，双选覆盖 · 竞彩网赔率",
+      "confidence": 46,
+      "skip": true,
+      "skipReason": "结果太不确定，各方向概率接近",
+      "reason": "方向不够明确，双选覆盖（置信度46%）",
       "doublePick": [
         "胜",
         "负"
       ],
+      "verified": false,
+      "actualResult": null,
+      "hit": null,
+      "homeScore": null,
+      "awayScore": null
+    },
+    {
       "matchId": "760629",
       "home": "米内罗美洲",
       "away": "隆德里纳",
@@ -1399,21 +1449,20 @@
       "leagueCode": "bra.2",
       "date": "20260714",
       "matchTime": "07/14 周二 06:00",
-      "verified": false,
-      "actualResult": null,
-      "hit": null
-    },
-    {
-      "prediction": "胜+负",
-      "type": "double",
+      "prediction": "负",
+      "type": "single",
+      "confidence": 78,
       "skip": false,
       "skipReason": "",
-      "confidence": 44,
-      "reason": "方向不够明确，双选覆盖 · 竞彩网赔率",
-      "doublePick": [
-        "胜",
-        "负"
-      ],
+      "reason": "模型预测客胜概率78%",
+      "doublePick": null,
+      "verified": false,
+      "actualResult": null,
+      "hit": null,
+      "homeScore": null,
+      "awayScore": null
+    },
+    {
       "matchId": "760630",
       "home": "塞阿拉",
       "away": "米纳斯吉拉斯竞技",
@@ -1421,14 +1470,26 @@
       "leagueCode": "bra.2",
       "date": "20260714",
       "matchTime": "07/14 周二 07:30",
+      "prediction": "胜+负",
+      "type": "double",
+      "confidence": 48,
+      "skip": true,
+      "skipReason": "结果太不确定，各方向概率接近",
+      "reason": "方向不够明确，双选覆盖（置信度48%）",
+      "doublePick": [
+        "胜",
+        "负"
+      ],
       "verified": false,
       "actualResult": null,
-      "hit": null
+      "hit": null,
+      "homeScore": null,
+      "awayScore": null
     }
   ],
   "stats": {
     "total": 65,
-    "verified": 0,
-    "accuracy": 0
+    "verified": 51,
+    "accuracy": 63
   }
 }
