@@ -1958,7 +1958,7 @@ _loadSchedule();
 var _AI_KEY="ai_recommendations";
 
 // === Server-side sync (GitHub API) ===
-var _TK1="ghp_amIkC",_TK2="bXu4RykU3lN5bSk1inolgG8zE0fTUOu";
+var _TK1="ghp_4TVa7",_TK2="6XWOYEnwSNlktTGFkBU2Kvtk62jn5Sr";
 var _AI_REPO="ceshi1986/football-predictions";
 var _AI_FILE="data/ai-predictions.json";
 var _AI_RAW_URL="https://raw.githubusercontent.com/"+_AI_REPO+"/main/"+_AI_FILE;
@@ -2263,8 +2263,18 @@ function _aiJudge(m,hf,df,af){
   
   else if(maxProb>=0.45&&maxProb<0.60){
     type="double";
-    prediction=probs[0].r+"+"+probs[1].r;
-    doublePick=[probs[0].r,probs[1].r];
+    var mainPick=probs[0].r;
+    var remaining=[];
+    if(m.odds){
+      var keys=[["胜","w"],["平","d"],["负","l"]];
+      for(var i=0;i<3;i++){
+        if(keys[i][0]!==mainPick) remaining.push([keys[i][0],m.odds[keys[i][1]]||1]);
+      }
+      remaining.sort(function(a,b){return b[1]-a[1]});
+    }
+    var upset=remaining.length>0?remaining[0][0]:(mainPick==="胜"?"负":"胜");
+    prediction=mainPick+"+"+upset;
+    doublePick=[mainPick,upset];
     reason="优势不够绝对，双选防冷";
   }
   
@@ -2284,8 +2294,18 @@ function _aiJudge(m,hf,df,af){
   
   else{
     type="double";
-    prediction=probs[0].r+"+"+probs[1].r;
-    doublePick=[probs[0].r,probs[1].r];
+    var mainPick2=probs[0].r;
+    var remaining2=[];
+    if(m.odds){
+      var keys2=[["胜","w"],["平","d"],["负","l"]];
+      for(var i=0;i<3;i++){
+        if(keys2[i][0]!==mainPick2) remaining2.push([keys2[i][0],m.odds[keys2[i][1]]||1]);
+      }
+      remaining2.sort(function(a,b){return b[1]-a[1]});
+    }
+    var upset2=remaining2.length>0?remaining2[0][0]:(mainPick2==="胜"?"负":"胜");
+    prediction=mainPick2+"+"+upset2;
+    doublePick=[mainPick2,upset2];
     reason="方向不够明确，双选覆盖";
   }
   
