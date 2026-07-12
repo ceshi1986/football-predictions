@@ -317,6 +317,11 @@ def _ai_judge(home: str, away: str, hf: float, df: float, af: float,
     real_odds = _find_odds(home, away, odds_data)
     used_real_odds = real_odds is not None
     
+    # 如果没有API赔率，尝试用赛程赔率作为备用
+    if not real_odds and schedule_odds and schedule_odds.get("w") and schedule_odds.get("d") and schedule_odds.get("l"):
+        real_odds = {"w": schedule_odds["w"], "d": schedule_odds["d"], "l": schedule_odds["l"]}
+        used_real_odds = False  # 标记为非竞彩网赔率
+    
     if real_odds:
         w, d, l = real_odds["w"], real_odds["d"], real_odds["l"]
         pw, pd, pl, R = _calc_implied_probs(w, d, l)
@@ -817,18 +822,4 @@ async def main():
                 "double_count": len(double_preds),
                 "odds_matched": odds_matched_count,
                 "push_success": push_success,
-                "local_path": local_path,
-            },
-        )
-
-    except Exception as e:
-        traceback.print_exc()
-        await sdk.submit_result(
-            result_mode="notify",
-            status="error",
-            message=f"每日AI预测生成失败：{type(e).__name__}: {e}",
-            data={"error_type": type(e).__name__},
-        )
-
-
-asyncio.run(main())
+                "local_path": lo
