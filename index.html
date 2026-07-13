@@ -308,6 +308,13 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;b
 .pay-steps .step-num{flex-shrink:0;width:22px;height:22px;border-radius:50%;background:rgba(88,166,255,.2);color:#58a6ff;display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:700}
 .pay-steps strong{color:#58a6ff}
 .pay-disclaimer{font-size:10px;color:#555;line-height:1.6;text-align:center;border-top:1px solid rgba(255,255,255,.05);padding-top:14px}
+.pk-pay-btn{display:block;width:100%;padding:14px;border:none;border-radius:10px;background:linear-gradient(135deg,#4ade80,#22c55e);color:#000;font-size:16px;font-weight:700;cursor:pointer;margin-bottom:16px;transition:all .2s;letter-spacing:1px}
+.pk-pay-btn:hover{transform:scale(1.02);box-shadow:0 4px 20px rgba(74,222,128,.4)}
+.pk-pay-btn:disabled{opacity:0.7;cursor:not-allowed;transform:none}
+.pk-key-display{background:#161b22;border:2px solid #4ade80;border-radius:12px;padding:16px;margin:16px 0;text-align:center}
+.pk-key-value{font-family:'Courier New',monospace;font-size:16px;font-weight:700;color:#4ade80;letter-spacing:1px;user-select:all;word-break:break-all;padding:8px;background:rgba(74,222,128,0.1);border-radius:6px;margin:8px 0}
+.pk-copy-btn{display:block;margin:8px auto 0;background:linear-gradient(135deg,#4ade80,#22c55e);color:#000;border:none;border-radius:8px;padding:10px 24px;font-size:14px;font-weight:600;cursor:pointer}
+.pk-copy-btn:hover{box-shadow:0 4px 16px rgba(74,222,128,.3)}
 .fp-buy-btn{display:inline-block;margin-left:8px;padding:6px 14px;background:linear-gradient(135deg,#f59e0b,#d97706);color:#000;border:none;border-radius:6px;font-size:12px;font-weight:700;cursor:pointer}
 .fp-buy-btn:hover{opacity:0.9}
 </style>
@@ -2591,9 +2598,83 @@ function fpUpdateLockState(){var hasKey=!!fpGetActiveKey();var lockIds=['an','ba
 </script>
 <script>(function(){document.addEventListener("contextmenu",function(e){e.preventDefault()});document.addEventListener("keydown",function(e){if(e.key==="F12"||(e.ctrlKey&&e.shiftKey&&(e.key==="I"||e.key==="J"||e.key==="C"))||(e.ctrlKey&&e.key==="U")){e.preventDefault()}});})();</script>
 <script>
+const _PK=["META-1784000000000-RMNNGFDA","META-1784000001000-XASG2HT4","META-1784000002000-FZCVOIYJ","META-1784000003000-2GTSM2DT","META-1784000004000-6H1T1WEU","META-1784000005000-M9HRAVPC","META-1784000006000-VXC9BV8Q","META-1784000007000-0H0M45KU","META-1784000008000-CFVM87AJ","META-1784000009000-SM6HHLLH","META-1784000010000-083WFCBN","META-1784000011000-K0BZDA0T","META-1784000012000-KTHC3ISB","META-1784000013000-8HK0J5EX","META-1784000014000-LED98DC6","META-1784000015000-U7R15MQG","META-1784000016000-LESKD2RL","META-1784000017000-NU9CG0C0","META-1784000018000-R2L2L7UA","META-1784000019000-8J57CBM3","META-1784000020000-BUZLEXAU","META-1784000021000-3O0RUDK5","META-1784000022000-ZAISZ8TS","META-1784000023000-5MBK92S8","META-1784000024000-71GF2SJC","META-1784000025000-INIMO1ZX","META-1784000026000-7HRTHJP4","META-1784000027000-TCBWJR5D","META-1784000028000-U69JBK0K","META-1784000029000-SW36KLM3"];
+function _getNextKey() {
+  var used = JSON.parse(localStorage.getItem('_pk_used') || '[]');
+  for (var i = 0; i < _PK.length; i++) {
+    if (used.indexOf(i) === -1) {
+      used.push(i);
+      localStorage.setItem('_pk_used', JSON.stringify(used));
+      return _PK[i];
+    }
+  }
+  return null;
+}
 function showPayModal(productName) {
   var modal = document.getElementById('payModal');
-  if (modal) modal.style.display = 'flex';
+  if (!modal) return;
+  var card = modal.querySelector('.pay-card');
+  card.innerHTML = '<button class="pay-close" onclick="closePayModal()">&times;</button>' +
+    '<div class="pay-title">\u5fae\u4fe1\u652f\u4ed8 \u00b7 19.9\u5143</div>' +
+    '<div class="pay-qr-wrap"><img src="qrcode_pay.jpg" alt="QR" /></div>' +
+    '<ol class="pay-steps">' +
+    '<li><span class="step-num">\u2460</span><span>\u6253\u5f00\u5fae\u4fe1\u626b\u4e00\u626b\uff0c\u626b\u63cf\u4e0a\u65b9\u4e8c\u7ef4\u7801</span></li>' +
+    '<li><span class="step-num">\u2461</span><span>\u652f\u4ed8 <strong>19.9 \u5143</strong></span></li>' +
+    '<li><span class="step-num">\u2462</span><span>\u70b9\u51fb\u4e0b\u65b9\u300c\u6211\u5df2\u652f\u4ed8\u300d\u6309\u94ae\uff0c\u7acb\u5373\u83b7\u53d6Key</span></li>' +
+    '</ol>' +
+    '<button class="pk-pay-btn" id="pkPayBtn" onclick="_handlePayClick()">\u2705 \u6211\u5df2\u652f\u4ed8 \u00b7 \u7acb\u5373\u83b7\u53d6Key</button>' +
+    '<div class="pay-disclaimer">' +
+    '\u672c\u670d\u52a1\u4e3aAI\u6570\u636e\u5206\u6790\u5de5\u5177\uff0c\u4ec5\u4f9b\u5b66\u4e60\u7814\u7a76\u53c2\u8003<br>' +
+    '\u4e0d\u6784\u6210\u4efb\u4f55\u6295\u8d44\u5efa\u8bae\u3001\u6295\u6ce8\u5efa\u8bae\u6216\u5176\u4ed6\u4e13\u4e1a\u5efa\u8bae<br>' +
+    '\u4ed8\u8d39\u5373\u89c6\u4e3a\u540c\u610f\u670d\u52a1\u534f\u8bae\uff0cKey\u6fc0\u6d3b\u540e\u4e0d\u652f\u6301\u9000\u6b3e' +
+    '</div>';
+  modal.style.display = 'flex';
+}
+function _handlePayClick() {
+  var btn = document.getElementById('pkPayBtn');
+  if (!btn || btn.disabled) return;
+  btn.disabled = true;
+  btn.textContent = '\u9a8c\u8bc1\u4e2d...';
+  btn.style.opacity = '0.7';
+  setTimeout(function() {
+    var key = _getNextKey();
+    var card = document.getElementById('payModal').querySelector('.pay-card');
+    if (!key) {
+      card.innerHTML = '<button class="pay-close" onclick="closePayModal()">&times;</button>' +
+        '<div style="text-align:center;padding:30px 0;font-size:18px;color:#f87171">\u26a0\ufe0f \u5f53\u524d\u6279\u6b21\u5df2\u552e\u7f44\uff0c\u8bf7\u7a0d\u540e\u518d\u6765</div>';
+      return;
+    }
+    card.innerHTML = '<button class="pay-close" onclick="closePayModal()">&times;</button>' +
+      '<div style="text-align:center;font-size:28px;margin-bottom:8px">\u1f389 \u652f\u4ed8\u6210\u529f</div>' +
+      '<div class="pk-key-display">' +
+      '<div style="font-size:13px;color:#aaa;margin-bottom:4px">\u60a8\u7684\u4e13\u5c5eKey</div>' +
+      '<div class="pk-key-value" id="pkKeyValue">' + key + '</div>' +
+      '</div>' +
+      '<button class="pk-copy-btn" onclick="_copyKey()">\u1f4cb \u590d\u5236Key</button>' +
+      '<div style="text-align:center;font-size:12px;color:#888;margin-top:12px">\u5c06\u4e0a\u65b9Key\u7c98\u8d34\u5230\u9a8c\u8bc1\u6846\u5373\u53ef\u89e3\u9501\u5168\u90e8\u529f\u80fd</div>' +
+      '<div class="pay-disclaimer" style="margin-top:16px">' +
+      '\u672c\u670d\u52a1\u4e3aAI\u6570\u636e\u5206\u6790\u5de5\u5177\uff0c\u4ec5\u4f9b\u5b66\u4e60\u7814\u7a76\u53c2\u8003<br>' +
+      '\u4e0d\u6784\u6210\u4efb\u4f55\u6295\u8d44\u5efa\u8bae\u3001\u6295\u6ce8\u5efa\u8bae\u6216\u5176\u4ed6\u4e13\u4e1a\u5efa\u8bae<br>' +
+      '\u4ed8\u8d39\u5373\u89c6\u4e3a\u540c\u610f\u670d\u52a1\u534f\u8bae\uff0cKey\u6fc0\u6d3b\u540e\u4e0d\u652f\u6301\u9000\u6b3e' +
+      '</div>';
+  }, 2000);
+}
+function _copyKey() {
+  var el = document.getElementById('pkKeyValue');
+  if (!el) return;
+  var text = el.textContent;
+  if (navigator.clipboard) {
+    navigator.clipboard.writeText(text).then(function() { _showCopyOk(); });
+  } else {
+    var ta = document.createElement('textarea');
+    ta.value = text; document.body.appendChild(ta);
+    ta.select(); document.execCommand('copy');
+    document.body.removeChild(ta); _showCopyOk();
+  }
+}
+function _showCopyOk() {
+  var btn = document.querySelector('.pk-copy-btn');
+  if (btn) { btn.textContent = '\u2705 \u5df2\u590d\u5236\uff01'; setTimeout(function(){ btn.textContent = '\u1f4cb \u590d\u5236Key'; }, 2000); }
 }
 function closePayModal() {
   var modal = document.getElementById('payModal');
@@ -2602,23 +2683,7 @@ function closePayModal() {
 </script>
 <!-- Pay Modal -->
 <div id="payModal" class="pay-overlay" onclick="if(event.target===this)closePayModal()" style="display:none">
-  <div class="pay-card">
-    <button class="pay-close" onclick="closePayModal()">&times;</button>
-    <div class="pay-title">&#x5FAE;&#x4FE1;&#x652F;&#x4ED8; &middot; 19.9&#x5143;</div>
-    <div class="pay-qr-wrap">
-      <img src="qrcode_pay.jpg" alt="QR" />
-    </div>
-    <ol class="pay-steps">
-      <li><span class="step-num">1</span><span>&#x622A;&#x56FE;&#x626B;&#x7801;&#x652F;&#x4ED8; <strong>19.9 &#x5143;</strong></span></li>
-      <li><span class="step-num">2</span><span>&#x6DFB;&#x52A0;&#x5FAE;&#x4FE1; <strong>hui_297652</strong>&#xFF0C;&#x53D1;&#x9001;&#x4ED8;&#x6B3E;&#x622A;&#x56FE;</span></li>
-      <li><span class="step-num">3</span><span>&#x83B7;&#x53D6;&#x4E13;&#x5C5E;Key&#xFF0C;&#x8F93;&#x5165;&#x4E0A;&#x65B9;&#x5373;&#x53EF;&#x89E3;&#x9501;</span></li>
-    </ol>
-    <div class="pay-disclaimer">
-      &#x672C;&#x670D;&#x52A1;&#x4E3A;AI&#x6570;&#x636E;&#x5206;&#x6790;&#x5DE5;&#x5177;&#xFF0C;&#x4EC5;&#x4F9B;&#x5B66;&#x4E60;&#x7814;&#x7A76;&#x53C2;&#x8003;<br>
-      &#x4E0D;&#x6784;&#x6210;&#x4EFB;&#x4F55;&#x6295;&#x8D44;&#x5EFA;&#x8BAE;&#x3001;&#x6295;&#x6CE8;&#x5EFA;&#x8BAE;&#x6216;&#x5176;&#x4ED6;&#x4E13;&#x4E1A;&#x5EFA;&#x8BAE;<br>
-      &#x4ED8;&#x8D39;&#x5373;&#x89C6;&#x4E3A;&#x540C;&#x610F;&#x670D;&#x52A1;&#x534F;&#x8BAE;&#xFF0C;Key&#x6FC0;&#x6D3B;&#x540E;&#x4E0D;&#x652F;&#x6301;&#x9000;&#x6B3E;
-    </div>
-  </div>
+  <div class="pay-card"></div>
 </div>
 <!-- Footer Disclaimer -->
 <div style="text-align:center;padding:20px 16px 30px;font-size:11px;color:#666;line-height:1.8">
