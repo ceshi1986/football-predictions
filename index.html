@@ -2579,7 +2579,7 @@ function showToast(msg){var t=document.createElement('div');t.textContent=msg;t.
 
 var fpKeyState={key:localStorage.getItem('fp_paid_key')||'',remaining:parseInt(localStorage.getItem('fp_paid_remaining')||'0'),valid:false};
 
-function fpGetActiveKey(){if(typeof fpKeyState==='undefined'||!fpKeyState.valid&&fpKeyState.key&&(fpKeyState.remaining>0||fpKeyState.remaining===-1)){return fpKeyState.key}return null}
+function fpGetActiveKey(){if(!fpKeyState||!fpKeyState.valid){return null}if(fpKeyState.key&&(fpKeyState.remaining>0||fpKeyState.remaining===-1)){return fpKeyState.key}return null}
 
 function fpVerifyKey(){var input=document.getElementById('fp-key-input');var key=input.value.trim();if(!key){showToast('请输入Key');return}var statusEl=document.getElementById('fp-key-status');statusEl.textContent='验证中...';statusEl.style.color='#9ca3af';fetch('https://metaphyai-api-v-cwpuwzgtdx.cn-shanghai.fcapp.run',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({action:'key_validate',key:key})}).then(function(r){return r.json()}).then(function(data){if(data.success&&data.valid){fpKeyState.key=key;fpKeyState.valid=true;fpKeyState.remaining=data.remaining||data.token_remaining||0;localStorage.setItem('fp_paid_key',key);localStorage.setItem('fp_paid_remaining',String(fpKeyState.remaining));statusEl.textContent='\u2705 已解锁 ('+fpKeyState.remaining+' tokens)';statusEl.style.color='#4ade80';document.getElementById('fp-key-hint').textContent='\ud83d\udd13 Key已验证 \u00b7 完整内容已解锁';fpUpdateLockState();showToast('\ud83c\udf89 Key验证成功，完整内容已解锁！')}else{statusEl.textContent='\u274c Key无效';statusEl.style.color='#ef4444'}}).catch(function(){statusEl.textContent='\u274c 网络错误';statusEl.style.color='#ef4444'})}
 
