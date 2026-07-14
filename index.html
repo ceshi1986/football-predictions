@@ -2041,7 +2041,10 @@ async function _syncFromServer(){
   try{
     var se=document.getElementById("ai-sync-status");
     if(se)se.textContent="⏳同步中";
-    var resp=await fetch(_AI_RAW_URL+"?t="+Date.now(),{cache:"no-store"});
+    var controller=new AbortController();
+    var timeoutId=setTimeout(function(){controller.abort()},8000);
+    var resp=await fetch(_AI_RAW_URL+"?t="+Date.now(),{cache:"no-store",signal:controller.signal});
+    clearTimeout(timeoutId);
     if(!resp.ok){console.log("[Sync] No remote data ("+resp.status+")");if(se)se.textContent="☁️本地";return}
     var data=await resp.json();
     var serverRecs=data.predictions||[];
@@ -2560,6 +2563,7 @@ setTimeout(async function(){
   _genAIRec();
   _updateAccPanel();
   _renderUpcoming();
+  if(typeof fpUpdateLockState==="function")fpUpdateLockState();
 },3000);
 
 
