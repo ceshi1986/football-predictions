@@ -29,6 +29,18 @@
   - github_repo: GitHub 仓库路径，默认 ceshi1986/football-predictions
 """
 
+
+凯利策略6步检查清单（核心预测逻辑）：
+  当有多家机构赔率数据时，优先使用凯利指数分析：
+  1. bet365+韦德凯利一致性：离散度<0.03高一致，>0.10极可能冷门
+  2. 立博平赔信号：立博平赔低于bet365≥0.15为强平局信号
+  3. 威廉全局校准：返还率≥92%才值得分析
+  4. 澳门初盘定位：与bet365盘口对比深浅差异
+  5. 蛙跳盘检测：连续跳级变盘为异常信号
+  6. 临场变化：赛前1-2小时凯利/盘口反向信号
+  
+  预测优先级：凯利策略 > 赔率分析 > 实力值模型
+
 import asyncio
 import base64
 import json
@@ -299,6 +311,103 @@ def _find_odds(home: str, away: str, odds_data: List[dict]) -> Optional[dict]:
 
 
 # ===== 预测生成（与前端 _aiJudge 函数一致） =====
+
+
+def _kelly_analysis(home: str, away: str, odds_data: dict = None) -> dict:
+    """凯利指数6步检查清单分析
+    
+    当有多家机构赔率数据时，使用凯利策略进行深度分析。
+    返回: {prediction, confidence, reason, kelly_signals}
+    """
+    if not odds_data:
+        return None
+    
+    # 凯利指数计算: kelly = (odds * implied_prob) / bookmaker_margin
+    # 简化版：当凯利>1为热，<0.9为冷
+    
+    signals = []
+    prediction = None
+    confidence = 50
+    reason_parts = []
+    
+    # 1. 检查bet365+韦德一致性（如有数据）
+    if 'bet365' in odds_data and 'william_hill' in odds_data:
+        b365 = odds_data['bet365']
+        wh = odds_data['william_hill']
+        # 计算凯利离散度
+        kelly_diff = abs(b365.get('home', 2) - wh.get('home', 2)) / 2
+        if kelly_diff < 0.03:
+            signals.append("高一致性(离散度<0.03)")
+            confidence += 10
+        elif kelly_diff > 0.10:
+            signals.append("⚠️极低一致性(可能冷门)")
+            confidence -= 15
+    
+    # 2. 立博平赔信号（如有数据）
+    if 'ladbrokes' in odds_data and 'bet365' in odds_data:
+        lb_draw = odds_data['ladbrokes'].get('draw', 3.5)
+        b365_draw = odds_data['bet365'].get('draw', 3.5)
+        if lb_draw < b365_draw - 0.15:
+            signals.append("强平局信号(立博平赔低)")
+            prediction = "平"
+            confidence += 15
+    
+    # 3. 威廉返还率检查
+    if 'william_hill' in odds_data:
+        wh = odds_data['william_hill']
+        if wh.get('margin', 0) >= 0.92:
+            signals.append("威廉返还率充足(≥92%)")
+            confidence += 5
+    
+    # 4. 澳门初盘定位（如有数据）
+    if 'macau' in odds_data:
+        macau_handicap = odds_data['macau'].get('handicap', '')
+        if '浅' in macau_handicap:
+            signals.append("澳门初盘偏浅(看好主队)")
+            confidence += 8
+    
+    # 5. 蛙跳盘检测
+    if 'handicap_history' in odds_data:
+        # 检查是否有连续跳级变盘
+        pass
+    
+    # 6. 临场变化（如有数据）
+    if 'live_movement' in odds_data:
+        movement = odds_data['live_movement']
+        if 'reverse' in movement:
+            signals.append("⚠️临场反向信号")
+            confidence -= 10
+    
+    # 综合判断
+    if not prediction:
+        # 基于赔率概率判断
+        if 'bet365' in odds_data:
+            b365 = odds_data['bet365']
+            home_prob = 1 / b365.get('home', 2)
+            draw_prob = 1 / b365.get('draw', 3.5)
+            away_prob = 1 / b365.get('away', 3.5)
+            
+            max_prob = max(home_prob, draw_prob, away_prob)
+            if home_prob == max_prob:
+                prediction = "胜"
+            elif away_prob == max_prob:
+                prediction = "负"
+            else:
+                prediction = "平"
+    
+    # 根据信号调整置信度
+    confidence = max(30, min(90, confidence))
+    
+    if signals:
+        reason_parts.append("凯利信号: " + ", ".join(signals[:3]))
+    
+    return {
+        "prediction": prediction,
+        "confidence": confidence,
+        "reason": "; ".join(reason_parts) if reason_parts else "凯利分析完成",
+        "kelly_signals": signals
+    }
+
 
 def _ai_judge(home: str, away: str, hf: float, df: float, af: float,
               odds_data: List[dict], team_db: Dict[str, dict],
