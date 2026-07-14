@@ -294,22 +294,6 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;b
 .fp-lock-text{color:#9ca3af;font-size:12px}
 .fp-upgrade-btn{background:linear-gradient(135deg,#f59e0b,#d97706);color:#000;border:none;padding:8px 18px;border-radius:8px;font-size:12px;font-weight:700;cursor:pointer;margin-top:4px}
 .fp-upgrade-btn:hover{opacity:0.9;transform:scale(1.02)}
-
-/* Pay Modal */
-.pay-overlay{display:none;position:fixed;top:0;left:0;right:0;bottom:0;background:rgba(0,0,0,.7);z-index:10000;align-items:center;justify-content:center;backdrop-filter:blur(4px)}
-.pay-card{background:#161b22;border:1px solid rgba(88,166,255,.2);border-radius:16px;padding:28px;max-width:360px;width:90%;position:relative;box-shadow:0 8px 32px rgba(0,0,0,.5)}
-.pay-close{position:absolute;top:12px;right:16px;background:none;border:none;color:#888;font-size:24px;cursor:pointer;line-height:1}
-.pay-close:hover{color:#fff}
-.pay-title{text-align:center;font-size:18px;font-weight:700;color:#58a6ff;margin-bottom:20px}
-.pay-qr-wrap{text-align:center;margin-bottom:20px}
-.pay-qr-wrap img{max-width:220px;width:100%;border-radius:12px;background:#fff;padding:8px}
-.pay-steps{list-style:none;padding:0;margin:0 0 20px}
-.pay-steps li{display:flex;align-items:flex-start;gap:10px;margin-bottom:12px;font-size:13px;color:#ccc;line-height:1.6}
-.pay-steps .step-num{flex-shrink:0;width:22px;height:22px;border-radius:50%;background:rgba(88,166,255,.2);color:#58a6ff;display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:700}
-.pay-steps strong{color:#58a6ff}
-.pay-disclaimer{font-size:10px;color:#555;line-height:1.6;text-align:center;border-top:1px solid rgba(255,255,255,.05);padding-top:14px}
-.fp-buy-btn{display:inline-block;margin-left:8px;padding:6px 14px;background:linear-gradient(135deg,#f59e0b,#d97706);color:#000;border:none;border-radius:6px;font-size:12px;font-weight:700;cursor:pointer}
-.fp-buy-btn:hover{opacity:0.9}
 </style>
 </head>
 <body>
@@ -372,7 +356,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;b
     <span class="key-icon">🔑</span>
     <span class="key-hint" id="fp-key-hint">🎁 免费查看基础预测 | 验证Key解锁完整分析+AI预测+购买建议</span>
     <input type="text" id="fp-key-input" placeholder="输入Key解锁完整内容" />
-    <button class="key-verify-btn" onclick="fpVerifyKey()">验证</button><button class="fp-buy-btn" onclick="showPayModal('football')">&#x8D2D;&#x4E70;Key</button>
+    <button class="key-verify-btn" onclick="fpVerifyKey()">验证</button>
     <span class="key-status" id="fp-key-status"></span>
   </div>
 </div>
@@ -2579,52 +2563,15 @@ function showToast(msg){var t=document.createElement('div');t.textContent=msg;t.
 
 var fpKeyState={key:localStorage.getItem('fp_paid_key')||'',remaining:parseInt(localStorage.getItem('fp_paid_remaining')||'0'),valid:false};
 
-function fpGetActiveKey(){if(!fpKeyState||!fpKeyState.valid){return null}if(fpKeyState.key&&(fpKeyState.remaining>0||fpKeyState.remaining===-1)){return fpKeyState.key}return null}
+function fpGetActiveKey(){if(fpKeyState.valid&&fpKeyState.key&&(fpKeyState.remaining>0||fpKeyState.remaining===-1)){return fpKeyState.key}return null}
 
-function fpVerifyKey(){var input=document.getElementById('fp-key-input');var key=input.value.trim();if(!key){showToast('请输入Key');return}var statusEl=document.getElementById('fp-key-status');statusEl.textContent='验证中...';statusEl.style.color='#9ca3af';fetch('https://metaphyai-api-v-cwpuwzgtdx.cn-shanghai.fcapp.run',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({action:'key_validate',key:key})}).then(function(r){return r.json()}).then(function(data){if(data.success&&data.valid){fpKeyState.key=key;fpKeyState.valid=true;fpKeyState.remaining=data.remaining||data.token_remaining||0;localStorage.setItem('fp_paid_key',key);localStorage.setItem('fp_paid_remaining',String(fpKeyState.remaining));statusEl.textContent='\u2705 已解锁 ('+fpKeyState.remaining+' tokens)';statusEl.style.color='#4ade80';document.getElementById('fp-key-hint').textContent='\ud83d\udd13 Key已验证 \u00b7 完整内容已解锁';fpUpdateLockState();showToast('\ud83c\udf89 Key验证成功，完整内容已解锁！');if(typeof closePayModal==='function')closePayModal()}else{statusEl.textContent='\u274c Key无效';statusEl.style.color='#ef4444'}}).catch(function(){statusEl.textContent='\u274c 网络错误';statusEl.style.color='#ef4444'})}
+function fpVerifyKey(){var input=document.getElementById('fp-key-input');var key=input.value.trim();if(!key){showToast('请输入Key');return}var statusEl=document.getElementById('fp-key-status');statusEl.textContent='验证中...';statusEl.style.color='#9ca3af';fetch('https://metaphyai-api-v-cwpuwzgtdx.cn-shanghai.fcapp.run',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({action:'key_validate',key:key})}).then(function(r){return r.json()}).then(function(data){if(data.success&&data.valid){fpKeyState.key=key;fpKeyState.valid=true;fpKeyState.remaining=data.remaining||data.token_remaining||0;localStorage.setItem('fp_paid_key',key);localStorage.setItem('fp_paid_remaining',String(fpKeyState.remaining));statusEl.textContent='\u2705 已解锁 ('+fpKeyState.remaining+' tokens)';statusEl.style.color='#4ade80';document.getElementById('fp-key-hint').textContent='\ud83d\udd13 Key已验证 \u00b7 完整内容已解锁';fpUpdateLockState();showToast('\ud83c\udf89 Key验证成功，完整内容已解锁！')}else{statusEl.textContent='\u274c Key无效';statusEl.style.color='#ef4444'}}).catch(function(){statusEl.textContent='\u274c 网络错误';statusEl.style.color='#ef4444'})}
 
-function fpUpdateLockState(){var hasKey=!!fpGetActiveKey();var lockIds=['an','ba','hd2','ai-rec','ai-acc'];for(var i=0;i<lockIds.length;i++){var el=document.getElementById(lockIds[i]);if(!el)continue;if(hasKey){el.classList.remove('fp-locked');var wrapper=el.closest('.fp-lock-wrapper');if(wrapper){var parent=wrapper.parentNode;while(wrapper.firstChild){parent.insertBefore(wrapper.firstChild,wrapper)}parent.removeChild(wrapper)}}else{if(!el.classList.contains('fp-locked')){el.classList.add('fp-locked');var lockOverlay=document.createElement('div');lockOverlay.className='fp-lock-overlay';lockOverlay.innerHTML='<div class="fp-lock-icon">\ud83d\udd12</div><div class="fp-lock-text">验证Key解锁此内容</div><button class="fp-upgrade-btn" onclick="document.getElementById(\'fp-key-input\').focus();document.getElementById(\'fp-key-bar\').scrollIntoView({behavior:\'smooth\'})">验证Key \u00b7 解锁全部</button><button class="fp-buy-btn" onclick="showPayModal(\'football\')" style="margin-left:6px">&#x8D2D;&#x4E70;Key</button>';var wrapper=document.createElement('div');wrapper.className='fp-lock-wrapper';el.parentNode.insertBefore(wrapper,el);wrapper.appendChild(el);wrapper.appendChild(lockOverlay)}}}}
+function fpUpdateLockState(){var hasKey=!!fpGetActiveKey();var lockIds=['an','ba','hd2','ai-rec','ai-acc'];for(var i=0;i<lockIds.length;i++){var el=document.getElementById(lockIds[i]);if(!el)continue;if(hasKey){el.classList.remove('fp-locked');var wrapper=el.closest('.fp-lock-wrapper');if(wrapper){var parent=wrapper.parentNode;while(wrapper.firstChild){parent.insertBefore(wrapper.firstChild,wrapper)}parent.removeChild(wrapper)}}else{if(!el.classList.contains('fp-locked')){el.classList.add('fp-locked');var lockOverlay=document.createElement('div');lockOverlay.className='fp-lock-overlay';lockOverlay.innerHTML='<div class="fp-lock-icon">\ud83d\udd12</div><div class="fp-lock-text">验证Key解锁此内容</div><button class="fp-upgrade-btn" onclick="document.getElementById(\'fp-key-input\').focus();document.getElementById(\'fp-key-bar\').scrollIntoView({behavior:\'smooth\'})">验证Key \u00b7 解锁全部</button>';var wrapper=document.createElement('div');wrapper.className='fp-lock-wrapper';el.parentNode.insertBefore(wrapper,el);wrapper.appendChild(el);wrapper.appendChild(lockOverlay)}}}}
 
 // 初始化检查Key
 (function fpInitKey(){if(fpKeyState.key){var input=document.getElementById('fp-key-input');if(input)input.value=fpKeyState.key;setTimeout(function(){fpVerifyKey()},500)}})();
 
 </script>
-<script>(function(){document.addEventListener("contextmenu",function(e){e.preventDefault()});document.addEventListener("keydown",function(e){if(e.key==="F12"||(e.ctrlKey&&e.shiftKey&&(e.key==="I"||e.key==="J"||e.key==="C"))||(e.ctrlKey&&e.key==="U")){e.preventDefault()}});})();</script>
-<script>
-function showPayModal(productName) {
-  var modal = document.getElementById('payModal');
-  if (!modal) return;
-  var card = modal.querySelector('.pay-card');
-  card.innerHTML = '<button class="pay-close" onclick="closePayModal()">' + '&' + 'times;</button>' +
-    '<div class="pay-title">\u626b\u7801\u6dfb\u52a0\u5fae\u4fe1 \u00b7 \u8d2d\u4e70Key</div>' +
-    '<div class="pay-qr-wrap"><img src="qrcode_pay.jpg" alt="\u5fae\u4fe1\u4e8c\u7ef4\u7801" /></div>' +
-    '<div style="text-align:center;margin-bottom:16px;font-size:13px;color:#9ca3af">\u5fae\u4fe1\u53f7\uff1ahui_297652 <span onclick="navigator.clipboard.writeText(\'hui_297652\');this.textContent=\'\u5df2\u590d\u5236\u2713\';setTimeout(()=>this.textContent=\'\u590d\u5236\',1500)" style="cursor:pointer;color:#4ade80;font-size:12px;margin-left:4px">\u590d\u5236</span></div>' +
-    '<ol class="pay-steps">' +
-    '<li><span class="step-num">\u2460</span><span>\u6253\u5f00\u5fae\u4fe1\u626b\u4e00\u626b\uff0c\u626b\u63cf\u4e8c\u7ef4\u7801\u6dfb\u52a0\u597d\u53cb</span></li>' +
-    '<li><span class="step-num">\u2461</span><span>\u5fae\u4fe1\u8f6c\u8d26 <strong>19.9 \u5143</strong></span></li>' +
-    '<li><span class="step-num">\u2462</span><span>\u83b7\u53d6\u4e13\u5c5eKey\uff0c\u8f93\u5165\u7f51\u7ad9\u5373\u53ef\u89e3\u9501</span></li>' +
-    '</ol>' +
-    '<div style="text-align:center;font-size:20px;font-weight:700;color:#58a6ff;margin-bottom:16px">\u00a519.9 <span style="font-size:13px;font-weight:400;color:#9ca3af">/ \u5355\u7ad9</span></div>' +
-    '<div class="pay-disclaimer">' +
-    '\u672c\u670d\u52a1\u4e3aAI\u6570\u636e\u5206\u6790\u5de5\u5177\uff0c\u4ec5\u4f9b\u5b66\u4e60\u7814\u7a76\u53c2\u8003<br>' +
-    '\u4e0d\u6784\u6210\u4efb\u4f55\u6295\u8d44\u5efa\u8bae\u3001\u6295\u6ce8\u5efa\u8bae\u6216\u5176\u4ed6\u4e13\u4e1a\u51b3\u7b56\u5efa\u8bae<br>' +
-    '\u4ed8\u8d39\u5373\u89c6\u4e3a\u540c\u610f\u670d\u52a1\u534f\u8bae\uff0cKey\u6fc0\u6d3b\u540e\u4e0d\u652f\u6301\u9000\u6b3e' +
-    '</div>';
-  modal.style.display = 'flex';
-}
-function closePayModal() {
-  var modal = document.getElementById('payModal');
-  if (modal) modal.style.display = 'none';
-}
-</script>
-<!-- Pay Modal -->
-<div id="payModal" class="pay-overlay" onclick="if(event.target===this)closePayModal()" style="display:none">
-  <div class="pay-card"></div>
-</div>
-<!-- Footer Disclaimer -->
-<div style="text-align:center;padding:20px 16px 30px;font-size:11px;color:#666;line-height:1.8">
-  &#x26A0;&#xFE0F; &#x514D;&#x8D23;&#x58F0;&#x660E;&#xFF1A;&#x672C;&#x7AD9;&#x4E3A;AI&#x6570;&#x636E;&#x5206;&#x6790;&#x5DE5;&#x5177;&#xFF0C;&#x6240;&#x6709;&#x5185;&#x5BB9;&#x4EC5;&#x4F9B;&#x5B66;&#x4E60;&#x7814;&#x7A76;&#x53C2;&#x8003;&#xFF0C;&#x4E0D;&#x6784;&#x6210;&#x4EFB;&#x4F55;&#x6295;&#x8D44;&#x5EFA;&#x8BAE;&#x3001;&#x6295;&#x6CE8;&#x5EFA;&#x8BAE;&#x6216;&#x5176;&#x4ED6;&#x4E13;&#x4E1A;&#x51B3;&#x7B56;&#x5EFA;&#x8BAE;&#x3002;
-  &#x6570;&#x636E;&#x6765;&#x6E90;&#x4E8E;&#x516C;&#x5F00;&#x4FE1;&#x606F;&#xFF0C;&#x5206;&#x6790;&#x7ED3;&#x679C;&#x4E0D;&#x4EE3;&#x8868;&#x672A;&#x6765;&#x8868;&#x73B0;&#x3002;&#x4ED8;&#x8D39;&#x5373;&#x89C6;&#x4E3A;&#x540C;&#x610F;&#x670D;&#x52A1;&#x534F;&#x8BAE;&#xFF0C;Key&#x6FC0;&#x6D3B;&#x540E;&#x4E0D;&#x652F;&#x6301;&#x9000;&#x6B3E;&#x3002;
-</div>
-</body>
+<script>(function(){document.addEventListener("contextmenu",function(e){e.preventDefault()});document.addEventListener("keydown",function(e){if(e.key==="F12"||(e.ctrlKey&&e.shiftKey&&(e.key==="I"||e.key==="J"||e.key==="C"))||(e.ctrlKey&&e.key==="U")){e.preventDefault()}});})();</script></body>
 </html>
