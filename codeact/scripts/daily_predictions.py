@@ -933,3 +933,18 @@ async def main():
                 "local_path": local_path
             }
         )
+    except Exception as e:
+        error_msg = f"执行失败：{str(e)}"
+        print(f"[ERROR] {error_msg}")
+        import traceback
+        traceback.print_exc()
+        await sdk.submit_result(
+            result_mode="notify",
+            status="error",
+            message=error_msg,
+        )
+
+
+if __name__ == "__main__":
+    import asyncio
+    asyncio.run(main())
