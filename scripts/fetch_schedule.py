@@ -147,6 +147,28 @@ def main():
                     "weight":w,
                 })
     
+    # ---- 合并手动维护的资格赛数据（ESPN不覆盖早期资格赛） ----
+    qualifiers_path = os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), 'qualifiers.json')
+    if os.path.exists(qualifiers_path):
+        try:
+            with open(qualifiers_path, 'r', encoding='utf-8') as qf:
+                qdata = json.load(qf)
+                qmatches = qdata.get('matches', [])
+                # 只合并当前7天窗口内的资格赛
+                qmin = min(dates)
+                qmax = max(dates)
+                for qm in qmatches:
+                    if qm['id'] in seen:
+                        continue
+                    # 提取日期部分 YYYYMMDD
+                    qdate = qm.get('date', '')[:10].replace('-', '')
+                    if qmin <= qdate <= qmax:
+                        matches.append(qm)
+                        seen[qm['id']] = True
+                print(f"Merged {len([m for m in qmatches if m['id'] in seen])} qualifier matches")
+        except Exception as e:
+            print(f"Warning: failed to merge qualifiers.json: {e}")
+
     matches.sort(key=lambda x: (-x.get('weight',0), x.get('date','')))
     out = {"generated_at":datetime.utcnow().isoformat()+"Z","dates":dates,"total_matches":len(matches),"matches":matches}
     outpath = os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), 'schedule.json')

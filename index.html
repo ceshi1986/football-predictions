@@ -286,6 +286,8 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;b
 .key-verify-btn{background:linear-gradient(135deg,#2563eb,#1d4ed8);color:#fff;border:none;padding:6px 14px;border-radius:6px;font-size:12px;cursor:pointer;font-weight:600}
 .key-verify-btn:hover{opacity:0.9}
 .key-status{font-size:11px;color:#9ca3af}
+.fp-logout-btn{background:rgba(255,82,82,.15);border:1px solid rgba(255,82,82,.3);color:#ff5252;padding:4px 12px;border-radius:6px;font-size:11px;cursor:pointer;font-weight:600;display:none;margin-left:4px}
+.fp-logout-btn:hover{background:rgba(255,82,82,.25)}
 /* Lock styles */
 .fp-locked{filter:blur(5px);user-select:none;pointer-events:none}
 .fp-lock-wrapper{position:relative;overflow:hidden;border-radius:8px}
@@ -374,6 +376,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;b
     <input type="text" id="fp-key-input" placeholder="输入Key解锁完整内容" />
     <button class="key-verify-btn" onclick="fpVerifyKey()">验证</button><button class="fp-buy-btn" onclick="showPayModal('football')">&#x8D2D;&#x4E70;Key</button>
     <span class="key-status" id="fp-key-status"></span>
+    <button class="fp-logout-btn" id="fp-logout-btn" onclick="fpLogoutKey()">退出</button>
   </div>
 </div>
 
@@ -2590,12 +2593,18 @@ var fpKeyState={key:'',remaining:0,valid:false};
 
 function fpGetActiveKey(){return null}
 
-function fpVerifyKey(){var input=document.getElementById('fp-key-input');var key=input.value.trim();if(!key){showToast('请输入Key');return}var statusEl=document.getElementById('fp-key-status');statusEl.textContent='验证中...';statusEl.style.color='#9ca3af';fetch('https://metaphyai-api-v-cwpuwzgtdx.cn-shanghai.fcapp.run',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({action:'key_validate',key:key})}).then(function(r){return r.json()}).then(function(data){if(data.success&&data.valid){fpKeyState.key=key;fpKeyState.valid=true;fpKeyState.remaining=data.remaining||data.token_remaining||0;localStorage.setItem('fp_paid_key',key);localStorage.setItem('fp_paid_remaining',String(fpKeyState.remaining));statusEl.textContent='\u2705 已解锁 ('+fpKeyState.remaining+' tokens)';statusEl.style.color='#4ade80';document.getElementById('fp-key-hint').textContent='\ud83d\udd13 Key已验证 \u00b7 完整内容已解锁';showToast('\ud83c\udf89 Key验证成功，完整内容已解锁！');if(typeof closePayModal==='function')closePayModal()}else{statusEl.textContent='\u274c Key无效';statusEl.style.color='#ef4444'}}).catch(function(){statusEl.textContent='\u274c 网络错误';statusEl.style.color='#ef4444'})}
+function fpShowLoggedInUI(){var statusEl=document.getElementById('fp-key-status');var hintEl=document.getElementById('fp-key-hint');var inputEl=document.getElementById('fp-key-input');var verifyBtn=document.querySelector('.key-verify-btn');var buyBtn=document.querySelector('.fp-buy-btn');var logoutBtn=document.getElementById('fp-logout-btn');if(statusEl){statusEl.textContent='\u2705 已解锁 ('+fpKeyState.remaining+' tokens)';statusEl.style.color='#4ade80'}if(hintEl)hintEl.textContent='\ud83d\udd13 Key已验证 \u00b7 完整内容已解锁';if(inputEl)inputEl.style.display='none';if(verifyBtn)verifyBtn.style.display='none';if(buyBtn)buyBtn.style.display='none';if(logoutBtn)logoutBtn.style.display='inline-block'}
+
+function fpHideLoggedInUI(){var statusEl=document.getElementById('fp-key-status');var hintEl=document.getElementById('fp-key-hint');var inputEl=document.getElementById('fp-key-input');var verifyBtn=document.querySelector('.key-verify-btn');var buyBtn=document.querySelector('.fp-buy-btn');var logoutBtn=document.getElementById('fp-logout-btn');if(statusEl){statusEl.textContent='';statusEl.style.color='#9ca3af'}if(hintEl)hintEl.textContent='\ud83c\udf81 免费查看基础预测 | 验证Key解锁完整分析+AI预测+购买建议';if(inputEl){inputEl.style.display='';inputEl.value=''}if(verifyBtn)verifyBtn.style.display='';if(buyBtn)buyBtn.style.display='';if(logoutBtn)logoutBtn.style.display='none'}
+
+function fpVerifyKey(){var input=document.getElementById('fp-key-input');var key=input.value.trim();if(!key){showToast('请输入Key');return}var statusEl=document.getElementById('fp-key-status');statusEl.textContent='验证中...';statusEl.style.color='#9ca3af';fetch('https://metaphyai-api-v-cwpuwzgtdx.cn-shanghai.fcapp.run',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({action:'key_validate',key:key})}).then(function(r){return r.json()}).then(function(data){if(data.success&&data.valid){fpKeyState.key=key;fpKeyState.valid=true;fpKeyState.remaining=data.remaining||data.token_remaining||0;localStorage.setItem('fp_paid_key',key);localStorage.setItem('fp_paid_remaining',String(fpKeyState.remaining));fpShowLoggedInUI();showToast('\ud83c\udf89 Key验证成功，完整内容已解锁！');if(typeof closePayModal==='function')closePayModal()}else{statusEl.textContent='\u274c Key无效';statusEl.style.color='#ef4444'}}).catch(function(){statusEl.textContent='\u274c 网络错误';statusEl.style.color='#ef4444'})}
+
+function fpLogoutKey(){if(!confirm('确定退出Key？退出后部分内容将被锁定'))return;localStorage.removeItem('fp_paid_key');localStorage.removeItem('fp_paid_remaining');fpKeyState={key:'',remaining:0,valid:false};fpHideLoggedInUI();showToast('已退出Key')}
 
 // 锁屏功能已禁用：不再对任何元素加锁
 function fpUpdateLockState(){}
 
-(function fpInitKey(){var savedKey=localStorage.getItem('fp_paid_key');if(savedKey){fpKeyState.key=savedKey;fpKeyState.remaining=parseInt(localStorage.getItem('fp_paid_remaining')||'0');fpKeyState.valid=fpKeyState.remaining>0;var input=document.getElementById('fp-key-input');if(input)input.value=savedKey}})();
+(function fpInitKey(){var savedKey=localStorage.getItem('fp_paid_key');if(savedKey){fpKeyState.key=savedKey;fpKeyState.remaining=parseInt(localStorage.getItem('fp_paid_remaining')||'0');fpKeyState.valid=fpKeyState.remaining>0;if(fpKeyState.valid)fpShowLoggedInUI();else{var input=document.getElementById('fp-key-input');if(input)input.value=savedKey}}})();
 
 // 页面加载完成后强制清除所有锁屏残留
 window.addEventListener('load',function(){setTimeout(function(){var lockIds=['an','ba','hd2','ai-rec','ai-acc'];for(var i=0;i<lockIds.length;i++){var el=document.getElementById(lockIds[i]);if(!el)continue;el.classList.remove('fp-locked');var wrapper=el.closest('.fp-lock-wrapper');if(wrapper){var parent=wrapper.parentNode;while(wrapper.firstChild){parent.insertBefore(wrapper.firstChild,wrapper)}parent.removeChild(wrapper)}}var allLocks=document.querySelectorAll('.fp-lock-overlay,.fp-lock-wrapper');for(var j=0;j<allLocks.length;j++){var ov=allLocks[j];if(ov.parentNode){while(ov.firstChild){ov.parentNode.insertBefore(ov.firstChild,ov)}ov.parentNode.removeChild(ov)}}},500)});
