@@ -930,4 +930,6 @@ async def main():
                 "double_count": len(double_preds),
                 "odds_matched": odds_matched_count,
                 "push_success": push_success,
-                "local_path": lo
+                "local_path": local_path
+            }
+        )
