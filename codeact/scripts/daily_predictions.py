@@ -75,7 +75,7 @@ def _gh_token() -> str:
     token = os.environ.get("GH_TOKEN", "")
     if token:
         return token
-    for path in ["SECRET.md", "./SECRET.md"]:
+    for path in ["SECRET.md", "./SECRET.md", "/app/data/SECRET.md"]:
         try:
             with open(path) as f:
                 m = re.search(r"ghp_[A-Za-z0-9]{36}", f.read())
