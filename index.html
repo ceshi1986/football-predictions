@@ -2688,7 +2688,7 @@ function fpUpdateLockState(){
     card.classList.add('fp-locked');
     var overlay=document.createElement('div');
     overlay.className='fp-lock-overlay';
-    overlay.innerHTML='<div class="fp-lock-icon">🔒</div><div class="fp-lock-text">验证Key查看完整预测</div><button class="fp-upgrade-btn" onclick="showPayModal('足球预测')">立即解锁</button>';
+    overlay.innerHTML='<div class="fp-lock-icon">🔒</div><div class="fp-lock-text">验证Key查看完整预测</div><button class="fp-upgrade-btn" onclick="showPayModal(\'足球预测\')">立即解锁</button>';
     wrapper.appendChild(overlay);
   }
 
@@ -2697,7 +2697,7 @@ function fpUpdateLockState(){
   cta.id='fp-upgrade-cta';
   cta.style.cssText='margin-top:16px;padding:20px 16px;text-align:center;background:linear-gradient(135deg,rgba(245,158,11,0.15),rgba(217,119,6,0.1));border:1px solid rgba(245,158,11,0.3);border-radius:12px;color:#f59e0b;font-size:15px;font-weight:700';
   var lockedCount=cards.length-3;
-  cta.innerHTML='🔒 还有 '+lockedCount+' 场比赛预测被锁定 | <button onclick="showPayModal('足球预测')" style="background:linear-gradient(135deg,#f59e0b,#d97706);color:#000;border:none;padding:10px 24px;border-radius:10px;font-size:14px;font-weight:700;cursor:pointer;margin-left:8px">验证Key全部解锁 →</button>';
+  cta.innerHTML='🔒 还有 '+lockedCount+' 场比赛预测被锁定 | <button onclick="showPayModal(\'足球预测\')" style="background:linear-gradient(135deg,#f59e0b,#d97706);color:#000;border:none;padding:10px 24px;border-radius:10px;font-size:14px;font-weight:700;cursor:pointer;margin-left:8px">验证Key全部解锁 →</button>';
   document.getElementById('ai-rec-body').appendChild(cta);
 }
 
