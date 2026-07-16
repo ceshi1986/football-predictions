@@ -648,6 +648,12 @@ async function _fetchRealOdds(){
       return oddsList;
     }
   }
+  // 第二优先级：The Odds API 国际赔率（国内无数据时补充）
+  try{
+    var r2=await fetch('data/odds_api_odds.json?t='+Date.now(),{cache:'no-cache'});
+    if(r2.ok){var d2=await r2.json();if(d2&&d2.length>0){_realOddsCache=d2;_oddsCacheTime=Date.now();console.log('Loaded '+d2.length+' odds from The Odds API');return _realOddsCache;}}
+  }catch(e){console.log('Odds API fetch failed:',e);}
+  // 第三优先级：FC API 兜底
   try{
     var r=await fetch('https://metaphyai-api-v-cwpuwzgtdx.cn-shanghai.fcapp.run/odds',{cache:'no-cache'});
     if(r.ok){var d=await r.json();if(d&&d.matches){_realOddsCache=d.matches;_oddsCacheTime=Date.now();console.log('Loaded '+d.matches.length+' real odds from FC API');return _realOddsCache;}}
