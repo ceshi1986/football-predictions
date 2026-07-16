@@ -1477,8 +1477,11 @@ setTimeout(function(){_run(h,a)},600);
 }
 
 function _run(h,a){
+  console.log("[DEBUG _run] home="+h+" away="+a+" cache_len="+(_realOddsCache?_realOddsCache.length:"NULL"));
+  if(_realOddsCache&&_realOddsCache.length>0) console.log("[DEBUG _run] first3:",JSON.stringify(_realOddsCache.slice(0,3)));
 var hw=_gs(h),aw=_gs(a),d=hw-aw;
-var ro=_matchRealOdds(h,a,_realOddsCache);
+  var ro=_matchRealOdds(h,a,_realOddsCache);
+  console.log("[DEBUG _run] matchResult:",ro?"FOUND "+JSON.stringify(ro.odds):"NOT_FOUND");
 if(ro&&ro.odds){
   var ow=ro.odds.w||ro.odds.odds_0?.胜||0;
   var od=ro.odds.d||ro.odds.odds_0?.平||0;
