@@ -635,6 +635,20 @@ var _oddsCacheTime=0;
 var _ODDS_TTL=30*60*1000;
 
 async function _fetchRealOdds(){
+  // 优先级1: The Odds API 真实赔率数据（最高优先级）
+  try{
+    var r1=await fetch('data/odds_api_odds.json',{cache:'no-cache'});
+    if(r1.ok){
+      var d1=await r1.json();
+      if(d1&&d1.matches&&d1.matches.length>0){
+        _realOddsCache=d1.matches;
+        _oddsCacheTime=Date.now();
+        console.log('Loaded '+d1.matches.length+' real odds from The Odds API');
+        return _realOddsCache;
+      }
+    }
+  }catch(e){console.log('Odds API fetch failed:',e);}
+  // 优先级2: schedule.json 中的赔率数据
   if(_allMatches&&_allMatches.length>0){
     var oddsList=[];
     for(var i=0;i<_allMatches.length;i++){
