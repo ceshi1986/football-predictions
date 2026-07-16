@@ -1474,9 +1474,28 @@ setTimeout(function(){_run(h,a)},600);
 
 function _run(h,a){
 var hw=_gs(h),aw=_gs(a),d=hw-aw;
-var hf=0.5/(1+Math.pow(10,-d/14));
-var df=0.28*Math.exp(-Math.abs(d)/18);
-var af=1-hf-df;
+var ro=_matchRealOdds(h,a,_realOddsCache);
+if(ro&&ro.odds){
+  var ow=ro.odds.w||ro.odds.odds_0?.胜||0;
+  var od=ro.odds.d||ro.odds.odds_0?.平||0;
+  var ol=ro.odds.l||ro.odds.odds_0?.负||0;
+  if(ow&&od&&ol){
+    var it=1/ow+1/od+1/ol;
+    var ohp=(1/ow)/it, odp=(1/od)/it, oap=(1/ol)/it;
+    var ehf=0.5/(1+Math.pow(10,-d/14));
+    var edf=0.28*Math.exp(-Math.abs(d)/18);
+    var eaf=1-ehf-edf;
+    hf=0.7*ohp+0.3*ehf; df=0.7*odp+0.3*edf; af=0.7*oap+0.3*eaf;
+  }else{
+    var hf=0.5/(1+Math.pow(10,-d/14));
+    var df=0.28*Math.exp(-Math.abs(d)/18);
+    var af=1-hf-df;
+  }
+}else{
+  var hf=0.5/(1+Math.pow(10,-d/14));
+  var df=0.28*Math.exp(-Math.abs(d)/18);
+  var af=1-hf-df;
+}
 var t=hf+df+af;hf/=t;df/=t;af/=t;
 var r="胜",cl="#4ade80",p=Math.round(hf*100);
 if(df>=hf&&df>=af){r="平";cl="#9ca3af";p=Math.round(df*100)}
