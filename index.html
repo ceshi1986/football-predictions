@@ -1488,11 +1488,7 @@ if(ro&&ro.odds){
   var ol=ro.odds.l||ro.odds.odds_0?.负||0;
   if(ow&&od&&ol){
     var it=1/ow+1/od+1/ol;
-    var ohp=(1/ow)/it, odp=(1/od)/it, oap=(1/ol)/it;
-    var ehf=0.5/(1+Math.pow(10,-d/14));
-    var edf=0.28*Math.exp(-Math.abs(d)/18);
-    var eaf=1-ehf-edf;
-    hf=0.7*ohp+0.3*ehf; df=0.7*odp+0.3*edf; af=0.7*oap+0.3*eaf;
+    hf=(1/ow)/it; df=(1/od)/it; af=(1/ol)/it;
   }else{
     var hf=0.5/(1+Math.pow(10,-d/14));
     var df=0.28*Math.exp(-Math.abs(d)/18);
