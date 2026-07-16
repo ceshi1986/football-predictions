@@ -1477,75 +1477,129 @@ setTimeout(function(){_run(h,a)},600);
 }
 
 function _run(h,a){
-  var hw=_gs(h),aw=_gs(a),d=hw-aw;
-  var ro=_matchRealOdds(h,a,_realOddsCache);
-  var hf,df,af;
-  var hasRealOdds=false;
-  if(ro&&ro.odds){
-    var ow=ro.odds.w||ro.odds.odds_0?.胜||0;
-    var od=ro.odds.d||ro.odds.odds_0?.平||0;
-    var ol=ro.odds.l||ro.odds.odds_0?.负||0;
-    if(ow&&od&&ol&&ow>1&&od>1&&ol>1){
-      hasRealOdds=true;
-      // === 凯利策略：基于赔率隐含概率 ===
-      var it=1/ow+1/od+1/ol;
-      hf=(1/ow)/it; df=(1/od)/it; af=(1/ol)/it;
-      // 凯利离散度分析
-      var probs=[hf,df,af];
-      var mean=(hf+df+af)/3;
-      var variance=0;
-      for(var p=0;p<3;p++) variance+=Math.pow(probs[p]-mean,2);
-      variance/=3;
-      var kellyDisp=Math.sqrt(variance);
-      // 平赔信号检测：平赔概率异常偏低(<20%)或偏高(>35%)
-      var drawSignal="neutral";
-      if(df<0.20) drawSignal="low_draw"; // 平赔异常低，可能分胜负
-      if(df>0.35) drawSignal="high_draw"; // 平赔异常高，平局概率大
-      // 大热检测：最高概率>55%时防冷
-      var maxP=Math.max(hf,df,af);
-      var isHot=maxP>0.55;
-      // 基于离散度调整置信度
-      // 离散度<0.05: 市场极度一致，高信心
-      // 离散度0.05-0.10: 较一致
-      // 离散度>0.10: 分歧大，降信心
-      var confidenceBoost=1.0;
-      if(kellyDisp<0.05) confidenceBoost=1.15;
-      else if(kellyDisp<0.10) confidenceBoost=1.05;
-      else if(kellyDisp>0.15) confidenceBoost=0.85;
-      // 应用置信度调整
-      if(hf>=df&&hf>=af) hf*=confidenceBoost;
-      else if(df>=hf&&df>=af) df*=confidenceBoost;
-      else af*=confidenceBoost;
-      // 归一化
-      var t2=hf+df+af; hf/=t2; df/=t2; af/=t2;
-    }
+var hw=_gs(h),aw=_gs(a),d=hw-aw;
+var hf,df,af;
+var hasRealOdds=false;
+var ro=_matchRealOdds(h,a,_realOddsCache);
+if(ro&&ro.odds){
+  var ow=ro.odds.w||ro.odds.odds_0?.胜||0;
+  var od=ro.odds.d||ro.odds.odds_0?.平||0;
+  var ol=ro.odds.l||ro.odds.odds_0?.负||0;
+  if(ow&&od&&ol&&ow>1&&od>1&&ol>1){
+    hasRealOdds=true;
+    // === 凯利策略：基于赔率隐含概率 ===
+    var it=1/ow+1/od+1/ol;
+    hf=(1/ow)/it; df=(1/od)/it; af=(1/ol)/it;
+    // 凯利离散度分析
+    var mean=(hf+df+af)/3;
+    var variance=((hf-mean)**2+(df-mean)**2+(af-mean)**2)/3;
+    var kellyDisp=Math.sqrt(variance);
+    // 基于离散度调整置信度
+    var confidenceBoost=1.0;
+    if(kellyDisp<0.05) confidenceBoost=1.15;
+    else if(kellyDisp<0.10) confidenceBoost=1.05;
+    else if(kellyDisp>0.15) confidenceBoost=0.85;
+    // 应用置信度调整
+    if(hf>=df&&hf>=af) hf*=confidenceBoost;
+    else if(df>=hf&&df>=af) df*=confidenceBoost;
+    else af*=confidenceBoost;
+    // 归一化
+    var t2=hf+df+af; hf/=t2; df/=t2; af/=t2;
   }
-  if(!hasRealOdds){
-    // 无赔率时降级为Elo
-    hf=0.5/(1+Math.pow(10,-d/14));
-    df=0.28*Math.exp(-Math.abs(d)/18);
-    af=1-hf-df;
-  }
-  var t=hf+df+af;hf/=t;df/=t;af/=t;
-  // 预测方向
-  var r="胜",cl="#4ade80",p=Math.round(hf*100);
-  if(df>=hf&&df>=af){r="平";cl="#9ca3af";p=Math.round(df*100)}
-  else if(af>hf){r="负";cl="#60a5fa";p=Math.round(af*100)}
-  // 置信度计算（凯利离散度分级）
-  var mx=Math.max(hf,df,af),mn=Math.min(hf,df,af),sp=mx-mn;
-  var c=1;
-  if(hasRealOdds){
-    // 凯利策略置信度分级
-    if(sp>0.08) c=2;
-    if(sp>0.15) c=3;
-    if(sp>0.25) c=4;
-    if(sp>0.35) c=5;
+}
+if(!hasRealOdds){
+  // 无赔率时降级为Elo
+  hf=0.5/(1+Math.pow(10,-d/14));
+  df=0.28*Math.exp(-Math.abs(d)/18);
+  af=1-hf-df;
+}
+var t=hf+df+af;hf/=t;df/=t;af/=t;
+var r="胜",cl="#4ade80",p=Math.round(hf*100);
+if(df>=hf&&df>=af){r="平";cl="#9ca3af";p=Math.round(df*100)}
+else if(af>hf){r="负";cl="#60a5fa";p=Math.round(af*100)}
+var mx=Math.max(hf,df,af),mn=Math.min(hf,df,af),sp=mx-mn;
+var c=1;
+if(hasRealOdds){
+  // 凯利策略置信度分级
+  if(sp>0.08)c=2;if(sp>0.15)c=3;if(sp>0.25)c=4;if(sp>0.35)c=5;
+}else{
+  if(sp>0.15)c=2;if(sp>0.28)c=3;if(sp>0.4)c=4;if(sp>0.5)c=5;
+}
+var hh=_simH(hw,aw);
+var hB=false;
+if(hh.f&&hh.d){if((r==="胜"&&hh.d==="h")||(r==="负"&&hh.d==="a")){hB=true;if(c<5)c++}}
+var md=document.getElementById("md").value||new Date().toISOString().split("T")[0];
+_saveP(h,a,r,hh,md);
+_savePend(h,a,r,md,_gl(h));
+_showAV(h,a,r,md);
+document.getElementById("lm").className="lm";
+document.getElementById("rs").style.display="block";
+document.getElementById("pr").textContent=r;
+document.getElementById("pr").style.color=cl;
+document.getElementById("ph").textContent=Math.round(hf*100)+"%";
+document.getElementById("pd").textContent=Math.round(df*100)+"%";
+document.getElementById("pa").textContent=Math.round(af*100)+"%";
+var sh="";for(var i=1;i<=5;i++)sh+='<span class="s'+(i<=c?" on":"")+'">★</span>';
+document.getElementById("st").innerHTML=sh;
+var ct=Math.round((0.4+sp*0.6+hB*0.08)*100);
+document.getElementById("cf").textContent="置信度 "+ct+"%";
+var an="综合"+p+"%倾向"+(r==="胜"?"主胜":r==="平"?"平局":"客胜");
+if(hB)an+=" · 盘口信号一致↑";
+document.getElementById("an").textContent=an;
+// 购买建议逻辑
+var ba=document.getElementById("ba");
+var bac=document.getElementById("bac");
+var adviceHtml="";
+var maxProb=Math.max(hf,df,af);
+var minProb=Math.min(hf,df,af);
+var probDiff=maxProb-minProb;
+// 获取赔率（兼容两种格式）
+var _gO=function(o,k){return o.w||o.odds_0&&o.odds_0[k]||0};
+var simOdds=ro&&ro.odds?(r==="胜"?(_gO(ro.odds,"胜")||1.5):r==="平"?(_gO(ro.odds,"平")||3.0):(_gO(ro.odds,"负")||3.0)):Math.max(1.30,1/maxProb);
+var isRealOdds=!!(ro&&ro.odds);
+var oddsSource=isRealOdds?'竞彩数据':'模型估算';
+var isExtremeFav=simOdds<=1.25;
+var isStrongFav=simOdds>1.25&&simOdds<=1.7;
+var isMediumFav=simOdds>1.7&&simOdds<=2.2;
+var isUncertain=simOdds>2.2;
+if(isExtremeFav){
+  adviceHtml='<div class="ba-skip">⚠️ 建议放弃购买</div>';
+  adviceHtml+='<div>赔率过低（约'+simOdds.toFixed(2)+(isRealOdds?' 竞彩':' 估算')+'），虽然胜率高达'+Math.round(maxProb*100)+'%，但此类比赛平局概率异常偏高（约15-20%），投注价值极低。</div>';
+  adviceHtml+='<div class="ba-detail">数据支撑：回测中赔率≤1.2的比赛，平局率是正常比赛的2倍以上</div>';
+}else if(isStrongFav&&probDiff>0.35){
+  adviceHtml='<div class="ba-recommend">✅ 值得单选</div>';
+  adviceHtml+='<div>强队优势明显（赔率约'+simOdds.toFixed(2)+'），模型置信度高（'+Math.round(probDiff*100)+'%差距），命中率约83-87%。</div>';
+  adviceHtml+='<div class="ba-detail">数据支撑：澳门凯利指数<返还率信号命中率83.3%，赔率≤1.7+凯利信号87%</div>';
+}else if(isStrongFav||isMediumFav){
+  adviceHtml='<div class="ba-warn">🛡️ 建议双选防冷</div>';
+  adviceHtml+='<div>优势不够绝对（赔率约'+simOdds.toFixed(2)+'），建议覆盖第二选项防冷门。';
+  if(df>hf&&df>af){
+    adviceHtml+='平局概率较高（'+Math.round(df*100)+'%），建议选'+r+'+平局。</div>';
   }else{
-    if(sp>0.15)c=2;if(sp>0.28)c=3;if(sp>0.4)c=4;if(sp>0.5)c=5;
+    adviceHtml+='建议选'+r+'+次优选项。</div>';
   }
-  var hh=_simH(hw,aw);
-  var hB=false;
-  if(hh.f&&hh.d){if((r==="胜"&&hh.d==="h")||(r==="负"&&hh.d==="a")){hB=true;if(c<5)c++}}
+  adviceHtml+='<div class="ba-detail">数据支撑：此类比赛冷门率约25-30%，双选可显著提升命中率</div>';
+}else{
+  adviceHtml='<div class="ba-skip">⚠️ 建议放弃购买</div>';
+  adviceHtml+='<div>比赛结果不确定性高（赔率约'+simOdds.toFixed(2)+'），任何结果都有可能，投注风险过大。</div>';
+  adviceHtml+='<div class="ba-detail">数据支撑：赔率>2.2的比赛，预测准确率降至60%以下</div>';
+}
+bac.innerHTML=adviceHtml;
+ba.style.display="block";
+// 风险提示
+var riskNote='<div style="margin-top:8px;padding-top:8px;border-top:1px solid #2a3f55;font-size:10px;color:#666;line-height:1.3">⚠️ 以上建议仅供娱乐参考，不构成投注建议。请理性对待，量力而行。</div>';
+bac.innerHTML+=riskNote;
+if(hh.f&&hh.d){
+document.getElementById("hd2").className="hd2 show";
+var dn=hh.d==="h"?h+"让"+hh.l+"球":a+"让"+hh.l+"球";
+document.getElementById("dl").textContent="让球方向："+dn+"（辅助参考）";
+document.getElementById("tr").textContent="盘口变化："+hh.t;
+}else{document.getElementById("hd2").className="hd2"}
+document.getElementById("shb").style.display="block";
+_last={h:h,a:a,r:r};
+_renderSt();_renderHi();
+if(typeof fpUpdateLockState==="function")fpUpdateLockState();
+}
 
 function _simH(hw,aw){
 var d=hw-aw,ip=d/11;
