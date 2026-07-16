@@ -428,7 +428,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;b
 <label>比赛日期</label>
 <input type="date" id="md">
 </div>
-<button class="mps-btn" onclick="_calc()">🔮 预测</button><span id="fp-free-count-hint" style="font-size:11px;color:#6b7280;margin-left:8px"></span>
+<button class="mps-btn" onclick="_calc()">🔮 预测</button>
 </div>
 </div>
 <div style="text-align:right;margin-top:8px">
@@ -1405,48 +1405,7 @@ function _toggleManual(forceOpen){
 
 (function(){var d=new Date();document.getElementById("md").value=d.toISOString().split("T")[0]})();
 
-// ===== 手动预测次数限制 =====
-function fpGetManualPredictCount(){
-  return parseInt(localStorage.getItem('fp_manual_predict_count')||'0');
-}
-
-function fpIncrementManualPredictCount(){
-  var count=fpGetManualPredictCount()+1;
-  localStorage.setItem('fp_manual_predict_count',String(count));
-  return count;
-}
-
-function fpUpdateFreeCountHint(){
-  var el=document.getElementById('fp-free-count-hint');
-  if(!el)return;
-  var hasKey=fpGetActiveKey();
-  if(hasKey){
-    el.textContent='';
-    return;
-  }
-  var count=fpGetManualPredictCount();
-  var remaining=Math.max(0,3-count);
-  if(remaining>0){
-    el.textContent='剩余免费次数：'+remaining+'/3';
-    el.style.color='#6b7280';
-  }else{
-    el.textContent='免费次数已用完';
-    el.style.color='#ef4444';
-  }
-}
-
 function _calc(){
-  // 检查是否已验证Key
-  var hasKey=fpGetActiveKey();
-  if(!hasKey){
-    var count=fpGetManualPredictCount();
-    if(count>=3){
-      showPayModal('足球预测');
-      showToast('免费预测次数已用完，请购买Key解锁完整功能');
-      return;
-    }
-  }
-
 var h=document.getElementById("ht").value.trim();
 var a=document.getElementById("at").value.trim();
 var md=document.getElementById("md").value;
@@ -1514,12 +1473,6 @@ document.getElementById("rs").style.display="none";
 document.getElementById("hd2").className="hd2";
 document.getElementById("av").className="av";
 document.getElementById("lm").className="lm show";
-// 预测成功执行后，如果不是Key用户，增加计数
-if(!hasKey){
-  var newCount=fpIncrementManualPredictCount();
-  console.log('手动预测次数：'+newCount+'/3');
-  fpUpdateFreeCountHint();
-}
 setTimeout(function(){_run(h,a)},600);
 }
 
@@ -2686,23 +2639,71 @@ function showToast(msg){var t=document.createElement('div');t.textContent=msg;t.
 // ===== Key验证系统（已禁用锁屏功能） =====
 var fpKeyState={key:'',remaining:0,valid:false};
 
-function fpGetActiveKey(){return null}
+function fpGetActiveKey(){
+  var saved=localStorage.getItem('fp_paid_key');
+  var remaining=parseInt(localStorage.getItem('fp_paid_remaining')||'0');
+  if(saved&&remaining>0) return saved;
+  return null;
+}
 
-function fpShowLoggedInUI(){var statusEl=document.getElementById('fp-key-status');var hintEl=document.getElementById('fp-key-hint');var inputEl=document.getElementById('fp-key-input');var verifyBtn=document.querySelector('.key-verify-btn');var buyBtn=document.querySelector('.fp-buy-btn');var logoutBtn=document.getElementById('fp-logout-btn');if(statusEl){statusEl.textContent='\u2705 已解锁 ('+fpKeyState.remaining+' tokens)';statusEl.style.color='#4ade80'}if(hintEl)hintEl.textContent='\ud83d\udd13 Key已验证 \u00b7 完整内容已解锁';if(inputEl)inputEl.style.display='none';if(verifyBtn)verifyBtn.style.display='none';if(buyBtn)buyBtn.style.display='none';if(logoutBtn)logoutBtn.style.display='inline-block';fpUpdateFreeCountHint()}
+function fpShowLoggedInUI(){var statusEl=document.getElementById('fp-key-status');var hintEl=document.getElementById('fp-key-hint');var inputEl=document.getElementById('fp-key-input');var verifyBtn=document.querySelector('.key-verify-btn');var buyBtn=document.querySelector('.fp-buy-btn');var logoutBtn=document.getElementById('fp-logout-btn');if(statusEl){statusEl.textContent='\u2705 已解锁 ('+fpKeyState.remaining+' tokens)';statusEl.style.color='#4ade80'}if(hintEl)hintEl.textContent='\ud83d\udd13 Key已验证 \u00b7 完整内容已解锁';if(inputEl)inputEl.style.display='none';if(verifyBtn)verifyBtn.style.display='none';if(buyBtn)buyBtn.style.display='none';if(logoutBtn)logoutBtn.style.display='inline-block'}
 
-function fpHideLoggedInUI(){var statusEl=document.getElementById('fp-key-status');var hintEl=document.getElementById('fp-key-hint');var inputEl=document.getElementById('fp-key-input');var verifyBtn=document.querySelector('.key-verify-btn');var buyBtn=document.querySelector('.fp-buy-btn');var logoutBtn=document.getElementById('fp-logout-btn');if(statusEl){statusEl.textContent='';statusEl.style.color='#9ca3af'}if(hintEl)hintEl.textContent='\ud83c\udf81 免费查看基础预测 | 验证Key解锁完整分析+AI预测+购买建议';if(inputEl){inputEl.style.display='';inputEl.value=''}if(verifyBtn)verifyBtn.style.display='';if(buyBtn)buyBtn.style.display='';if(logoutBtn)logoutBtn.style.display='none';fpUpdateFreeCountHint()}
+function fpHideLoggedInUI(){var statusEl=document.getElementById('fp-key-status');var hintEl=document.getElementById('fp-key-hint');var inputEl=document.getElementById('fp-key-input');var verifyBtn=document.querySelector('.key-verify-btn');var buyBtn=document.querySelector('.fp-buy-btn');var logoutBtn=document.getElementById('fp-logout-btn');if(statusEl){statusEl.textContent='';statusEl.style.color='#9ca3af'}if(hintEl)hintEl.textContent='\ud83c\udf81 免费查看基础预测 | 验证Key解锁完整分析+AI预测+购买建议';if(inputEl){inputEl.style.display='';inputEl.value=''}if(verifyBtn)verifyBtn.style.display='';if(buyBtn)buyBtn.style.display='';if(logoutBtn)logoutBtn.style.display='none'}
 
-function fpVerifyKey(){var input=document.getElementById('fp-key-input');var key=input.value.trim();if(!key){showToast('请输入Key');return}var statusEl=document.getElementById('fp-key-status');statusEl.textContent='验证中...';statusEl.style.color='#9ca3af';fetch('https://metaphyai-api-v-cwpuwzgtdx.cn-shanghai.fcapp.run',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({action:'key_validate',key:key})}).then(function(r){return r.json()}).then(function(data){if(data.success&&data.valid){fpKeyState.key=key;fpKeyState.valid=true;fpKeyState.remaining=data.remaining||data.token_remaining||0;localStorage.setItem('fp_paid_key',key);localStorage.setItem('fp_paid_remaining',String(fpKeyState.remaining));fpShowLoggedInUI();showToast('\ud83c\udf89 Key验证成功，完整内容已解锁！');if(typeof closePayModal==='function')closePayModal()}else{statusEl.textContent='\u274c Key无效';statusEl.style.color='#ef4444'}}).catch(function(){statusEl.textContent='\u274c 网络错误';statusEl.style.color='#ef4444'})}
+function fpVerifyKey(){var input=document.getElementById('fp-key-input');var key=input.value.trim();if(!key){showToast('请输入Key');return}var statusEl=document.getElementById('fp-key-status');statusEl.textContent='验证中...';statusEl.style.color='#9ca3af';fetch('https://metaphyai-api-v-cwpuwzgtdx.cn-shanghai.fcapp.run',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({action:'key_validate',key:key})}).then(function(r){return r.json()}).then(function(data){if(data.success&&data.valid){fpKeyState.key=key;fpKeyState.valid=true;fpKeyState.remaining=data.remaining||data.token_remaining||0;localStorage.setItem('fp_paid_key',key);localStorage.setItem('fp_paid_remaining',String(fpKeyState.remaining));fpShowLoggedInUI();showToast('\ud83c\udf89 Key验证成功，完整内容已解锁！');if(typeof fpUpdateLockState==='function')fpUpdateLockState();if(typeof closePayModal==='function')closePayModal()}else{statusEl.textContent='\u274c Key无效';statusEl.style.color='#ef4444'}}).catch(function(){statusEl.textContent='\u274c 网络错误';statusEl.style.color='#ef4444'})}
 
-function fpLogoutKey(){if(!confirm('确定退出Key？退出后部分内容将被锁定'))return;localStorage.removeItem('fp_paid_key');localStorage.removeItem('fp_paid_remaining');fpKeyState={key:'',remaining:0,valid:false};fpHideLoggedInUI();showToast('已退出Key')}
+function fpLogoutKey(){if(!confirm('确定退出Key？退出后部分内容将被锁定'))return;localStorage.removeItem('fp_paid_key');localStorage.removeItem('fp_paid_remaining');fpKeyState={key:'',remaining:0,valid:false};fpHideLoggedInUI();if(typeof fpUpdateLockState==='function')fpUpdateLockState();showToast('已退出Key')}
 
-// 锁屏功能已禁用：不再对任何元素加锁
-function fpUpdateLockState(){}
+function fpUpdateLockState(){
+  // 先清除之前的锁定状态
+  var oldWrappers=document.querySelectorAll('#ai-rec-body .fp-lock-wrapper');
+  for(var w=0;w<oldWrappers.length;w++){
+    var wr=oldWrappers[w];
+    var card=wr.querySelector('.ai-card');
+    if(card){
+      card.classList.remove('fp-locked');
+      wr.parentNode.insertBefore(card,wr);
+    }
+    wr.parentNode.removeChild(wr);
+  }
+  var oldCta=document.getElementById('fp-upgrade-cta');
+  if(oldCta&&oldCta.parentNode) oldCta.parentNode.removeChild(oldCta);
+  // 清除所有残留的 fp-locked
+  var lockedCards=document.querySelectorAll('#ai-rec-body .ai-card.fp-locked');
+  for(var l=0;l<lockedCards.length;l++){lockedCards[l].classList.remove('fp-locked')}
 
-(function fpInitKey(){var savedKey=localStorage.getItem('fp_paid_key');if(savedKey){fpKeyState.key=savedKey;fpKeyState.remaining=parseInt(localStorage.getItem('fp_paid_remaining')||'0');fpKeyState.valid=fpKeyState.remaining>0;if(fpKeyState.valid)fpShowLoggedInUI();else{var input=document.getElementById('fp-key-input');if(input)input.value=savedKey}}fpUpdateFreeCountHint();})();
+  var key=fpGetActiveKey();
+  if(key) return; // 有Key，不锁定
 
-// 页面加载完成后强制清除所有锁屏残留
-window.addEventListener('load',function(){setTimeout(function(){var lockIds=['an','ba','hd2','ai-rec','ai-acc'];for(var i=0;i<lockIds.length;i++){var el=document.getElementById(lockIds[i]);if(!el)continue;el.classList.remove('fp-locked');var wrapper=el.closest('.fp-lock-wrapper');if(wrapper){var parent=wrapper.parentNode;while(wrapper.firstChild){parent.insertBefore(wrapper.firstChild,wrapper)}parent.removeChild(wrapper)}}var allLocks=document.querySelectorAll('.fp-lock-overlay,.fp-lock-wrapper');for(var j=0;j<allLocks.length;j++){var ov=allLocks[j];if(ov.parentNode){while(ov.firstChild){ov.parentNode.insertBefore(ov.firstChild,ov)}ov.parentNode.removeChild(ov)}}},500)});
+  var cards=document.querySelectorAll('#ai-rec-body .ai-card');
+  if(cards.length<=3) return; // 不超过3场，不锁定
+
+  // 第4场开始：用 fp-lock-wrapper 包裹，加 .fp-locked，添加覆盖层
+  for(var i=3;i<cards.length;i++){
+    var card=cards[i];
+    var wrapper=document.createElement('div');
+    wrapper.className='fp-lock-wrapper';
+    card.parentNode.insertBefore(wrapper,card);
+    wrapper.appendChild(card);
+    card.classList.add('fp-locked');
+    var overlay=document.createElement('div');
+    overlay.className='fp-lock-overlay';
+    overlay.innerHTML='<div class="fp-lock-icon">🔒</div><div class="fp-lock-text">验证Key查看完整预测</div><button class="fp-upgrade-btn" onclick="showPayModal(\'足球预测\')">立即解锁</button>';
+    wrapper.appendChild(overlay);
+  }
+
+  // 末尾添加升级CTA
+  var cta=document.createElement('div');
+  cta.id='fp-upgrade-cta';
+  cta.style.cssText='margin-top:16px;padding:20px 16px;text-align:center;background:linear-gradient(135deg,rgba(245,158,11,0.15),rgba(217,119,6,0.1));border:1px solid rgba(245,158,11,0.3);border-radius:12px;color:#f59e0b;font-size:15px;font-weight:700';
+  var lockedCount=cards.length-3;
+  cta.innerHTML='🔒 还有 '+lockedCount+' 场比赛预测被锁定 | <button onclick="showPayModal(\'足球预测\')" style="background:linear-gradient(135deg,#f59e0b,#d97706);color:#000;border:none;padding:10px 24px;border-radius:10px;font-size:14px;font-weight:700;cursor:pointer;margin-left:8px">验证Key全部解锁 →</button>';
+  document.getElementById('ai-rec-body').appendChild(cta);
+}
+
+(function fpInitKey(){var savedKey=localStorage.getItem('fp_paid_key');if(savedKey){fpKeyState.key=savedKey;fpKeyState.remaining=parseInt(localStorage.getItem('fp_paid_remaining')||'0');fpKeyState.valid=fpKeyState.remaining>0;if(fpKeyState.valid)fpShowLoggedInUI();else{var input=document.getElementById('fp-key-input');if(input)input.value=savedKey}}if(typeof fpUpdateLockState==='function')setTimeout(function(){fpUpdateLockState()},1000)})();
+
+
 
 </script>
 <script>(function(){document.addEventListener("contextmenu",function(e){e.preventDefault()});document.addEventListener("keydown",function(e){if(e.key==="F12"||(e.ctrlKey&&e.shiftKey&&(e.key==="I"||e.key==="J"||e.key==="C"))||(e.ctrlKey&&e.key==="U")){e.preventDefault()}});})();</script>
