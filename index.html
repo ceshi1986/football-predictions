@@ -635,20 +635,7 @@ var _oddsCacheTime=0;
 var _ODDS_TTL=30*60*1000;
 
 async function _fetchRealOdds(){
-  // 优先级1: The Odds API 真实赔率数据（最高优先级）
-  try{
-    var r1=await fetch('data/odds_api_odds.json',{cache:'no-cache'});
-    if(r1.ok){
-      var d1=await r1.json();
-      if(d1&&d1.matches&&d1.matches.length>0){
-        _realOddsCache=d1.matches;
-        _oddsCacheTime=Date.now();
-        console.log('Loaded '+d1.matches.length+' real odds from The Odds API');
-        return _realOddsCache;
-      }
-    }
-  }catch(e){console.log('Odds API fetch failed:',e);}
-  // 优先级2: schedule.json 中的赔率数据
+  // 优先级1: schedule.json 足彩网/竞彩网赔率（国内数据，最高优先级）
   if(_allMatches&&_allMatches.length>0){
     var oddsList=[];
     for(var i=0;i<_allMatches.length;i++){
@@ -658,16 +645,16 @@ async function _fetchRealOdds(){
     if(oddsList.length>0){
       _realOddsCache=oddsList;
       _oddsCacheTime=Date.now();
-      console.log('Loaded '+oddsList.length+' real odds from schedule.json');
+      console.log('Loaded '+oddsList.length+' real odds from schedule.json (足彩网)');
       return oddsList;
     }
   }
-  // 第二优先级：The Odds API 国际赔率（国内无数据时补充）
+  // 优先级2: The Odds API 国际赔率（国内无数据时补充）
   try{
     var r2=await fetch('data/odds_api_odds.json?t='+Date.now(),{cache:'no-cache'});
     if(r2.ok){var d2=await r2.json();if(d2&&d2.length>0){_realOddsCache=d2;_oddsCacheTime=Date.now();console.log('Loaded '+d2.length+' odds from The Odds API');return _realOddsCache;}}
   }catch(e){console.log('Odds API fetch failed:',e);}
-  // 第三优先级：FC API 兜底
+  // 优先级3: FC API 兜底
   try{
     var r=await fetch('https://metaphyai-api-v-cwpuwzgtdx.cn-shanghai.fcapp.run/odds',{cache:'no-cache'});
     if(r.ok){var d=await r.json();if(d&&d.matches){_realOddsCache=d.matches;_oddsCacheTime=Date.now();console.log('Loaded '+d.matches.length+' real odds from FC API');return _realOddsCache;}}
