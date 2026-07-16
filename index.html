@@ -1586,6 +1586,20 @@ if(isExtremeFav){
 }
 bac.innerHTML=adviceHtml;
 ba.style.display="block";
+// === 双选时更新预测方向显示 ===
+var isDouble=false, spk="", spp=0;
+if((isStrongFav||isMediumFav)&&probDiff<=0.35){
+  isDouble=true;
+  if(r==="胜"){if(df>=af){spk="平";spp=Math.round(df*100)}else{spk="负";spp=Math.round(af*100)}}
+  else if(r==="平"){if(hf>=af){spk="胜";spp=Math.round(hf*100)}else{spk="负";spp=Math.round(af*100)}}
+  else{if(hf>=df){spk="胜";spp=Math.round(hf*100)}else{spk="平";spp=Math.round(df*100)}}
+  var sn={"胜":"主胜","平":"平局","负":"客胜"};
+  document.getElementById("pr").textContent=r+" + "+spk;
+  document.getElementById("an").textContent="综合"+p+"%倾向"+sn[r]+"，双选防"+sn[spk]+"("+spp+"%)";
+  var stEl=document.getElementById("st");
+  stEl.innerHTML+='<span style="font-size:10px;color:#f59e0b;margin-left:4px">双选</span>';
+  document.getElementById("cf").textContent="置信度 "+ct+"% + 双选"+spp+"%";
+}
 // 风险提示
 var riskNote='<div style="margin-top:8px;padding-top:8px;border-top:1px solid #2a3f55;font-size:10px;color:#666;line-height:1.3">⚠️ 以上建议仅供娱乐参考，不构成投注建议。请理性对待，量力而行。</div>';
 bac.innerHTML+=riskNote;
