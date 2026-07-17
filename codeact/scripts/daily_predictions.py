@@ -535,51 +535,132 @@ def _build_schedule_en_map(all_matches: list) -> dict:
     return m
 
 
+def _build_schedule_name_map(all_matches: list) -> dict:
+    """从赛程构建 英文名->中文名 的直接映射（利用赛程中已有的中英对照）"""
+    m = {}
+    for match in all_matches:
+        home_cn = match.get("home", "")
+        away_cn = match.get("away", "")
+        home_en = match.get("homeEN", "")
+        away_en = match.get("awayEN", "")
+        if home_en and home_cn:
+            m[_normalize_name(home_en)] = home_cn
+        if away_en and away_cn:
+            m[_normalize_name(away_en)] = away_cn
+    return m
+
+
 def _normalize_name(name: str) -> str:
-    """标准化球队名称用于模糊匹配"""
+    """标准化球队名称用于模糊匹配（去重音、特殊字符）"""
     if not name:
         return ""
+    import unicodedata
+    # 先做 Unicode 规范化（去重音符号：ö→o, ã→a, í→i 等）
+    name = unicodedata.normalize('NFKD', name)
+    name = ''.join(c for c in name if not unicodedata.combining(c))
     name = name.lower().strip()
-    for ch in ['-', '.', '_', "'", '(', ')']:
+    for ch in ['-', '.', '_', "'", '(', ')', '/', '&']:
         name = name.replace(ch, ' ')
     while '  ' in name:
         name = name.replace('  ', ' ')
     return name.strip()
 
 
-def _match_team(api_name: str, pred_name: str, en_to_cn: dict, schedule_en: str = "") -> bool:
+def _fuzzy_en_match(name_a: str, name_b: str) -> bool:
+    """模糊匹配两个已标准化的英文队名"""
+    if not name_a or not name_b:
+        return False
+    if name_a == name_b:
+        return True
+    
+    # 去掉常见后缀/缩写在比较
+    suffixes_to_remove = [' fc', ' sc', ' cf', ' sk', ' bk', ' if', ' fk']
+    a_clean = name_a
+    b_clean = name_b
+    for s in suffixes_to_remove:
+        a_clean = a_clean.replace(s, '')
+        b_clean = b_clean.replace(s, '')
+    a_clean = a_clean.strip()
+    b_clean = b_clean.strip()
+    
+    if a_clean == b_clean:
+        return True
+    # 一个包含另一个
+    if a_clean in b_clean or b_clean in a_clean:
+        return True
+    
+    # 拆分单词，检查核心词是否重叠超过50%
+    words_a = set(a_clean.split())
+    words_b = set(b_clean.split())
+    if words_a and words_b:
+        common = words_a & words_b
+        # 去掉太常见的词
+        common -= {'of', 'the', 'de', 'la', 'le', 'el', 'en'}
+        # 至少有一个核心共同词，且共同词占较短集合的50%以上
+        if common and len(common) >= min(len(words_a), len(words_b)) * 0.5:
+            return True
+    
+    return False
+
+
+def _match_team(api_name: str, pred_name: str, en_to_cn: dict, schedule_en: str = "", schedule_name_map: dict = None) -> bool:
     """判断 API 返回的队名与预测中的中文名是否匹配"""
     if not api_name or not pred_name:
         return False
 
-    # 方法1: 通过英文反向映射
-    api_lower = api_name.lower().strip()
-    cn_from_api = en_to_cn.get(api_lower, "")
-    if cn_from_api and cn_from_api == pred_name:
+    api_norm = _normalize_name(api_name)
+    pred_norm = _normalize_name(pred_name)
+    if schedule_name_map is None:
+        schedule_name_map = {}
+
+    # 方法1: 通过 schedule_name_map 直接匹配（最可靠，来自赛程中英对照）
+    cn_from_sched_map = schedule_name_map.get(api_norm, "")
+    if cn_from_sched_map and _normalize_name(cn_from_sched_map) == pred_norm:
         return True
 
-    # 方法2: 通过 schedule 中的英文名
+    # 方法2: 通过英文反向映射（球队数据库）
+    cn_from_db = en_to_cn.get(api_norm, "")
+    if cn_from_db and _normalize_name(cn_from_db) == pred_norm:
+        return True
+
+    # 方法3: 通过 schedule_en 参数（旧的兼容方式）
     if schedule_en:
-        cn_from_sched = en_to_cn.get(schedule_en.lower(), "")
-        if cn_from_sched and cn_from_sched == pred_name:
+        sched_norm = _normalize_name(schedule_en)
+        cn_from_sched = en_to_cn.get(sched_norm, "")
+        if cn_from_sched and _normalize_name(cn_from_sched) == pred_norm:
+            return True
+        # 也尝试 schedule_name_map
+        cn2 = schedule_name_map.get(sched_norm, "")
+        if cn2 and _normalize_name(cn2) == pred_norm:
             return True
 
-    # 方法3: 模糊匹配（中文名相同或包含关系）
-    api_cn_candidates = set()
-    if cn_from_api:
-        api_cn_candidates.add(cn_from_api)
-    if schedule_en:
-        cn_s = en_to_cn.get(schedule_en.lower(), "")
-        if cn_s:
-            api_cn_candidates.add(cn_s)
-    for candidate in api_cn_candidates:
-        if candidate == pred_name:
+    # 方法4: 模糊匹配 - 中文名包含关系
+    candidates = set()
+    if cn_from_sched_map:
+        candidates.add(cn_from_sched_map)
+    if cn_from_db:
+        candidates.add(cn_from_db)
+    for candidate in candidates:
+        c_norm = _normalize_name(candidate)
+        if c_norm == pred_norm:
             return True
-        # 去掉"FC"等后缀再比
-        c1 = candidate.replace("FC", "").replace("fc", "").strip()
-        c2 = pred_name.replace("FC", "").replace("fc", "").strip()
+        # 去掉 FC 等后缀
+        c1 = c_norm.replace("fc", "").replace("cf", "").strip()
+        c2 = pred_norm.replace("fc", "").replace("cf", "").strip()
         if c1 and c2 and (c1 in c2 or c2 in c1):
             return True
+
+    # 方法5: 英文名标准化后直接包含匹配（处理API名称与schedule名称略有差异的情况）
+    if schedule_en:
+        se_norm = _normalize_name(schedule_en)
+        if se_norm and api_norm and (se_norm in api_norm or api_norm in se_norm):
+            # 英文名高度相似，认为是同一支球队
+            # 再验证中文名是否也有关联
+            cn_via_se = schedule_name_map.get(se_norm, "")
+            if cn_via_se:
+                cn_se_norm = _normalize_name(cn_via_se)
+                if cn_se_norm and pred_norm and (cn_se_norm in pred_norm or pred_norm in cn_se_norm):
+                    return True
 
     return False
 
@@ -653,6 +734,8 @@ async def verify_predictions(predictions: list, all_matches: list):
     teams = parse_team_db(_TEAM_DB_RAW)
     en_to_cn = _build_en_to_cn(teams)
     schedule_en_map = _build_schedule_en_map(all_matches)
+    schedule_name_map = _build_schedule_name_map(all_matches)
+    print(f"[DEBUG] schedule_name_map 大小: {len(schedule_name_map)}")
 
     today = datetime.now(timezone(timedelta(hours=8)))
     today_str = today.strftime("%Y%m%d")
@@ -719,17 +802,36 @@ async def verify_predictions(predictions: list, all_matches: list):
 
         matched_result = None
         for r in results:
-            home_match = _match_team(r["homeEN"], pred_home, en_to_cn, sched_home_en)
-            away_match = _match_team(r["awayEN"], pred_away, en_to_cn, sched_away_en)
+            # 优先使用 matchId 从 schedule 获取英文名，再做模糊匹配
+            # 这是最可靠的方式：schedule 已知每场比赛的英文名
+            if sched_home_en and sched_away_en:
+                sh_norm = _normalize_name(sched_home_en)
+                sa_norm = _normalize_name(sched_away_en)
+                rh_norm = _normalize_name(r["homeEN"])
+                ra_norm = _normalize_name(r["awayEN"])
+                
+                # 正向匹配：schedule主队==API主队 且 schedule客队==API客队
+                if _fuzzy_en_match(sh_norm, rh_norm) and _fuzzy_en_match(sa_norm, ra_norm):
+                    matched_result = r
+                    break
+                # 交叉匹配（主客颠倒）
+                if _fuzzy_en_match(sh_norm, ra_norm) and _fuzzy_en_match(sa_norm, rh_norm):
+                    matched_result = {
+                        "homeEN": pred_home, "awayEN": pred_away,
+                        "homeScore": r["awayScore"], "awayScore": r["homeScore"],
+                    }
+                    break
+            
+            # 回退：用旧的中文名匹配逻辑
+            home_match = _match_team(r["homeEN"], pred_home, en_to_cn, sched_home_en, schedule_name_map)
+            away_match = _match_team(r["awayEN"], pred_away, en_to_cn, sched_away_en, schedule_name_map)
             if home_match and away_match:
                 matched_result = r
                 break
-            # 也尝试交叉匹配（以防主客颠倒）
             if home_match and not away_match:
-                away_match2 = _match_team(r["awayEN"], pred_home, en_to_cn, sched_home_en)
-                home_match2 = _match_team(r["homeEN"], pred_away, en_to_cn, sched_away_en)
+                away_match2 = _match_team(r["awayEN"], pred_home, en_to_cn, sched_home_en, schedule_name_map)
+                home_match2 = _match_team(r["homeEN"], pred_away, en_to_cn, sched_away_en, schedule_name_map)
                 if away_match2 and home_match2:
-                    # 主客颠倒，交换比分
                     matched_result = {
                         "homeEN": pred_home, "awayEN": pred_away,
                         "homeScore": r["awayScore"], "awayScore": r["homeScore"],
