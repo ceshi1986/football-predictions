@@ -635,39 +635,49 @@ var _oddsCacheTime=0;
 var _ODDS_TTL=30*60*1000;
 
 async function _fetchRealOdds(){
-  // 优先级1: The Odds API 国际赔率（数据源更全面）
+  var allOdds=[];
+  var seenKeys=new Set();
+  function mergeOdds(oddsList,source){
+    if(!oddsList)return;
+    for(var j=0;j<oddsList.length;j++){
+      var m=oddsList[j];
+      var key=((m.home||m.homeEN||'')+'_'+(m.away||m.awayEN||'')).toLowerCase().replace(/\s+/g,'');
+      if(!seenKeys.has(key)){
+        seenKeys.add(key);
+        allOdds.push({home:m.home||m.homeEN||'',away:m.away||m.awayEN||'',homeEN:m.homeEN||'',awayEN:m.awayEN||'',odds:m.odds||{w:m.w,d:m.d,l:m.l}});
+      }
+    }
+    console.log('Merged '+oddsList.length+' odds from '+source+', total now: '+allOdds.length);
+  }
+  // 优先级1: The Odds API 国际赔率
   try{
     var r1=await fetch('data/odds_api_odds.json?t='+Date.now(),{cache:'no-cache'});
     if(r1.ok){
       var d1=await r1.json();
       var odds1=Array.isArray(d1)?d1:(d1&&d1.matches?d1.matches:null);
-      if(odds1&&odds1.length>0){
-        _realOddsCache=odds1;
-        _oddsCacheTime=Date.now();
-        console.log('Loaded '+odds1.length+' odds from The Odds API');
-        return _realOddsCache;
-      }
+      mergeOdds(odds1,'The Odds API');
     }
   }catch(e){console.log('Odds API fetch failed:',e);}
-  // 优先级2: schedule.json 足彩网赔率（国内数据补充）
+  // 优先级2: schedule.json 足彩网赔率（合并，不覆盖）
   if(_allMatches&&_allMatches.length>0){
     var oddsList=[];
     for(var i=0;i<_allMatches.length;i++){
       var m=_allMatches[i];
-      if(m.odds){oddsList.push({home:m.home,away:m.away,odds:m.odds});}
+      if(m.odds){oddsList.push({home:m.home,away:m.away,homeEN:m.homeEN||'',awayEN:m.awayEN||'',odds:m.odds});}
     }
-    if(oddsList.length>0){
-      _realOddsCache=oddsList;
-      _oddsCacheTime=Date.now();
-      console.log('Loaded '+oddsList.length+' real odds from schedule.json (足彩网)');
-      return oddsList;
-    }
+    mergeOdds(oddsList,'schedule.json(足彩网)');
   }
-  // 优先级3: FC API 兜底
+  // 优先级3: FC API 兜底（合并）
   try{
     var r=await fetch('https://metaphyai-api-v-cwpuwzgtdx.cn-shanghai.fcapp.run/odds',{cache:'no-cache'});
-    if(r.ok){var d=await r.json();if(d&&d.matches){_realOddsCache=d.matches;_oddsCacheTime=Date.now();console.log('Loaded '+d.matches.length+' real odds from FC API');return _realOddsCache;}}
+    if(r.ok){var d=await r.json();if(d&&d.matches){mergeOdds(d.matches,'FC API');}}
   }catch(e){console.log('Odds fetch failed:',e);}
+  if(allOdds.length>0){
+    _realOddsCache=allOdds;
+    _oddsCacheTime=Date.now();
+    console.log('Total merged odds: '+allOdds.length);
+    return _realOddsCache;
+  }
   return null;
 }
 
@@ -679,9 +689,13 @@ function _matchRealOdds(home,away,list){
     var o=list[i];
     var oh=(o.home||'').replace(/\s+/g,'').toLowerCase();
     var oa=(o.away||'').replace(/\s+/g,'').toLowerCase();
+    var ohEN=(o.homeEN||'').replace(/\s+/g,'').toLowerCase();
+    var oaEN=(o.awayEN||'').replace(/\s+/g,'').toLowerCase();
     var exact=(hn===oh&&an===oa);
+    var exactEN=(hn===ohEN&&an===oaEN);
     var partial=((hn.indexOf(oh)>=0||oh.indexOf(hn)>=0)&&(an.indexOf(oa)>=0||oa.indexOf(an)>=0));
-    if(exact||partial){
+    var partialEN=((hn.indexOf(ohEN)>=0||ohEN.indexOf(hn)>=0)&&(an.indexOf(oaEN)>=0||oaEN.indexOf(an)>=0));
+    if(exact||exactEN||partial||partialEN){
       if(o.odds)return o;
       return {home:o.home,away:o.away,odds:o};
     }
