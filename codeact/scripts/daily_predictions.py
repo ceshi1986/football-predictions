@@ -777,8 +777,19 @@ async def verify_predictions(predictions: list, all_matches: list):
 
 async def main():
     result_mode = sys.argv[1] if len(sys.argv) > 1 else "display_only"
-    github_token = sys.argv[2] if len(sys.argv) > 2 else os.environ.get("GITHUB_TOKEN", "YOUR_TOKEN_HERE")
-    github_repo = sys.argv[3] if len(sys.argv) > 3 else "ceshi1986/football-predictions"
+    
+    # 读取配置：优先从环境变量/参数获取，其次从配置文件
+    _config = {}
+    _config_path = os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), "config.json")
+    if os.path.exists(_config_path):
+        try:
+            with open(_config_path, "r") as _f:
+                _config = json.load(_f)
+        except Exception:
+            pass
+    
+    github_token = sys.argv[2] if len(sys.argv) > 2 and sys.argv[2] != "ceshi1986/football-predictions" else _config.get("github_token", os.environ.get("GITHUB_TOKEN", "YOUR_TOKEN_HERE"))
+    github_repo = sys.argv[3] if len(sys.argv) > 3 else (sys.argv[2] if len(sys.argv) > 2 and "/" in sys.argv[2] else _config.get("github_repo", "ceshi1986/football-predictions"))
 
     print(f"[参数] result_mode={result_mode}, repo={github_repo}")
 
@@ -1086,4 +1097,4 @@ async def main():
         )
 
 
-asyncio.run(m
+asyncio.run(main())
