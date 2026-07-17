@@ -480,6 +480,7 @@ _ODDS_API_LEAGUE_MAP = {
     "por.1": "soccer_portugal_primeira_liga",
     "tur.1": "soccer_turkey_super_lig",
     "usa.1": "soccer_usa_mls",
+    "mls": "soccer_usa_mls",
     "mex.1": "soccer_mexico_ligamx",
     "bra.1": "soccer_brazil_campeonato",
     "chn.1": "soccer_china_superleague",
@@ -1196,7 +1197,4 @@ async def main():
             status="error",
             message=f"足球预测脚本执行失败: {e}",
             data={"error_type": type(e).__name__},
-        )
-
-
-asyncio.run(main())
+   
