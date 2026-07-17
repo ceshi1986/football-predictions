@@ -483,7 +483,6 @@ _ODDS_API_LEAGUE_MAP = {
     "mls": "soccer_usa_mls",
     "mex.1": "soccer_mexico_ligamx",
     "bra.1": "soccer_brazil_campeonato",
-    "chn.1": "soccer_china_superleague",
     "jpn.1": "soccer_japan_j_league",
     "kor.1": "soccer_korea_kleague1",
     "swe.1": "soccer_sweden_allsvenskan",
@@ -494,6 +493,19 @@ _ODDS_API_LEAGUE_MAP = {
 }
 
 ODDS_API_KEY = "0b8808a6d42b077c4f4016737004f22b"
+
+# 竞彩/北单支持的联赛代码（不含中超）
+# 只对这些联赛生成预测，并纳入命中率统计
+ACTIVE_LEAGUE_CODES = {
+    "bra.1",           # 巴甲
+    "nor.1",           # 挪超
+    "swe.1",           # 瑞典超
+    "mls", "usa.1",    # 美职
+    "uefa.champions",  # 欧冠
+    "uefa.champions.qual",  # 欧冠资格赛
+    "uefa.europa",     # 欧联
+    "fifa.world",      # 世界杯
+}
 
 
 def _build_en_to_cn(teams_db: dict) -> dict:
@@ -945,20 +957,25 @@ async def main():
         for p in existing_predictions:
             pred_map[p.get("matchId", "")] = p
 
-        # ===== 6. 过滤未开赛的比赛 =====
+        # ===== 6. 过滤未开赛的比赛（仅竞彩/北单联赛） =====
         today = datetime.now(timezone(timedelta(hours=8)))
         today_str = today.strftime("%Y%m%d")
         print(f"[INFO] 今日日期: {today_str}")
 
         upcoming = []
+        skipped_leagues = set()
         for m in all_matches:
             if m.get("statusClass") != "scheduled":
                 continue
             if m.get("completed"):
                 continue
+            league_code = m.get("league", "")
+            if league_code not in ACTIVE_LEAGUE_CODES:
+                skipped_leagues.add(league_code)
+                continue
             upcoming.append(m)
 
-        print(f"[INFO] 未开赛比赛: {len(upcoming)} 场")
+        print(f"[INFO] 未开赛比赛: {len(upcoming)} 场（已过滤非竞彩联赛: {skipped_leagues}）")
 
         # ===== 7. 生成新预测 =====
         new_count = 0
@@ -1128,9 +1145,10 @@ async def main():
         summary = "\n".join(summary_lines)
         print("\n" + summary)
 
-        # ===== 11. 统计信息 =====
-        verified_total = len(verified_preds)
-        verified_hits = sum(1 for p in verified_preds if p.get("hit"))
+        # ===== 11. 统计信息（仅竞彩/北单联赛纳入命中率） =====
+        active_verified = [p for p in verified_preds if p.get("leagueCode") in ACTIVE_LEAGUE_CODES]
+        verified_total = len(active_verified)
+        verified_hits = sum(1 for p in active_verified if p.get("hit"))
         hit_rate = round(verified_hits / verified_total * 100) if verified_total > 0 else 0
 
         stats_info = (
@@ -1197,4 +1215,7 @@ async def main():
             status="error",
             message=f"足球预测脚本执行失败: {e}",
             data={"error_type": type(e).__name__},
-   
+        )
+
+
+asyncio.run(main())
