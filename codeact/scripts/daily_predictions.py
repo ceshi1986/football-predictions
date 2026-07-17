@@ -1,950 +1,1089 @@
 #!/usr/bin/env python3
-# -*- coding: utf-8 -*-
-"""每日足球AI预测生成脚本
-
-每天自动运行，从 GitHub 读取赛程，结合球队实力数据库和竞彩网真实赔率，
-为当天及未来7天所有比赛生成AI预测，存入GitHub仓库供前端展示。
-
-数据源：
-  - 赛程：GitHub 仓库 schedule.json
-  - 赔率：竞彩网 API（真实赔率）
-  - 球队实力：从 index.html 中的 _db 字符串解析
-
-预测逻辑：
-  - 与前端 index.html 中的 _aiJudge 函数完全一致
-  - 球队实力来自 _db，不在库中的球队用哈希函数计算默认权重
-  - 概率计算：hf = 0.5/(1+10^(-d/14)), df = 0.28*exp(-|d|/18), af = 1-hf-df
-  - 真实赔率替换：如有匹配赔率，simOdds = min(w,d,l)
-  - 预测类型：single/double，根据概率和赔率判断
-  - skip 标记：赔率过低(<=1.25)或概率太接近(probDiff<0.10)
-
-合并逻辑：
-  - 保留已验证(verified=true)记录不动
-  - 未验证且仍在 schedule 中的记录更新预测
-  - 新增比赛生成新预测
-  - 推送回 GitHub
-
-参数：
-  - result_mode: auto / display_only / notify / no_reply，默认 display_only
-  - github_repo: GitHub 仓库路径，默认 ceshi1986/football-predictions
+"""
+每日足球预测脚本 - 凯利策略 + Elo降级
+- 有赔率时100%基于赔率隐含概率（凯利策略）
+- 无赔率时降级为Elo模型
+- 凯利离散度调节置信度
+- 置信度分级（星级）
+- 让球辅助判断
+- 保留已验证旧预测，只新增/更新未验证的
+- 只预测90分钟+补时结果
 """
 
-# 凯利策略6步检查清单(核心预测逻辑):
-#   当有多家机构赔率数据时,优先使用凯利指数分析:
-#   1. bet365+韦德凯利一致性:离散度<0.03高一致,>0.10极可能冷门
-#   2. 立博平赔信号:立博平赔低于bet365>=0.15为强平局信号
-#   3. 威廉全局校准:返还率>=92%才值得分析
-#   4. 澳门初盘定位:与bet365盘口对比深浅差异
-#   5. 蛙跳盘检测:连续跳级变盘为异常信号
-#   6. 临场变化:赛前1-2小时凯利/盘口反向信号
-#   
-#   预测优先级:凯利策略 > 赔率分析 > 实力值模型
-
 import asyncio
-import base64
+import sys
 import json
 import math
 import os
-import re
-import subprocess
-import sys
-import traceback
-from datetime import datetime, timedelta, timezone
-from typing import Any, Dict, List, Optional, Tuple
-
+from datetime import datetime, timezone, timedelta
 from codeact_sdk import CodeActSDK
+import requests
 
-# ===== SDK 工具版本 =====
+# ===== 工具 Schema 版本 =====
 TOOL_SCHEMA_VERSIONS = {
     "codeact_fetch_web": "v1_2c8d0580b3f93a58",
+    "codeact_search_web": "v1_5ac1b0eba8c26f2a",
 }
 
-# ===== 常量 =====
-OUTPUT_DIR = "./codeact/output"
-PREDICTIONS_FILE = "data/ai-predictions.json"
-SCHEDULE_FILE = "schedule.json"
-INDEX_FILE = "index.html"
-ODDS_API = "https://metaphyai-api-v-cwpuwzgtdx.cn-shanghai.fcapp.run/odds"
-CST = timezone(timedelta(hours=8))
+# ===== 球队实力数据库（从 index.html _db 解析） =====
+# 格式：名称|英文名|实力分|联赛代码
+_TEAM_DB_RAW = (
+    "法国|France|94|05~德国|Germany|92|02~巴西|Brazil|91|14~英格兰|England|91|01"
+    "~阿根廷|Argentina|90|15~西班牙|Spain|90|03~葡萄牙|Portugal|89|06~荷兰|Netherlands|88|07"
+    "~比利时|Belgium|87|08~克罗地亚|Croatia|86|01~摩洛哥|Morocco|83|05~意大利|Italy|87|04"
+    "~乌拉圭|Uruguay|84|14~哥伦比亚|Colombia|83|14~塞内加尔|Senegal|82|05~日本|Japan|80|11"
+    "~韩国|South Korea|79|12~美国|USA|78|13~墨西哥|Mexico|79|13~瑞士|Switzerland|81|05"
+    "~丹麦|Denmark|80|01~奥地利|Austria|79|02~土耳其|Turkey|79|09~波兰|Poland|78|01"
+    "~塞尔维亚|Serbia|78|01~瑞典|Sweden|77|01~加纳|Ghana|76|05~伊朗|Iran|76|01"
+    "~澳大利亚|Australia|75|01~沙特|Saudi Arabia|73|01~卡塔尔|Qatar|71|01~俄罗斯|Russia|78|09"
+    "~挪威|Norway|81|01~曼城|Manchester City|92|01~阿森纳|Arsenal|90|01~利物浦|Liverpool|89|01"
+    "~切尔西|Chelsea|86|01~曼联|Manchester United|84|01~热刺|Tottenham|82|01~纽卡斯尔|Newcastle|81|01"
+    "~阿斯顿维拉|Aston Villa|80|01~布莱顿|Brighton|79|01~西汉姆|West Ham|77|01"
+    "~拜仁|Bayern Munich|92|02~多特蒙德|Borussia Dortmund|86|02~莱比锡|RB Leipzig|84|02"
+    "~勒沃库森|Bayer Leverkusen|85|02~法兰克福|Eintracht Frankfurt|80|02~沃尔夫斯堡|VfL Wolfsburg|77|02"
+    "~皇马|Real Madrid|93|03~巴塞罗那|Barcelona|91|03~马竞|Atletico Madrid|86|03"
+    "~皇家社会|Real Sociedad|81|03~毕尔巴鄂|Athletic Bilbao|80|03~比利亚雷亚尔|Villarreal|80|03"
+    "~贝蒂斯|Real Betis|78|03~国米|Inter Milan|89|04~AC米兰|AC Milan|85|04~尤文|Juventus|85|04"
+    "~那不勒斯|Napoli|86|04~罗马|AS Roma|81|04~拉齐奥|Lazio|80|04~亚特兰大|Atalanta|83|04"
+    "~佛罗伦萨|Fiorentina|79|04~巴黎圣日耳曼|Paris SG|90|05~马赛|Marseille|80|05~里昂|Lyon|79|05"
+    "~摩纳哥|Monaco|79|05~里尔|Lille|78|05~尼斯|Nice|76|05~雷恩|Rennes|77|05"
+    "~本菲卡|Benfica|82|06~波尔图|Porto|81|06~阿贾克斯|Ajax|79|07~布鲁日|Club Brugge|77|08"
+    "~加拉塔萨雷|Galatasaray|78|09~费内巴切|Fenerbahce|77|09"
+    "~上海海港|Shanghai Port|72|10~上海申花|Shanghai Shenhua|71|10~山东泰山|Shandong Taishan|70|10"
+    "~北京国安|Beijing Guoan|70|10~武汉三镇|Wuhan Three Towns|69|10"
+    "~川崎前锋|Kawasaki Frontale|74|11~横滨水手|Yokohama F Marinos|73|11~浦和红钻|Urawa Red Diamonds|72|11"
+    "~全北现代|Jeonbuk Hyundai|73|12~蔚山现代|Ulsan Hyundai|72|12"
+    "~洛杉矶FC|LAFC|74|13~迈阿密国际|Inter Miami|73|13"
+    "~弗拉门戈|Flamengo|80|14~帕尔梅拉斯|Palmeiras|79|14~河床|River Plate|79|15~博卡青年|Boca Juniors|78|15"
+    "~河南|Henan|66|10~辽宁铁人|Liaoning Tieren|65|10~大连英博|Dalian Yingbo|64|10"
+    "~深圳新鹏城|Shenzhen Xinpengcheng|65|10~青岛西海岸|Qingdao West Coast|66|10"
+    "~重庆铜梁龙|Chongqing Tonglianglong|63|10~浙江职业|Zhejiang Professional FC|67|10"
+    "~青岛海牛|Qingdao Hainiu|65|10~云南玉昆|Yunnan Yukun|64|10"
+    "~罗森博格|Rosenborg|72|09~布兰|SK Brann|71|09~特罗姆瑟|Tromso|68|09~奥勒松|Aalesund|67|09"
+    "~维京|Viking FK|70|09~桑德菲杰|Sandefjord|67|09~汉坎|Hamarkameratene|66|09"
+    "~克里斯蒂安松|Kristiansund BK|66|09~斯塔贝克|IK Start|64|09~萨尔普斯堡|Sarpsborg FK|67|09"
+    "~腓特烈斯塔|Fredrikstad|69|09~利勒斯特罗姆|Lillestrom|69|09~KFUM奥斯陆|KFUM Oslo|68|09"
+    "~博德闪耀|Bodo/Glimt|76|09~瓦勒伦加|Vålerenga|70|09~莫尔德|Molde|73|09"
+    "~马尔默|Malmö FF|74|08~埃尔夫斯堡|IF Elfsborg|72|08~哈马比|Hammarby IF|71|08"
+    "~AIK|AIK|70|08~哥德堡|IFK Göteborg|68|08~卡尔马|Kalmar FF|65|08"
+    "~代格福什|Degerfors IF|62|08~天狼星|IK Sirius|67|08~布鲁马波卡纳|IF Brommapojkarna|65|08"
+    "~厄尔格里特|Örgryte IS|66|08~BK海肯|BK Häcken|71|08~哈尔姆斯塔德|Halmstads BK|65|08"
+    "~尤尔加登|Djurgården|70|08~韦斯特罗斯|Västerås SK|66|08~米耶尔比|Mjällby AIF|67|08"
+    "~盖斯|GAIS|68|08"
+    "~博塔弗戈|Botafogo|76|14~桑托斯|Santos|72|14~维多利亚|Vitória|68|14~瓦斯科达伽马|Vasco da Game|70|14"
+)
 
 
-# ===== GitHub 操作（与 prediction_verifier.py 一致） =====
-
-def _gh_token() -> str:
-    """从环境或 SECRET.md 获取 GitHub PAT"""
-    token = os.environ.get("GH_TOKEN", "")
-    if token:
-        return token
-    for path in ["SECRET.md", "./SECRET.md", "/app/data/SECRET.md"]:
-        try:
-            with open(path) as f:
-                m = re.search(r"ghp_[A-Za-z0-9]{36}", f.read())
-                if m:
-                    return m.group(0)
-        except FileNotFoundError:
-            continue
-    return ""
-
-
-def _gh_api(repo: str, path: str, token: str) -> Optional[dict]:
-    """GitHub Contents API 读取文件"""
-    url = f"https://api.github.com/repos/{repo}/contents/{path}"
-    r = subprocess.run(
-        ["curl", "-sL", "-H", f"Authorization: token {token}",
-         "-H", "Accept: application/vnd.github.v3+json", url],
-        capture_output=True, text=True, timeout=15,
-    )
-    if r.returncode != 0:
-        return None
-    try:
-        data = json.loads(r.stdout)
-        if "content" in data and "sha" in data:
-            content = base64.b64decode(data["content"]).decode("utf-8")
-            return {"content": content, "sha": data["sha"]}
-    except (json.JSONDecodeError, Exception):
-        pass
-    return None
-
-
-def _gh_put(repo: str, path: str, content: str, sha: str, token: str, message: str) -> bool:
-    """GitHub Contents API 写入/更新文件"""
-    url = f"https://api.github.com/repos/{repo}/contents/{path}"
-    encoded = base64.b64encode(content.encode("utf-8")).decode("utf-8")
-    payload = json.dumps({"message": message, "content": encoded, "sha": sha})
-    r = subprocess.run(
-        ["curl", "-sL", "-X", "PUT",
-         "-H", f"Authorization: token {token}",
-         "-H", "Accept: application/vnd.github.v3+json",
-         "-H", "Content-Type: application/json",
-         "-d", payload, url],
-        capture_output=True, text=True, timeout=30,
-    )
-    if r.returncode == 0:
-        try:
-            resp = json.loads(r.stdout)
-            return "commit" in resp
-        except json.JSONDecodeError:
-            pass
-    return False
-
-
-def _gh_create(repo: str, path: str, content: str, token: str, message: str) -> bool:
-    """GitHub Contents API 创建文件"""
-    url = f"https://api.github.com/repos/{repo}/contents/{path}"
-    encoded = base64.b64encode(content.encode("utf-8")).decode("utf-8")
-    payload = json.dumps({"message": message, "content": encoded})
-    r = subprocess.run(
-        ["curl", "-sL", "-X", "PUT",
-         "-H", f"Authorization: token {token}",
-         "-H", "Accept: application/vnd.github.v3+json",
-         "-H", "Content-Type: application/json",
-         "-d", payload, url],
-        capture_output=True, text=True, timeout=30,
-    )
-    if r.returncode == 0:
-        try:
-            resp = json.loads(r.stdout)
-            return "commit" in resp
-        except json.JSONDecodeError:
-            pass
-    return False
-
-
-# ===== 球队实力数据库解析 =====
-
-def _parse_team_db(html_content: str) -> Dict[str, dict]:
-    """从 index.html 的 _db 字符串解析球队实力数据库
-
-    Returns:
-        dict: {中文名: {n, e, w, l}, 英文名: {n, e, w, l}}
-    """
-    db_match = re.search(r'_db\s*=\s*"([^"]+)"', html_content)
-    if not db_match:
-        print("[WARN] 无法从 index.html 提取 _db 球队数据库")
-        return {}
-
-    db_str = db_match.group(1)
-    team_db = {}
-    for entry in db_str.split("~"):
-        parts = entry.split("|")
+def parse_team_db(db_string: str) -> dict:
+    """解析 _db 字符串为球队实力字典 {名称: {strength, english, league}}"""
+    teams = {}
+    for entry in db_string.split("~"):
+        parts = entry.strip().split("|")
         if len(parts) >= 4:
-            name_cn, name_en, weight_str, league_code = parts[0], parts[1], parts[2], parts[3]
-            info = {"n": name_cn, "e": name_en, "w": int(weight_str), "l": league_code}
-            team_db[name_cn] = info
-            team_db[name_en] = info
-    return team_db
+            name = parts[0].strip()
+            if name:
+                teams[name] = {
+                    "name": name,
+                    "english": parts[1].strip(),
+                    "strength": int(parts[2]),
+                    "league": parts[3].strip(),
+                }
+    return teams
 
 
-def _gs(name: str, team_db: Dict[str, dict]) -> int:
-    """计算球队实力权重（与前端 _gs 函数一致）
-
-    如果球队在 _db 中，返回其权重；否则用哈希函数计算默认权重。
-    """
-    if name in team_db:
-        return team_db[name]["w"]
-    # 哈希函数计算默认权重：55 + (sum(ord(c)) % 25)
-    h = 0
-    for c in name:
-        h += ord(c)
-    return 55 + (h % 25)
+def get_team_strength(teams: dict, name: str) -> int:
+    """获取球队实力分，默认70"""
+    if name in teams:
+        return teams[name]["strength"]
+    return 70
 
 
-# ===== 概率计算（与前端 _run 函数一致） =====
-
-def _calc_probabilities(home: str, away: str, team_db: Dict[str, dict]) -> Tuple[float, float, float]:
-    """计算胜平负概率
-
-    Args:
-        home: 主队中文名
-        away: 客队中文名
-        team_db: 球队实力数据库
-
-    Returns:
-        (hf, df, af): 归一化后的主胜、平局、客胜概率
-    """
-    hw = _gs(home, team_db)
-    aw = _gs(away, team_db)
-    d = hw - aw
-
+def calc_elo_probs(home_strength: int, away_strength: int) -> dict:
+    """计算 Elo 概率（前端 _run 函数逻辑）"""
+    d = home_strength - away_strength
     hf = 0.5 / (1 + 10 ** (-d / 14))
     df = 0.28 * math.exp(-abs(d) / 18)
     af = 1 - hf - df
-
-    # 归一化
     t = hf + df + af
-    hf, df, af = hf / t, df / t, af / t
-
-    return hf, df, af
-
-
-# ===== 赔率辅助函数（凯利指数+蛙跳检测） =====
-
-def _calc_implied_probs(w: float, d: float, l: float) -> Tuple[float, float, float, float]:
-    """从赔率计算隐含概率和返还率"""
-    total = 1/w + 1/d + 1/l
-    R = 1 / total
-    return R/w, R/d, R/l, R
+    hf /= t
+    df /= t
+    af /= t
+    return {"胜": hf, "平": df, "负": af}
 
 
-def _detect_frog_jump(initial_odds: Optional[dict], current_odds: dict, threshold: float = 0.10) -> Tuple[Optional[str], float]:
-    """检测蛙跳盘：初始赔率vs当前赔率的变化方向
-    赔率大幅降低 = 机构看好该方向（蛙跳方向）
-    Returns: (direction, magnitude) direction='w'/'d'/'l' 或 None
+def calc_kelly_probs(w: float, d: float, l: float) -> dict:
+    """计算赔率隐含概率（凯利策略核心）"""
+    total = 1 / w + 1 / d + 1 / l
+    R = 1 / total  # 返还率
+    pw = R / w
+    pd = R / d
+    pl = R / l
+    return {"胜": pw, "平": pd, "负": pl}
+
+
+def normalize_odds(odds: dict) -> tuple:
     """
-    if not initial_odds or not current_odds:
-        return None, 0.0
-    changes = {}
-    for key in ['w', 'd', 'l']:
-        iv = initial_odds.get(key, 0)
-        cv = current_odds.get(key, 0)
-        if iv > 0 and cv > 0:
-            changes[key] = (cv - iv) / iv
-    if not changes:
-        return None, 0.0
-    min_key = min(changes, key=changes.get)
-    min_change = changes[min_key]
-    if min_change < -threshold:
-        return min_key, abs(min_change)
-    return None, 0.0
-
-
-# ===== 赔率匹配（与前端 _findOdds + _oddsMatch 一致） =====
-
-def _odds_match(a: str, b: str) -> bool:
-    """模糊匹配球队名（与前端 _oddsMatch 函数一致）
-
-    匹配规则：
-    1. 去空格后完全相同
-    2. 去空格后包含关系（长度>=2）
-    3. 去 FC/CF/队 后缀后完全相同
-    4. 去 FC/CF/队 后缀后包含关系（长度>=2）
+    标准化赔率格式，返回 (w, d, l, handicap_odds, odds_source)
+    支持两种格式:
+    1. 简单格式: {"w": 2.3, "d": 3.0, "l": 2.8}
+    2. 竞彩格式: {"source":"竞彩", "odds_0":{"胜":1.82,...}, "odds_minus1":{...}}
     """
-    if not a or not b:
-        return False
-    na = re.sub(r'\s+', '', a)
-    nb = re.sub(r'\s+', '', b)
-    if na == nb:
-        return True
-    if len(na) >= 2 and len(nb) >= 2 and (na in nb or nb in na):
-        return True
-    sa = re.sub(r'(FC|fc|CF|队)', '', na)
-    sb = re.sub(r'(FC|fc|CF|队)', '', nb)
-    if sa == sb:
-        return True
-    if len(sa) >= 2 and len(sb) >= 2 and (sa in sb or sb in sa):
-        return True
-    return False
+    if not odds:
+        return None, None, None, None, None
 
+    handicap_odds = None
+    source = None
 
-def _find_odds(home: str, away: str, odds_data: List[dict]) -> Optional[dict]:
-    """从赔率数据中查找匹配的比赛赔率
-
-    Args:
-        home: 主队中文名
-        away: 客队中文名
-        odds_data: 赔率API返回的matches数组
-
-    Returns:
-        {"w": float, "d": float, "l": float} 或 None
-    """
-    if not odds_data:
-        return None
-
-    for m in odds_data:
-        m_home = m.get("home", "")
-        m_away = m.get("away", "")
-        m_odds = m.get("odds", {})
-        if not m_odds:
-            continue
-
-        # 正向匹配：schedule的home对应odds的home
-        if _odds_match(m_home, home) and _odds_match(m_away, away):
-            return {"w": m_odds.get("w", 0), "d": m_odds.get("d", 0), "l": m_odds.get("l", 0)}
-
-        # 反向匹配：schedule的home对应odds的away（主客颠倒）
-        if _odds_match(m_home, away) and _odds_match(m_away, home):
-            # 主客颠倒时，胜赔和负赔互换
-            return {"w": m_odds.get("l", 0), "d": m_odds.get("d", 0), "l": m_odds.get("w", 0)}
-
-    return None
-
-
-# ===== 预测生成（与前端 _aiJudge 函数一致） =====
-
-
-def _kelly_analysis(home: str, away: str, odds_data: dict = None) -> dict:
-    """凯利指数6步检查清单分析
-    
-    当有多家机构赔率数据时，使用凯利策略进行深度分析。
-    返回: {prediction, confidence, reason, kelly_signals}
-    """
-    if not odds_data:
-        return None
-    
-    # 凯利指数计算: kelly = (odds * implied_prob) / bookmaker_margin
-    # 简化版：当凯利>1为热，<0.9为冷
-    
-    signals = []
-    prediction = None
-    confidence = 50
-    reason_parts = []
-    
-    # 1. 检查bet365+韦德一致性（如有数据）
-    if 'bet365' in odds_data and 'william_hill' in odds_data:
-        b365 = odds_data['bet365']
-        wh = odds_data['william_hill']
-        # 计算凯利离散度
-        kelly_diff = abs(b365.get('home', 2) - wh.get('home', 2)) / 2
-        if kelly_diff < 0.03:
-            signals.append("高一致性(离散度<0.03)")
-            confidence += 10
-        elif kelly_diff > 0.10:
-            signals.append("⚠️极低一致性(可能冷门)")
-            confidence -= 15
-    
-    # 2. 立博平赔信号（如有数据）
-    if 'ladbrokes' in odds_data and 'bet365' in odds_data:
-        lb_draw = odds_data['ladbrokes'].get('draw', 3.5)
-        b365_draw = odds_data['bet365'].get('draw', 3.5)
-        if lb_draw < b365_draw - 0.15:
-            signals.append("强平局信号(立博平赔低)")
-            prediction = "平"
-            confidence += 15
-    
-    # 3. 威廉返还率检查
-    if 'william_hill' in odds_data:
-        wh = odds_data['william_hill']
-        if wh.get('margin', 0) >= 0.92:
-            signals.append("威廉返还率充足(≥92%)")
-            confidence += 5
-    
-    # 4. 澳门初盘定位（如有数据）
-    if 'macau' in odds_data:
-        macau_handicap = odds_data['macau'].get('handicap', '')
-        if '浅' in macau_handicap:
-            signals.append("澳门初盘偏浅(看好主队)")
-            confidence += 8
-    
-    # 5. 蛙跳盘检测
-    if 'handicap_history' in odds_data:
-        # 检查是否有连续跳级变盘
-        pass
-    
-    # 6. 临场变化（如有数据）
-    if 'live_movement' in odds_data:
-        movement = odds_data['live_movement']
-        if 'reverse' in movement:
-            signals.append("⚠️临场反向信号")
-            confidence -= 10
-    
-    # 综合判断
-    if not prediction:
-        # 基于赔率概率判断
-        if 'bet365' in odds_data:
-            b365 = odds_data['bet365']
-            home_prob = 1 / b365.get('home', 2)
-            draw_prob = 1 / b365.get('draw', 3.5)
-            away_prob = 1 / b365.get('away', 3.5)
-            
-            max_prob = max(home_prob, draw_prob, away_prob)
-            if home_prob == max_prob:
-                prediction = "胜"
-            elif away_prob == max_prob:
-                prediction = "负"
-            else:
-                prediction = "平"
-    
-    # 根据信号调整置信度
-    confidence = max(30, min(90, confidence))
-    
-    if signals:
-        reason_parts.append("凯利信号: " + ", ".join(signals[:3]))
-    
-    return {
-        "prediction": prediction,
-        "confidence": confidence,
-        "reason": "; ".join(reason_parts) if reason_parts else "凯利分析完成",
-        "kelly_signals": signals
-    }
-
-
-def _ai_judge(home: str, away: str, hf: float, df: float, af: float,
-              odds_data: List[dict], team_db: Dict[str, dict],
-              schedule_odds: Optional[dict] = None) -> dict:
-    """生成AI预测 - 赔率驱动版 v2
-    
-    核心逻辑：
-    1. 有真实赔率时，用赔率隐含概率作为主要信号（80%权重），球队实力为辅（20%）
-    2. 凯利指数：市场隐含概率 vs 模型概率的差异分析
-    3. 蛙跳盘检测：初始赔率vs当前赔率的变化方向
-    4. 单选门槛：信心>=60% + 差距>=20% + 最低赔率>=1.40（避开极端大热陷阱）
-    5. 双选：主选项=概率最高，防冷门=赔率最高（最大冷门风险）
-    """
-    model_probs = {"胜": hf, "平": df, "负": af}
-    
-    real_odds = _find_odds(home, away, odds_data)
-    used_real_odds = real_odds is not None
-    
-    # 如果没有API赔率，尝试用赛程赔率作为备用
-    if not real_odds and schedule_odds and schedule_odds.get("w") and schedule_odds.get("d") and schedule_odds.get("l"):
-        real_odds = {"w": schedule_odds["w"], "d": schedule_odds["d"], "l": schedule_odds["l"]}
-        used_real_odds = False  # 标记为非竞彩网赔率
-    
-    if real_odds:
-        w, d, l = real_odds["w"], real_odds["d"], real_odds["l"]
-        pw, pd, pl, R = _calc_implied_probs(w, d, l)
-        
-        # 赔率隐含概率(80%) + 模型概率(20%) 混合
-        final_probs = {
-            "胜": 0.8 * pw + 0.2 * hf,
-            "平": 0.8 * pd + 0.2 * df,
-            "负": 0.8 * pl + 0.2 * af,
-        }
-        
-        probs = [{"r": r, "p": final_probs[r]} for r in ["胜", "平", "负"]]
-        probs.sort(key=lambda x: -x["p"])
-        
-        max_prob = probs[0]["p"]
-        second_prob = probs[1]["p"]
-        prob_diff = max_prob - second_prob
-        
-        # 蛙跳检测
-        current_odds = {"w": w, "d": d, "l": l}
-        frog_dir, frog_mag = _detect_frog_jump(schedule_odds, current_odds)
-        
-        frog_bonus = 0.0
-        frog_note = ""
-        dir_map = {"w": "胜", "d": "平", "l": "负"}
-        if frog_dir:
-            frog_result = dir_map.get(frog_dir, "")
-            if frog_result == probs[0]["r"]:
-                frog_bonus = 0.05
-                frog_note = f" · 蛙跳{frog_result}(降{frog_mag:.0%})"
-            elif frog_result:
-                frog_bonus = -0.03
-                frog_note = f" · 蛙跳{frog_result}↔预测{probs[0]['r']}(谨慎)"
-        
-        effective_conf = max_prob + frog_bonus
-        min_odds = min(w, d, l)
-        
+    if "odds_0" in odds:
+        # 竞彩格式
+        o0 = odds["odds_0"]
+        w = o0.get("胜", 0)
+        d = o0.get("平", 0)
+        l = o0.get("负", 0)
+        handicap_odds = odds.get("odds_minus1")
+        source = odds.get("source", "竞彩")
+    elif "w" in odds:
+        # 简单格式
+        w = odds.get("w", 0)
+        d = odds.get("d", 0)
+        l = odds.get("l", 0)
+        source = "足彩网"
     else:
-        probs = [{"r": "胜", "p": hf}, {"r": "平", "p": df}, {"r": "负", "p": af}]
-        probs.sort(key=lambda x: -x["p"])
-        max_prob = probs[0]["p"]
-        second_prob = probs[1]["p"]
-        prob_diff = max_prob - second_prob
-        effective_conf = max_prob
-        min_odds = 1 / max_prob if max_prob > 0 else 999
-        frog_note = ""
-    
-    # === skip 判断 ===
+        return None, None, None, None, None
+
+    # 验证赔率有效性
+    if not w or not d or not l or w <= 1 or d <= 1 or l <= 1:
+        return None, None, None, None, None
+
+    return w, d, l, handicap_odds, source
+
+
+def get_handicap_direction(handicap_odds: dict) -> str:
+    """从让球赔率推断让球方向"""
+    if not handicap_odds:
+        return None
+    h_win = handicap_odds.get("胜", 99)
+    h_draw = handicap_odds.get("平", 99)
+    h_lose = handicap_odds.get("负", 99)
+    min_h = min(h_win, h_draw, h_lose)
+    if min_h >= 99:
+        return None
+    if min_h == h_win:
+        return "胜"
+    elif min_h == h_lose:
+        return "负"
+    else:
+        return "平"
+
+
+def predict_match(match: dict, teams: dict) -> dict:
+    """
+    对单场比赛生成预测
+    返回预测结果字典
+    """
+    home = match.get("home", "")
+    away = match.get("away", "")
+
+    # 获取球队实力
+    hw = get_team_strength(teams, home)
+    aw = get_team_strength(teams, away)
+
+    # 计算 Elo 概率
+    elo_probs = calc_elo_probs(hw, aw)
+
+    # 解析赔率
+    w, d, l, handicap_odds, odds_source = normalize_odds(match.get("odds", {}))
+    has_odds = w is not None
+
+    # 确定最终概率
+    if has_odds:
+        # 凯利策略：100% 基于赔率隐含概率
+        probs = calc_kelly_probs(w, d, l)
+    else:
+        # Elo 降级
+        probs = elo_probs
+
+    # 按概率排序
+    sorted_probs = sorted(probs.items(), key=lambda x: -x[1])
+    max_prob = sorted_probs[0][1]
+    second_prob = sorted_probs[1][1]
+
+    # 概率差（sp = 凯利离散度）
+    sp = max_prob - second_prob
+
+    # 让球方向
+    handicap_dir = get_handicap_direction(handicap_odds)
+    handicapBonus = 0
+
+    # ===== 置信度计算 =====
+    # 基础置信度：ct = round((0.4 + sp*0.6 + handicapBonus*0.08) * 100)
+    ct = round((0.4 + sp * 0.6 + handicapBonus * 0.08) * 100)
+
+    # 凯利离散度调节
+    if sp < 0.05:
+        ct += 15
+    elif sp < 0.10:
+        ct += 5
+    elif sp > 0.15:
+        ct -= 15
+
+    # 确保在合理范围
+    ct = max(0, min(100, ct))
+
+    # ===== 星级评定 =====
+    if has_odds:
+        if sp > 0.35:
+            stars = 5
+        elif sp > 0.25:
+            stars = 4
+        elif sp > 0.15:
+            stars = 3
+        elif sp > 0.08:
+            stars = 2
+        else:
+            stars = 1
+    else:
+        if sp > 0.5:
+            stars = 5
+        elif sp > 0.4:
+            stars = 4
+        elif sp > 0.28:
+            stars = 3
+        elif sp > 0.15:
+            stars = 2
+        else:
+            stars = 1
+
+    # ===== 让球辅助判断：盘口方向与预测方向一致时 +1 星 =====
+    if handicap_dir and handicap_dir == sorted_probs[0][0]:
+        stars = min(5, stars + 1)
+        handicapBonus = 1  # 用于置信度重算
+
+    # 重算含让球加成的置信度
+    ct = round((0.4 + sp * 0.6 + handicapBonus * 0.08) * 100)
+    if sp < 0.05:
+        ct += 15
+    elif sp < 0.10:
+        ct += 5
+    elif sp > 0.15:
+        ct -= 15
+    ct = max(0, min(100, ct))
+
+    # ===== Skip 判断 =====
     skip = False
     skip_reason = ""
-    
-    if used_real_odds:
-        sim_odds = min(real_odds["w"], real_odds["d"], real_odds["l"])
-    else:
-        sim_odds = 1 / max_prob if max_prob > 0 else 999
-    
-    if sim_odds <= 1.25:
+    min_odds_val = min(w, d, l) if has_odds else max(1.30, 1 / max_prob)
+
+    if min_odds_val <= 1.25:
         skip = True
-        skip_reason = f"赔率过低（约{sim_odds:.2f}），投注价值极低"
-    
-    if prob_diff < 0.08:
-        skip = True
-        skip_reason = "结果太不确定，各方向概率接近"
-    
-    # === 预测类型判断 ===
+        skip_reason = f"赔率过低（约{min_odds_val:.2f}），投注价值极低"
+    if sp < 0.08:
+        if not skip:
+            skip = True
+            skip_reason = "结果太不确定，各方向概率接近"
+
+    # ===== 单/双选判断 =====
     prediction = ""
     pred_type = ""
     reason = ""
     double_pick = None
-    
-    # 单选：信心>=60% + 差距>=20% + 最低赔率>=1.40
-    if effective_conf >= 0.60 and prob_diff >= 0.20 and min_odds >= 1.40:
+
+    if max_prob >= 0.60 and sp >= 0.20 and min_odds_val >= 1.40:
+        # 单选
         pred_type = "single"
-        prediction = probs[0]["r"]
-        
-        if probs[0]["r"] == "胜":
-            reason = f"赔率看好主队({effective_conf:.0%})"
-        elif probs[0]["r"] == "负":
-            reason = f"赔率看好客队({effective_conf:.0%})"
+        prediction = sorted_probs[0][0]
+        double_pick = None
+        if has_odds:
+            if prediction == "胜":
+                reason = f"赔率看好主队({round(max_prob * 100)}%)"
+            elif prediction == "负":
+                reason = f"赔率看好客队({round(max_prob * 100)}%)"
+            else:
+                reason = f"赔率倾向平局({round(max_prob * 100)}%)"
+            reason += f" · {odds_source}赔率"
         else:
-            reason = f"赔率倾向平局({effective_conf:.0%})"
-        
-        if frog_note:
-            reason += frog_note
-        if used_real_odds:
-            reason += " · 竞彩网赔率"
-    
+            if prediction == "胜":
+                reason = f"模型预测主胜概率{round(max_prob * 100)}%"
+            elif prediction == "负":
+                reason = f"模型预测客胜概率{round(max_prob * 100)}%"
+            else:
+                reason = f"模型预测平局概率{round(max_prob * 100)}%"
     else:
-        # 双选：主选项=概率最高，防冷门=赔率最高
+        # 双选
         pred_type = "double"
-        main_pick = probs[0]["r"]
-        
-        if used_real_odds:
-            remaining = [(r, real_odds[rk]) for r, rk in [("胜","w"),("平","d"),("负","l")] if r != main_pick]
-            remaining.sort(key=lambda x: x[1], reverse=True)
+        main_pick = sorted_probs[0][0]
+
+        # 确定第二选择（排除平局的赔率最高方向）
+        if has_odds:
+            odds_map = {"胜": w, "平": d, "负": l}
+            remaining = [(r, odds_map.get(r, 1)) for r, p in sorted_probs[1:]]
+            remaining.sort(key=lambda x: -x[1])  # 赔率从高到低
             upset = remaining[0][0]
         else:
-            upset = probs[1]["r"]
-        
-        prediction = main_pick + "+" + upset
+            # Elo 模式：默认排除平局
+            if main_pick == "胜":
+                upset = "负"
+            elif main_pick == "负":
+                upset = "胜"
+            else:
+                upset = "胜"
+
+        prediction = f"{main_pick}+{upset}"
         double_pick = [main_pick, upset]
-        
-        if effective_conf >= 0.50 and prob_diff >= 0.10:
-            reason = f"方向偏{main_pick}({effective_conf:.0%})，双选防冷"
+
+        if max_prob >= 0.50 and sp >= 0.10:
+            reason = f"方向偏{main_pick}({round(max_prob * 100)}%)，双选防冷"
         else:
-            reason = f"方向不够明确，双选覆盖"
-        
-        if frog_note:
-            reason += frog_note
-        if used_real_odds:
-            reason += " · 竞彩网赔率"
-    
-    confidence = round(max_prob * 100)
-    
+            reason = "方向不够明确，双选覆盖"
+        if has_odds:
+            reason += f" · {odds_source}赔率"
+
     return {
         "prediction": prediction,
         "type": pred_type,
         "skip": skip,
         "skipReason": skip_reason,
-        "confidence": confidence,
+        "confidence": ct,
         "reason": reason,
         "doublePick": double_pick,
+        "stars": stars,
+        "hasOdds": has_odds,
+        "spread": round(sp, 4),
+        "probs": {r: round(p, 4) for r, p in sorted_probs},
+        "handicapDir": handicap_dir,
     }
 
 
-# ===== 获取赔率数据 =====
-
-def _fetch_odds() -> Optional[List[dict]]:
-    """从竞彩网API获取赔率数据
-
-    Returns:
-        赔率matches数组，或 None
+def fetch_github_file(token: str, repo: str, path: str, branch: str = "main") -> tuple:
     """
+    从 GitHub 获取文件内容和 SHA
+    返回 (content_dict_or_str, sha) 或 (None, None)
+    """
+    url = f"https://api.github.com/repos/{repo}/contents/{path}"
+    headers = {
+        "Authorization": f"token {token}",
+        "Accept": "application/vnd.github.v3+json",
+    }
+    params = {"ref": branch}
     try:
-        import requests
-        r = requests.get(ODDS_API, timeout=15, headers={"User-Agent": "Mozilla/5.0"})
-        if r.status_code == 200:
-            data = r.json()
-            matches = data.get("matches", [])
-            print(f"[ODDS] 获取到 {len(matches)} 场赔率数据")
-            return matches
+        resp = requests.get(url, headers=headers, params=params, timeout=30)
+        if resp.status_code == 200:
+            data = resp.json()
+            import base64
+            content = base64.b64decode(data["content"]).decode("utf-8")
+            sha = data["sha"]
+            return content, sha
+        else:
+            print(f"[WARN] 获取 {path} 失败: HTTP {resp.status_code}")
+            return None, None
     except Exception as e:
-        print(f"[ODDS] 获取赔率失败: {e}")
+        print(f"[ERROR] 获取 {path} 异常: {e}")
+        return None, None
 
-    # 兜底：使用 subprocess curl
+
+def push_github_file(token: str, repo: str, path: str, content: str, sha: str, branch: str = "main") -> bool:
+    """推送文件到 GitHub"""
+    import base64
+    url = f"https://api.github.com/repos/{repo}/contents/{path}"
+    headers = {
+        "Authorization": f"token {token}",
+        "Accept": "application/vnd.github.v3+json",
+    }
+    payload = {
+        "message": f"🤖 自动更新预测 {datetime.now().strftime('%Y-%m-%d %H:%M')}",
+        "content": base64.b64encode(content.encode("utf-8")).decode("utf-8"),
+        "sha": sha,
+        "branch": branch,
+    }
     try:
-        r = subprocess.run(
-            ["curl", "-sL", "--max-time", "15", ODDS_API],
-            capture_output=True, text=True, timeout=20,
-        )
-        if r.returncode == 0 and r.stdout:
-            data = json.loads(r.stdout)
-            matches = data.get("matches", [])
-            print(f"[ODDS] curl获取到 {len(matches)} 场赔率数据")
-            return matches
+        resp = requests.put(url, headers=headers, json=payload, timeout=30)
+        if resp.status_code in (200, 201):
+            print(f"[OK] 已推送 {path} 到 GitHub")
+            return True
+        else:
+            print(f"[ERROR] 推送 {path} 失败: HTTP {resp.status_code} - {resp.text[:200]}")
+            return False
     except Exception as e:
-        print(f"[ODDS] curl获取赔率也失败: {e}")
+        print(f"[ERROR] 推送 {path} 异常: {e}")
+        return False
 
-    return None
+
+def convert_date_to_iso(date_str: str) -> str:
+    """
+    将日期转为 YYYYMMDD 格式
+    输入可能是:
+    - "2026-07-16T01:00:00+08:00" (ISO 8601)
+    - "20260716" (已有格式)
+    """
+    if not date_str:
+        return ""
+    if len(date_str) == 8 and date_str.isdigit():
+        return date_str
+    try:
+        # 尝试解析 ISO 格式
+        dt = datetime.fromisoformat(date_str)
+        return dt.strftime("%Y%m%d")
+    except Exception:
+        return date_str[:8] if len(date_str) >= 8 else date_str
 
 
-# ===== 主逻辑 =====
+def weekday_cn(date_str: str) -> str:
+    """从 YYYYMMDD 或 ISO 日期获取中文星期"""
+    try:
+        if len(date_str) == 8 and date_str.isdigit():
+            dt = datetime.strptime(date_str, "%Y%m%d")
+        else:
+            dt = datetime.fromisoformat(date_str)
+        days = ["周一", "周二", "周三", "周四", "周五", "周六", "周日"]
+        return days[dt.weekday()]
+    except Exception:
+        return ""
+
+
+def format_match_time(match: dict) -> str:
+    """格式化比赛时间显示（与前端一致: "07/16 周四 01:00"）"""
+    date_iso = match.get("date", "")
+    status = match.get("status", "")
+    if status and "/" in status:
+        # 已有格式 "7/16 周四 01:00" → 补零为 "07/16 周四 01:00"
+        parts = status.split(" ", 1)
+        if len(parts) == 2 and "/" in parts[0]:
+            md = parts[0]
+            m, d = md.split("/", 1)
+            return f"{int(m):02d}/{int(d):02d} {parts[1]}"
+        return status
+    # 从 date 字段构造
+    try:
+        dt = datetime.fromisoformat(date_iso)
+        mm = dt.strftime("%m")
+        dd = dt.strftime("%d")
+        wd = weekday_cn(date_iso)
+        hh = dt.strftime("%H:%M")
+        return f"{mm}/{dd} {wd} {hh}"
+    except Exception:
+        return date_iso
+
+
+# ===== 联赛代码 -> Odds API 运动键名映射 =====
+_ODDS_API_LEAGUE_MAP = {
+    "fifa.world": "soccer_fifa_world_cup",
+    "uefa.champions": "soccer_uefa_champs_league",
+    "uefa.champions.qual": "soccer_uefa_champs_league_qualification",
+    "uefa.europa": "soccer_uefa_europa_league",
+    "eng.1": "soccer_epl",
+    "esp.1": "soccer_spain_la_liga",
+    "ger.1": "soccer_germany_bundesliga",
+    "ita.1": "soccer_italy_ser_a",
+    "fra.1": "soccer_france_ligue_one",
+    "ned.1": "soccer_netherlands_eredivisie",
+    "bel.1": "soccer_belgium_first_div",
+    "por.1": "soccer_portugal_primeira_liga",
+    "tur.1": "soccer_turkey_super_lig",
+    "usa.1": "soccer_usa_mls",
+    "mex.1": "soccer_mexico_ligamx",
+    "bra.1": "soccer_brazil_campeonato",
+    "chn.1": "soccer_china_superleague",
+    "jpn.1": "soccer_japan_j_league",
+    "kor.1": "soccer_korea_kleague1",
+    "swe.1": "soccer_sweden_allsvenskan",
+    "nor.1": "soccer_norway_eliteserien",
+    "fin.1": "soccer_finland_veikkausliiga",
+    "arg.1": "soccer_argentina_primera_division",
+    "aut.1": "soccer_austria_bundesliga",
+}
+
+ODDS_API_KEY = "0b8808a6d42b077c4f4016737004f22b"
+
+
+def _build_en_to_cn(teams_db: dict) -> dict:
+    """从球队数据库构建 英文名->中文名 的反向映射"""
+    en_to_cn = {}
+    for en_name, info in teams_db.items():
+        cn_name = info.get("name_cn", "")
+        if cn_name:
+            en_to_cn[en_name.lower()] = cn_name
+    # 补充常见世界杯球队映射（可能不在 _TEAM_DB_RAW 中）
+    extra = {
+        "france": "法国", "germany": "德国", "brazil": "巴西", "england": "英格兰",
+        "argentina": "阿根廷", "spain": "西班牙", "portugal": "葡萄牙", "netherlands": "荷兰",
+        "belgium": "比利时", "croatia": "克罗地亚", "morocco": "摩洛哥", "italy": "意大利",
+        "uruguay": "乌拉圭", "colombia": "哥伦比亚", "senegal": "塞内加尔", "japan": "日本",
+        "south korea": "韩国", "usa": "美国", "mexico": "墨西哥", "switzerland": "瑞士",
+        "denmark": "丹麦", "austria": "奥地利", "turkey": "土耳其", "poland": "波兰",
+        "serbia": "塞尔维亚", "sweden": "瑞典", "ghana": "加纳", "iran": "伊朗",
+        "australia": "澳大利亚", "saudi arabia": "沙特", "qatar": "卡塔尔", "russia": "俄罗斯",
+        "norway": "挪威", "canada": "加拿大", "ecuador": "厄瓜多尔", "wales": "威尔士",
+        "tunisia": "突尼斯", "cameroon": "喀麦隆", "nigeria": "尼日利亚", "south africa": "南非",
+        "ghana": "加纳", "costa rica": "哥斯达黎加", "panama": "巴拿马", "peru": "秘鲁",
+        "uruguay": "乌拉圭", "paraguay": "巴拉圭", "chile": "智利", "bolivia": "玻利维亚",
+    }
+    for en, cn in extra.items():
+        if en not in en_to_cn:
+            en_to_cn[en] = cn
+    return en_to_cn
+
+
+def _build_schedule_en_map(all_matches: list) -> dict:
+    """从赛程构建 matchId -> {homeEN, awayEN} 映射"""
+    m = {}
+    for match in all_matches:
+        mid = match.get("id", "")
+        home_en = match.get("homeEN", "")
+        away_en = match.get("awayEN", "")
+        if mid and (home_en or away_en):
+            m[mid] = {"homeEN": home_en, "awayEN": away_en}
+    return m
+
+
+def _normalize_name(name: str) -> str:
+    """标准化球队名称用于模糊匹配"""
+    if not name:
+        return ""
+    name = name.lower().strip()
+    for ch in ['-', '.', '_', "'", '(', ')']:
+        name = name.replace(ch, ' ')
+    while '  ' in name:
+        name = name.replace('  ', ' ')
+    return name.strip()
+
+
+def _match_team(api_name: str, pred_name: str, en_to_cn: dict, schedule_en: str = "") -> bool:
+    """判断 API 返回的队名与预测中的中文名是否匹配"""
+    if not api_name or not pred_name:
+        return False
+
+    # 方法1: 通过英文反向映射
+    api_lower = api_name.lower().strip()
+    cn_from_api = en_to_cn.get(api_lower, "")
+    if cn_from_api and cn_from_api == pred_name:
+        return True
+
+    # 方法2: 通过 schedule 中的英文名
+    if schedule_en:
+        cn_from_sched = en_to_cn.get(schedule_en.lower(), "")
+        if cn_from_sched and cn_from_sched == pred_name:
+            return True
+
+    # 方法3: 模糊匹配（中文名相同或包含关系）
+    api_cn_candidates = set()
+    if cn_from_api:
+        api_cn_candidates.add(cn_from_api)
+    if schedule_en:
+        cn_s = en_to_cn.get(schedule_en.lower(), "")
+        if cn_s:
+            api_cn_candidates.add(cn_s)
+    for candidate in api_cn_candidates:
+        if candidate == pred_name:
+            return True
+        # 去掉"FC"等后缀再比
+        c1 = candidate.replace("FC", "").replace("fc", "").strip()
+        c2 = pred_name.replace("FC", "").replace("fc", "").strip()
+        if c1 and c2 and (c1 in c2 or c2 in c1):
+            return True
+
+    return False
+
+
+async def _fetch_odds_api_scores(league_code: str) -> list:
+    """通过 The Odds API 获取比赛结果"""
+    sport_key = _ODDS_API_LEAGUE_MAP.get(league_code)
+    if not sport_key:
+        return []
+
+    url = f"https://api.the-odds-api.com/v4/sports/{sport_key}/scores/"
+    params = {"apiKey": ODDS_API_KEY, "daysFrom": 7}
+    try:
+        resp = requests.get(url, params=params, timeout=15)
+        if resp.status_code == 200:
+            events = resp.json()
+            results = []
+            for evt in events:
+                scores = evt.get("scores") or []
+                if not scores or len(scores) < 2:
+                    continue
+                home_team = evt.get("home_team", "")
+                away_team = evt.get("away_team", "")
+                home_score = next((int(s["score"]) for s in scores if s.get("name") == home_team), None)
+                away_score = next((int(s["score"]) for s in scores if s.get("name") == away_team), None)
+                if home_score is not None and away_score is not None:
+                    results.append({
+                        "homeEN": home_team,
+                        "awayEN": away_team,
+                        "homeScore": home_score,
+                        "awayScore": away_score,
+                        "commence_time": evt.get("commence_time", ""),
+                    })
+            return results
+        else:
+            print(f"[WARN] Odds API {league_code} 返回 HTTP {resp.status_code}")
+    except Exception as e:
+        print(f"[WARN] Odds API {league_code} 异常: {e}")
+    return []
+
+
+async def _fetch_world_cup_results() -> list:
+    """通过 wcup2026.org 免费 API 获取世界杯比赛结果"""
+    url = "https://wcup2026.org/api/data.php?action=results&limit=50"
+    try:
+        resp = requests.get(url, timeout=15)
+        if resp.status_code == 200:
+            data = resp.json()
+            if data.get("ok") and data.get("matches"):
+                results = []
+                for m in data["matches"]:
+                    if m.get("status") != "finished":
+                        continue
+                    score = m.get("score") or [None, None]
+                    if score[0] is not None and score[1] is not None:
+                        results.append({
+                            "homeEN": m.get("team1", ""),
+                            "awayEN": m.get("team2", ""),
+                            "homeScore": int(score[0]),
+                            "awayScore": int(score[1]),
+                            "commence_time": m.get("datetime", ""),
+                        })
+                return results
+    except Exception as e:
+        print(f"[WARN] 世界杯 API 异常: {e}")
+    return []
+
+
+async def verify_predictions(predictions: list, all_matches: list):
+    """验证已完赛的预测，更新 verified / actualResult / hit 字段"""
+    teams = parse_team_db(_TEAM_DB_RAW)
+    en_to_cn = _build_en_to_cn(teams)
+    schedule_en_map = _build_schedule_en_map(all_matches)
+
+    today = datetime.now(timezone(timedelta(hours=8)))
+    today_str = today.strftime("%Y%m%d")
+
+    # 找出需要验证的预测：日期已过且未验证
+    to_verify = []
+    for p in predictions:
+        if p.get("verified"):
+            continue
+        pred_date = p.get("date", "")
+        if not pred_date:
+            continue
+        # 比赛日期在今天之前（不含今天，今天的比赛可能还没完）
+        if pred_date < today_str:
+            to_verify.append(p)
+
+    if not to_verify:
+        print("[INFO] 无需验证的预测")
+        return
+
+    print(f"[INFO] 待验证预测: {len(to_verify)} 条")
+
+    # 收集需要查询的联赛
+    leagues_needed = set()
+    has_world_cup = False
+    for p in to_verify:
+        lc = p.get("leagueCode", "")
+        if lc == "fifa.world":
+            has_world_cup = True
+        elif lc in _ODDS_API_LEAGUE_MAP:
+            leagues_needed.add(lc)
+
+    # 获取各来源的比分数据
+    results_by_source = {}
+
+    # 世界杯专用 API（免费，不消耗配额）
+    if has_world_cup:
+        wc_results = await _fetch_world_cup_results()
+        results_by_source["fifa.world"] = wc_results
+        print(f"[INFO] 世界杯结果: {len(wc_results)} 场")
+
+    # The Odds API（按联赛逐个获取）
+    for lc in leagues_needed:
+        results = await _fetch_odds_api_scores(lc)
+        results_by_source[lc] = results
+        if results:
+            print(f"[INFO] {lc} 结果: {len(results)} 场")
+
+    # 逐条验证
+    verified_count = 0
+    hit_count = 0
+    for p in to_verify:
+        lc = p.get("leagueCode", "")
+        results = results_by_source.get(lc, [])
+        if not results:
+            continue
+
+        pred_home = p.get("home", "")
+        pred_away = p.get("away", "")
+        mid = p.get("matchId", "")
+        sched_en = schedule_en_map.get(mid, {})
+        sched_home_en = sched_en.get("homeEN", "")
+        sched_away_en = sched_en.get("awayEN", "")
+
+        matched_result = None
+        for r in results:
+            home_match = _match_team(r["homeEN"], pred_home, en_to_cn, sched_home_en)
+            away_match = _match_team(r["awayEN"], pred_away, en_to_cn, sched_away_en)
+            if home_match and away_match:
+                matched_result = r
+                break
+            # 也尝试交叉匹配（以防主客颠倒）
+            if home_match and not away_match:
+                away_match2 = _match_team(r["awayEN"], pred_home, en_to_cn, sched_home_en)
+                home_match2 = _match_team(r["homeEN"], pred_away, en_to_cn, sched_away_en)
+                if away_match2 and home_match2:
+                    # 主客颠倒，交换比分
+                    matched_result = {
+                        "homeEN": pred_home, "awayEN": pred_away,
+                        "homeScore": r["awayScore"], "awayScore": r["homeScore"],
+                    }
+                    break
+
+        if not matched_result:
+            continue
+
+        hs = matched_result["homeScore"]
+        aws = matched_result["awayScore"]
+
+        # 确定实际结果
+        if hs > aws:
+            actual = "胜"
+        elif hs < aws:
+            actual = "负"
+        else:
+            actual = "平"
+
+        # 判断是否命中
+        pred_text = p.get("prediction", "")
+        pred_type = p.get("type", "")
+        double_pick = p.get("doublePick") or []
+
+        if pred_type == "single":
+            hit = (pred_text == actual)
+        elif pred_type == "double":
+            hit = actual in double_pick
+        else:
+            hit = (actual in pred_text)
+
+        p["verified"] = True
+        p["actualResult"] = actual
+        p["hit"] = hit
+        p["homeScore"] = hs
+        p["awayScore"] = aws
+        verified_count += 1
+        if hit:
+            hit_count += 1
+        print(f"[VERIFY] {p.get('matchTime','')} {pred_home} {hs}-{aws} {pred_away} | 预测:{pred_text} 实际:{actual} {'✅' if hit else '❌'}")
+
+    print(f"[OK] 验证完成: {verified_count} 场已验证, 命中 {hit_count} 场")
+
 
 async def main():
     result_mode = sys.argv[1] if len(sys.argv) > 1 else "display_only"
-    github_repo = sys.argv[2] if len(sys.argv) > 2 else "ceshi1986/football-predictions"
+    github_token = sys.argv[2] if len(sys.argv) > 2 else os.environ.get("GITHUB_TOKEN", "YOUR_TOKEN_HERE")
+    github_repo = sys.argv[3] if len(sys.argv) > 3 else "ceshi1986/football-predictions"
 
-    print(f"[参数] result_mode={result_mode}, github_repo={github_repo}")
+    print(f"[参数] result_mode={result_mode}, repo={github_repo}")
+
     sdk = CodeActSDK()
-    now_cst = datetime.now(CST)
 
     try:
-        # 1. 获取 GitHub PAT
-        token = _gh_token()
-        if not token:
-            token = os.environ.get("GITHUB_TOKEN", "")
-        if not token:
-            await sdk.submit_result(
-                result_mode="notify", status="error",
-                message="执行失败：无法获取 GitHub PAT",
+        # ===== 1. 构建球队实力数据库 =====
+        teams = parse_team_db(_TEAM_DB_RAW)
+        print(f"[OK] 球队实力库: {len(teams)} 支球队")
+
+        # ===== 2. 从 GitHub 获取赛程 =====
+        print("[INFO] 获取赛程数据...")
+        schedule_content, _ = fetch_github_file(github_token, github_repo, "schedule.json")
+        if not schedule_content:
+            # 尝试通过 codeact_fetch_web 兜底
+            print("[WARN] GitHub API 获取 schedule.json 失败，尝试 fetch_web...")
+            fetch_result = await sdk.call_tool(
+                "codeact_fetch_web",
+                {"url": f"https://raw.githubusercontent.com/{github_repo}/main/schedule.json"},
+                schema_version=TOOL_SCHEMA_VERSIONS["codeact_fetch_web"],
             )
-            return
+            if fetch_result.get("is_success"):
+                schedule_content = fetch_result.get("content", "")
+            else:
+                raise RuntimeError("无法获取赛程数据")
 
-        # 2. 读取 schedule.json
-        print("[STEP1] 读取 schedule.json ...")
-        schedule_data = _gh_api(github_repo, SCHEDULE_FILE, token)
-        if not schedule_data:
-            await sdk.submit_result(
-                result_mode="notify", status="error",
-                message="执行失败：无法读取 schedule.json",
-            )
-            return
+        schedule = json.loads(schedule_content)
+        all_matches = schedule.get("matches", [])
+        print(f"[OK] 赛程: {len(all_matches)} 场比赛")
 
-        schedule = json.loads(schedule_data["content"])
-        matches = schedule.get("matches", [])
-        print(f"[STEP1] 获取到 {len(matches)} 场比赛")
-
-        # 3. 从 index.html 解析球队实力数据库
-        print("[STEP2] 从 index.html 解析球队实力数据库 ...")
-        index_data = _gh_api(github_repo, INDEX_FILE, token)
-        if not index_data:
-            await sdk.submit_result(
-                result_mode="notify", status="error",
-                message="执行失败：无法读取 index.html",
-            )
-            return
-
-        team_db = _parse_team_db(index_data["content"])
-        print(f"[STEP2] 解析到 {len(set(v['n'] for v in team_db.values()))} 支球队实力数据")
-
-        # 4. 获取竞彩网赔率数据
-        print("[STEP3] 获取竞彩网赔率 ...")
-        odds_data = _fetch_odds()
-        if not odds_data:
-            odds_data = []
-            print("[STEP3] 未获取到赔率数据，将仅使用球队实力计算")
-
-        # 5. 读取已有的 ai-predictions.json
-        print("[STEP4] 读取已有 ai-predictions.json ...")
-        existing_pred_data = _gh_api(github_repo, PREDICTIONS_FILE, token)
-        existing_predictions = {}  # matchId -> prediction entry
-        pred_file_sha = None
-
-        if existing_pred_data:
-            pred_file_sha = existing_pred_data["sha"]
-            try:
-                pred_json = json.loads(existing_pred_data["content"])
-                for p in pred_json.get("predictions", []):
-                    mid = p.get("matchId", "")
-                    if mid:
-                        existing_predictions[mid] = p
-                print(f"[STEP4] 已有 {len(existing_predictions)} 条预测记录")
-            except json.JSONDecodeError:
-                print("[STEP4] ai-predictions.json 格式错误，将重建")
+        # ===== 3. 获取历史预测 =====
+        print("[INFO] 获取历史预测...")
+        predictions_content, predictions_sha = fetch_github_file(
+            github_token, github_repo, "data/ai-predictions.json"
+        )
+        existing_predictions = []
+        if predictions_content:
+            pred_data = json.loads(predictions_content)
+            existing_predictions = pred_data.get("predictions", [])
+            print(f"[OK] 历史预测: {len(existing_predictions)} 条")
         else:
-            print("[STEP4] ai-predictions.json 不存在，将创建")
+            predictions_sha = None
+            print("[WARN] 无历史预测数据，将创建新文件")
 
-        # 6. 为每场比赛生成预测
-        print("[STEP5] 生成AI预测 ...")
-        new_predictions = []
+        # ===== 4. 验证已完赛但未验证的预测 =====
+        await verify_predictions(existing_predictions, all_matches)
+
+        # ===== 5. 构建已有预测索引 =====
+        pred_map = {}  # matchId -> prediction
+        for p in existing_predictions:
+            pred_map[p.get("matchId", "")] = p
+
+        # ===== 6. 过滤未开赛的比赛 =====
+        today = datetime.now(timezone(timedelta(hours=8)))
+        today_str = today.strftime("%Y%m%d")
+        print(f"[INFO] 今日日期: {today_str}")
+
+        upcoming = []
+        for m in all_matches:
+            if m.get("statusClass") != "scheduled":
+                continue
+            if m.get("completed"):
+                continue
+            upcoming.append(m)
+
+        print(f"[INFO] 未开赛比赛: {len(upcoming)} 场")
+
+        # ===== 7. 生成新预测 =====
         new_count = 0
-        updated_count = 0
-        kept_count = 0
-        odds_matched_count = 0
+        update_count = 0
+        keep_count = 0
 
-        for m in matches:
+        for m in upcoming:
             match_id = m.get("id", "")
-            home = m.get("home", "")
-            away = m.get("away", "")
-            league_short = m.get("leagueShort", m.get("leagueName", ""))
-            league_code = m.get("league", "")
-            status = m.get("status", "")
-            date_str = m.get("date", "")
+            date_iso = convert_date_to_iso(m.get("date", ""))
 
-            # 解析日期为 YYYYMMDD 格式
-            date_yyyymmdd = ""
-            try:
-                dt = datetime.fromisoformat(date_str.replace("Z", "+00:00"))
-                date_yyyymmdd = dt.astimezone(CST).strftime("%Y%m%d")
-            except Exception:
-                # 从 date 字段直接提取
-                date_yyyymmdd = date_str[:10].replace("-", "") if len(date_str) >= 10 else ""
+            existing = pred_map.get(match_id)
 
-            # 检查已有预测
-            existing = existing_predictions.get(match_id)
-
-            # 如果已验证，保留不动
+            # 保留已验证的旧预测
             if existing and existing.get("verified"):
-                new_predictions.append(existing)
-                kept_count += 1
+                keep_count += 1
                 continue
 
-            # 计算概率
-            hf, df, af = _calc_probabilities(home, away, team_db)
+            # 生成新预测
+            pred = predict_match(m, teams)
 
-            # 检查是否匹配到真实赔率
-            real_odds = _find_odds(home, away, odds_data)
-            if real_odds:
-                odds_matched_count += 1
-
-            # 获取赛程中的初始赔率（用于蛙跳检测）
-            schedule_odds = m.get("odds", None)
-
-            # 生成预测
-            judge_result = _ai_judge(home, away, hf, df, af, odds_data, team_db, schedule_odds)
-
-            # 构建预测条目
-            pred_entry = {
+            # 构建预测记录
+            record = {
                 "matchId": match_id,
-                "home": home,
-                "away": away,
-                "league": league_short,
-                "leagueCode": league_code,
-                "date": date_yyyymmdd,
-                "matchTime": status,
-                "prediction": judge_result["prediction"],
-                "type": judge_result["type"],
-                "confidence": judge_result["confidence"],
-                "skip": judge_result["skip"],
-                "skipReason": judge_result["skipReason"],
-                "reason": judge_result["reason"],
-                "doublePick": judge_result["doublePick"],
+                "home": m.get("home", ""),
+                "away": m.get("away", ""),
+                "league": m.get("leagueShort", m.get("leagueName", "")),
+                "leagueCode": m.get("league", ""),
+                "date": date_iso,
+                "matchTime": format_match_time(m),
+                "prediction": pred["prediction"],
+                "type": pred["type"],
+                "confidence": pred["confidence"],
+                "skip": pred["skip"],
+                "skipReason": pred["skipReason"],
+                "reason": pred["reason"],
+                "doublePick": pred["doublePick"],
+                "stars": pred["stars"],
+                "hasOdds": pred["hasOdds"],
+                "spread": pred["spread"],
+                "handicapDir": pred.get("handicapDir"),
                 "verified": False,
                 "actualResult": None,
                 "hit": None,
-                "homeScore": None,
-                "awayScore": None,
             }
 
-            # 如果已有记录且未验证，保留验证相关字段（如果有的话）
-            if existing:
-                pred_entry["verified"] = existing.get("verified", False)
-                pred_entry["actualResult"] = existing.get("actualResult")
-                pred_entry["hit"] = existing.get("hit")
-                pred_entry["homeScore"] = existing.get("homeScore")
-                pred_entry["awayScore"] = existing.get("awayScore")
-                updated_count += 1
+            if existing and not existing.get("verified"):
+                # 更新未验证的预测
+                update_count += 1
+                pred_map[match_id] = record
             else:
+                # 新增预测
                 new_count += 1
+                pred_map[match_id] = record
 
-            new_predictions.append(pred_entry)
+        # ===== 8. 组装最终预测列表 =====
+        # 保留所有已验证的旧预测 + 新的/更新的未验证预测
+        final_predictions = []
 
-        print(f"[STEP5] 预测生成完成: 新增 {new_count}, 更新 {updated_count}, 保留已验证 {kept_count}")
-        print(f"[STEP5] 赔率匹配: {odds_matched_count}/{len(matches)} 场")
+        # 先添加已验证的（按日期排序）
+        verified_preds = [p for p in existing_predictions if p.get("verified")]
+        verified_preds.sort(key=lambda x: x.get("date", ""))
+        final_predictions.extend(verified_preds)
+        print(f"[DEBUG] 已验证旧预测: {len(verified_preds)} 条")
 
-        # 7. 计算统计
-        verified_list = [p for p in new_predictions if p.get("verified")]
-        verified_count = len(verified_list)
-        hit_count = sum(1 for p in verified_list if p.get("hit") is True)
-        accuracy = round(hit_count / verified_count, 4) if verified_count > 0 else 0
+        # 再添加未验证的（新的和更新的）
+        unverified_preds = [p for mid, p in pred_map.items() if not p.get("verified")]
+        unverified_preds.sort(key=lambda x: x.get("date", ""))
+        final_predictions.extend(unverified_preds)
+        print(f"[DEBUG] 未验证预测: {len(unverified_preds)} 条 (新增{new_count}+更新{update_count})")
 
-        stats = {
-            "total": len(new_predictions),
-            "verified": verified_count,
-            "accuracy": accuracy,
+        print(f"[INFO] 预测统计: 保留已验证 {keep_count}, 更新 {update_count}, 新增 {new_count}")
+
+        # ===== 9. 推送到 GitHub =====
+        output_data = {
+            "lastUpdated": datetime.now(timezone.utc).strftime("%Y-%m-%dT%H:%M:%S.") + 
+                           f"{datetime.now(timezone.utc).microsecond // 1000:03d}Z",
+            "predictions": final_predictions,
         }
+        output_json = json.dumps(output_data, ensure_ascii=False, indent=2)
 
-        # 7.4 中文名转换：确保所有球队名为中文
-        _CN_MAP = {
-            # 中超
-            "Henan": "河南", "Liaoning Tieren": "辽宁铁人", "Dalian Yingbo": "大连英博",
-            "Zhejiang Professional FC": "浙江队", "Qingdao Hainiu": "青岛海牛",
-            "Yunnan Yukun": "云南玉昆", "Shenzhen Xinpengcheng": "深圳新鹏城",
-            "Qingdao West Coast": "青岛西海岸", "Chongqing Tonglianglong": "重庆铜梁龙",
-            # 巴甲
-            "Botafogo": "博塔弗戈", "Santos": "桑托斯", "Vitória": "维多利亚",
-            "Vasco da Gama": "瓦斯科达伽马", "Bahia": "巴伊亚", "Chapecoense": "沙佩科恩斯",
-            "Fluminense": "弗鲁米嫩塞", "Red Bull Bragantino": "布拉甘蒂诺红牛",
-            "Mirassol": "米拉索尔", "Grêmio": "格雷米奥",
-            # 挪超
-            "Tromso": "特罗姆瑟", "Vålerenga": "瓦勒伦加", "KFUM Oslo": "奥斯陆青年联",
-            "Bodo/Glimt": "博德闪耀", "Rosenborg": "罗森博格", "Kristiansund BK": "克里斯蒂安松",
-            "Sandefjord": "桑德菲杰", "Hamarkameratene": "哈马卡梅拉滕", "SK Brann": "布兰",
-            "IK Start": "斯塔贝克", "Sarpsborg FK": "萨普斯堡", "Viking FK": "维京",
-            "Aalesund": "奥勒松", "Fredrikstad": "弗雷德里克斯塔",
-            # 瑞典
-            "Hammarby IF": "哈马比", "Kalmar FF": "卡尔马", "Malmö FF": "马尔默",
-            "IFK Göteborg": "哥德堡", "Västerås SK": "韦斯特罗斯", "Degerfors IF": "德格福什",
-            "GAIS": "盖斯", "IF Elfsborg": "埃尔夫斯堡", "IF Brommapojkarna": "布鲁马波卡纳",
-            "IK Sirius": "西里安斯卡", "Djurgården": "尤尔加登", "Halmstads BK": "哈尔姆斯塔德",
-            "Mjällby AIF": "米亚尔比",
-        }
-        for _p in new_predictions:
-            _p["home"] = _CN_MAP.get(_p["home"], _p["home"])
-            _p["away"] = _CN_MAP.get(_p["away"], _p["away"])
-
-        # 7.5 去重：按球队+日期去重，保留已验证的记录
-        _dedup_map = {}
-        for _p in new_predictions:
-            _key = f"{_p.get('home','')}_{_p.get('away','')}_{_p.get('date','')}"
-            if _key not in _dedup_map:
-                _dedup_map[_key] = _p
-            elif _p.get("verified") and not _dedup_map[_key].get("verified"):
-                _dedup_map[_key] = _p  # 优先保留已验证的
-        new_predictions = list(_dedup_map.values())
-        print(f"[STEP5.5] 去重后: {len(new_predictions)} 条 (去重前 {len(_dedup_map)} 条)")
-
-        # 重新计算 stats
-        verified_count = sum(1 for p in new_predictions if p.get("verified"))
-        hits = sum(1 for p in new_predictions if p.get("verified") and p.get("hit"))
-        accuracy = round(hits / verified_count * 100) if verified_count > 0 else 0
-        stats = {
-            "total": len(new_predictions),
-            "verified": verified_count,
-            "accuracy": accuracy,
-        }
-
-        # 8. 构建 ai-predictions.json 并推送
-        output = {
-            "lastUpdated": now_cst.strftime("%Y-%m-%dT%H:%M:%S.000Z"),
-            "predictions": new_predictions,
-            "stats": stats,
-        }
-        output_json = json.dumps(output, ensure_ascii=False, indent=2)
-
-        print("[STEP6] 推送 ai-predictions.json 到 GitHub ...")
         push_success = False
-
-        if pred_file_sha:
-            push_success = _gh_put(
-                github_repo, PREDICTIONS_FILE,
-                output_json, pred_file_sha, token,
-                f"ai-predictions: {len(new_predictions)} matches, {new_count} new, {updated_count} updated",
+        if predictions_sha:
+            push_success = push_github_file(
+                github_token, github_repo, "data/ai-predictions.json",
+                output_json, predictions_sha,
             )
         else:
-            push_success = _gh_create(
-                github_repo, PREDICTIONS_FILE,
-                output_json, token,
-                f"init: ai-predictions with {len(new_predictions)} matches",
+            # 文件可能不存在，尝试创建（不需要 SHA）
+            print("[INFO] ai-predictions.json SHA 为空，尝试重新获取...")
+            _, retry_sha = fetch_github_file(
+                github_token, github_repo, "data/ai-predictions.json"
             )
+            if retry_sha:
+                push_success = push_github_file(
+                    github_token, github_repo, "data/ai-predictions.json",
+                    output_json, retry_sha,
+                )
+            else:
+                # 创建新文件（PUT 请求不带 SHA）
+                print("[INFO] 尝试创建新文件 data/ai-predictions.json...")
+                import base64 as _b64
+                url = f"https://api.github.com/repos/{github_repo}/contents/data/ai-predictions.json"
+                headers = {
+                    "Authorization": f"token {github_token}",
+                    "Accept": "application/vnd.github.v3+json",
+                }
+                payload = {
+                    "message": f"🤖 初始化预测文件 {datetime.now().strftime('%Y-%m-%d %H:%M')}",
+                    "content": _b64.b64encode(output_json.encode("utf-8")).decode("utf-8"),
+                    "branch": "main",
+                }
+                try:
+                    resp = requests.put(url, headers=headers, json=payload, timeout=30)
+                    if resp.status_code in (200, 201):
+                        print("[OK] 已创建 data/ai-predictions.json")
+                        push_success = True
+                    else:
+                        print(f"[WARN] 创建失败: HTTP {resp.status_code}")
+                except Exception as e:
+                    print(f"[WARN] 创建异常: {e}")
 
-        if push_success:
-            print("[STEP6] 推送成功")
-            # Post-push validation: verify the pushed data
-            import time as _time
-            _time.sleep(2)
-            _verify_data = _gh_api(github_repo, PREDICTIONS_FILE, token)
-            if _verify_data:
-                _verify_json = json.loads(_verify_data["content"])
-                _verify_preds = _verify_json.get("predictions", [])
-                if len(_verify_preds) != len(new_predictions):
-                    print(f"[WARN] 推送验证不一致: 本地{len(new_predictions)}条 vs GitHub{len(_verify_preds)}条")
-                    # Re-push
-                    _verify_sha = _verify_data["sha"]
-                    _gh_put(github_repo, PREDICTIONS_FILE, output_json, _verify_sha, token, "retry: fix count mismatch")
-                else:
-                    print(f"[STEP6] 推送验证通过: {len(_verify_preds)}条")
-        else:
-            print("[STEP6] 推送失败")
-
-        # 9. 保存一份到本地
-        os.makedirs(OUTPUT_DIR, exist_ok=True)
-        local_path = os.path.join(OUTPUT_DIR, "ai-predictions.json")
+        # ===== 10. 保存本地备份 =====
+        local_path = "./codeact/output/ai-predictions.json"
+        os.makedirs(os.path.dirname(local_path), exist_ok=True)
         with open(local_path, "w", encoding="utf-8") as f:
             f.write(output_json)
-        print(f"[LOCAL] 结果已保存到 {local_path}")
+        print(f"[OK] 本地备份: {local_path}")
 
-        # 10. 生成摘要
-        # 统计今日比赛
-        today_str = now_cst.strftime("%Y%m%d")
-        today_preds = [p for p in new_predictions if p.get("date") == today_str]
+        # ===== 11. 生成今日预测摘要 =====
+        today_preds = [p for p in final_predictions if p.get("date") == today_str and not p.get("verified")]
 
-        # 统计非skip预测
-        active_preds = [p for p in new_predictions if not p.get("skip")]
-        single_preds = [p for p in active_preds if p.get("type") == "single"]
-        double_preds = [p for p in active_preds if p.get("type") == "double"]
-
-        # 生成关键预测摘要（非skip的single预测，取置信度最高的5个）
-        key_preds = sorted(single_preds, key=lambda x: -x.get("confidence", 0))[:5]
+        # 按联赛分组
+        by_league = {}
+        for p in today_preds:
+            league = p.get("league", "其他")
+            if league not in by_league:
+                by_league[league] = []
+            by_league[league].append(p)
 
         summary_lines = []
-        summary_lines.append(f"⚽ 每日AI预测生成完成")
-        summary_lines.append(f"")
-        summary_lines.append(f"📊 总计 {len(new_predictions)} 场比赛")
-        summary_lines.append(f"   今日 {len(today_preds)} 场 | 有效预测 {len(active_preds)} 场")
-        summary_lines.append(f"   单选 {len(single_preds)} | 双选 {len(double_preds)} | 跳过 {len(new_predictions) - len(active_preds)}")
-        summary_lines.append(f"   赔率匹配 {odds_matched_count}/{len(matches)} 场")
-        if verified_count > 0:
-            summary_lines.append(f"   已验证 {verified_count} 场 | 命中率 {accuracy:.1%}")
+        star_symbols = {1: "☆", 2: "★☆", 3: "★★", 4: "★★★", 5: "★★★★"}
 
-        if key_preds:
-            summary_lines.append(f"")
-            summary_lines.append(f"🔥 关键预测：")
-            for p in key_preds:
-                direction = p["prediction"]
-                conf = p["confidence"]
-                summary_lines.append(f"   {p['league']} {p['home']} vs {p['away']} → {direction}（{conf}%）")
-
-        # 今日比赛详情
         if today_preds:
-            summary_lines.append(f"")
-            summary_lines.append(f"📅 今日比赛 ({len(today_preds)} 场)：")
-            for p in today_preds:
-                mark = "⏭️" if p.get("skip") else ("⚽" if p.get("type") == "single" else "🔄")
-                summary_lines.append(
-                    f"   {mark} {p['league']} {p['home']} vs {p['away']} "
-                    f"→ {p['prediction']}（{p['confidence']}%）"
-                    + (f" [{p['skipReason']}]" if p.get("skip") else "")
-                )
+            summary_lines.append(f"📊 今日足球预测 ({today_str})")
+            summary_lines.append(f"共 {len(today_preds)} 场未开赛预测\n")
 
-        message = "\n".join(summary_lines)
-        print(f"\n{message}")
+            for league, preds in by_league.items():
+                summary_lines.append(f"【{league}】")
+                for p in preds:
+                    stars_str = star_symbols.get(p.get("stars", 1), "☆")
+                    skip_tag = " ⚠️不建议" if p.get("skip") else ""
+                    odds_tag = "📈" if p.get("hasOdds") else "📉"
+                    conf = p.get("confidence", 0)
+                    pred_text = p.get("prediction", "")
+                    pred_type = "单选" if p.get("type") == "single" else "双选"
 
-        # 提交结果
+                    line = (
+                        f"  {p.get('home', '')} vs {p.get('away', '')}\n"
+                        f"    {pred_type} {pred_text} | 置信度{conf}% | {stars_str}{skip_tag}\n"
+                        f"    {odds_tag} {p.get('reason', '')}"
+                    )
+                    summary_lines.append(line)
+                summary_lines.append("")
+        else:
+            summary_lines.append(f"📊 今日 ({today_str}) 暂无新的预测")
+
+        summary = "\n".join(summary_lines)
+        print("\n" + summary)
+
+        # ===== 11. 统计信息 =====
+        verified_total = len(verified_preds)
+        verified_hits = sum(1 for p in verified_preds if p.get("hit"))
+        hit_rate = round(verified_hits / verified_total * 100) if verified_total > 0 else 0
+
+        stats_info = (
+            f"历史验证: {verified_total} 场 | 命中 {verified_hits} 场 | 命中率 {hit_rate}%\n"
+            f"本次新增: {new_count} | 更新: {update_count} | 保留: {keep_count}"
+        )
+        print(stats_info)
+
+        # ===== 12. 提交结果 =====
         actual_mode = result_mode if result_mode != "auto" else "display_only"
+
+        # 构建用户消息
+        if today_preds:
+            msg_parts = [f"[主人](at://owner) 📊 今日足球预测 ({today_str})"]
+            msg_parts.append(f"共 {len(today_preds)} 场预测")
+
+            # 只展示前10场的关键信息
+            shown = 0
+            for p in today_preds[:10]:
+                stars_str = star_symbols.get(p.get("stars", 1), "☆")
+                skip_tag = " ⚠️" if p.get("skip") else ""
+                msg_parts.append(
+                    f"• {p['home']} vs {p['away']}: {p['prediction']} "
+                    f"({p['confidence']}% {stars_str}{skip_tag})"
+                )
+            if len(today_preds) > 10:
+                msg_parts.append(f"...还有 {len(today_preds) - 10} 场")
+
+            # 推荐重点
+            recommended = [p for p in today_preds if not p.get("skip") and p.get("stars", 0) >= 3]
+            if recommended:
+                msg_parts.append(f"\n🎯 重点推荐 ({len(recommended)} 场):")
+                for p in recommended[:5]:
+                    stars_str = star_symbols.get(p.get("stars", 1), "☆")
+                    msg_parts.append(f"  ★ {p['home']} vs {p['away']}: {p['prediction']} ({p['confidence']}% {stars_str})")
+
+            msg_parts.append(f"\n历史命中率: {hit_rate}% | GitHub更新: {'✅' if push_success else '❌'}")
+            message = "\n".join(msg_parts)
+        else:
+            message = f"[主人](at://owner) 今日 ({today_str}) 暂无新的足球预测"
+
         await sdk.submit_result(
             result_mode=actual_mode,
             status="success",
             message=message,
             data={
-                "total": len(new_predictions),
-                "new_count": new_count,
-                "updated_count": updated_count,
-                "kept_count": kept_count,
-                "today_count": len(today_preds),
-                "active_count": len(active_preds),
-                "single_count": len(single_preds),
-                "double_count": len(double_preds),
-                "odds_matched": odds_matched_count,
-                "push_success": push_success,
-                "local_path": local_path
-            }
+                "date": today_str,
+                "new_predictions": new_count,
+                "updated_predictions": update_count,
+                "total_upcoming": len(today_preds),
+                "github_push": push_success,
+                "verified_total": verified_total,
+                "verified_hits": verified_hits,
+                "hit_rate": hit_rate,
+            },
         )
+
     except Exception as e:
-        error_msg = f"执行失败：{str(e)}"
-        print(f"[ERROR] {error_msg}")
+        print(f"[ERROR] {e}")
         import traceback
         traceback.print_exc()
         await sdk.submit_result(
             result_mode="notify",
             status="error",
-            message=error_msg,
+            message=f"足球预测脚本执行失败: {e}",
+            data={"error_type": type(e).__name__},
         )
 
 
-if __name__ == "__main__":
-    import asyncio
-    asyncio.run(main())
+asyncio.run(m
