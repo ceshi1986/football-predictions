@@ -591,7 +591,7 @@ async def _fetch_odds_api_scores(league_code: str) -> list:
         return []
 
     url = f"https://api.the-odds-api.com/v4/sports/{sport_key}/scores/"
-    params = {"apiKey": ODDS_API_KEY, "daysFrom": 7}
+    params = {"apiKey": ODDS_API_KEY, "daysFrom": 3}  # 免费版只支持1-3
     try:
         resp = requests.get(url, params=params, timeout=15)
         if resp.status_code == 200:
