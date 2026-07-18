@@ -1399,28 +1399,30 @@
       "leagueCode": "fifa.world",
       "date": "20260716",
       "matchTime": "7/16 周四 03:00",
-      "verified": false,
-      "actualResult": null,
-      "hit": null
+      "verified": true,
+      "actualResult": "负",
+      "hit": true,
+      "homeScore": 1,
+      "awayScore": 2
     },
     {
-      "prediction": "胜+负",
+      "prediction": "负+平",
       "type": "double",
-      "skip": true,
-      "skipReason": "结果太不确定，各方向概率接近",
-      "confidence": 49,
-      "reason": "方向不够明确，双选覆盖",
+      "skip": false,
+      "skipReason": "",
+      "confidence": 55,
+      "reason": "法国季军战求稳，英格兰士气低落",
       "doublePick": [
-        "胜",
-        "负"
+        "负",
+        "平"
       ],
       "matchId": "760516",
       "home": "法国",
-      "away": "决赛",
+      "away": "英格兰",
       "league": "世界杯",
       "leagueCode": "fifa.world",
       "date": "20260719",
-      "matchTime": "7/19 周日 05:00",
+      "matchTime": "07/19 周六 05:00",
       "verified": false,
       "actualResult": null,
       "hit": null
@@ -1428,21 +1430,21 @@
     {
       "prediction": "胜+负",
       "type": "double",
-      "skip": true,
-      "skipReason": "结果太不确定，各方向概率接近",
-      "confidence": 48,
-      "reason": "方向不够明确，双选覆盖",
+      "skip": false,
+      "skipReason": "",
+      "confidence": 52,
+      "reason": "决赛强强对话，西班牙传控 vs 阿根廷梅西最后一舞",
       "doublePick": [
         "胜",
         "负"
       ],
       "matchId": "760517",
       "home": "西班牙",
-      "away": "半决赛胜者2",
+      "away": "阿根廷",
       "league": "世界杯",
       "leagueCode": "fifa.world",
       "date": "20260720",
-      "matchTime": "7/20 周一 03:00",
+      "matchTime": "07/20 周日 03:00",
       "verified": false,
       "actualResult": null,
       "hit": null
@@ -2154,6 +2156,27 @@
       "verified": false,
       "actualResult": null,
       "hit": null
+    },
+    {
+      "matchId": "760514",
+      "home": "法国",
+      "away": "西班牙",
+      "league": "世界杯",
+      "leagueCode": "fifa.world",
+      "date": "20260715",
+      "matchTime": "07/15 周三 03:00",
+      "prediction": "负",
+      "type": "single",
+      "confidence": 45,
+      "reason": "西班牙传控优势明显",
+      "verified": true,
+      "homeScore": 0,
+      "awayScore": 2,
+      "actualResult": "负",
+      "hit": true,
+      "skip": false,
+      "skipReason": "",
+      "predictTime": "2026-07-14T12:00:00+08:00"
     }
   ],
   "stats": {
