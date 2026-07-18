@@ -262,6 +262,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;b
 .ai-acc-row .v.flat{color:#9ca3af}
 .ai-acc-row.highlight{background:linear-gradient(90deg,rgba(245,158,11,0.15),rgba(239,68,68,0.08));border-radius:8px;padding:6px 8px;margin:0 -8px;animation:fpPulse 2s ease-in-out infinite}
 .ai-acc-row.highlight .v{color:#f59e0b;text-shadow:0 0 12px rgba(245,158,11,0.6),0 0 24px rgba(245,158,11,0.3);font-weight:800}
+@keyframes fpBannerShine{0%,100%{box-shadow:0 0 20px rgba(245,158,11,0.15),inset 0 0 20px rgba(245,158,11,0.05)}50%{box-shadow:0 0 30px rgba(245,158,11,0.3),inset 0 0 30px rgba(245,158,11,0.1)}}
 @keyframes fpSubGlow{0%,100%{box-shadow:0 0 0 0 rgba(74,222,128,0)}50%{box-shadow:0 0 12px 2px rgba(74,222,128,0.2)}}
 @keyframes fpPulse{0%,100%{box-shadow:inset 0 0 0 0 rgba(245,158,11,0)}50%{box-shadow:inset 0 0 12px 1px rgba(245,158,11,0.25)}}
 .ai-acc-note{font-size:10px;color:#444;margin-top:8px;text-align:center}
@@ -473,9 +474,10 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;b
 </div>
 
 
-<div id="fp-yesterday-banner" style="display:none;margin-bottom:12px;padding:14px 16px;background:linear-gradient(135deg,rgba(245,158,11,0.15),rgba(239,68,68,0.1));border:1px solid rgba(245,158,11,0.4);border-radius:12px;text-align:center;animation:fpPulse 2s ease-in-out infinite">
-  <div style="font-size:14px;font-weight:700;color:#f59e0b;text-shadow:0 0 8px rgba(245,158,11,0.4)">🔥 昨日AI预测命中率 <span id="fp-yesterday-rate" style="font-size:20px;font-weight:800"></span></div>
-  <div style="font-size:12px;color:#9ca3af;margin-top:4px">基于昨日全部已完赛比赛统计</div>
+<div id="fp-yesterday-banner" style="display:none;margin-bottom:16px;padding:16px 20px;background:linear-gradient(135deg,rgba(245,158,11,0.2),rgba(239,68,68,0.12),rgba(245,158,11,0.08));border:2px solid rgba(245,158,11,0.5);border-radius:16px;text-align:center;box-shadow:0 0 20px rgba(245,158,11,0.15),inset 0 0 20px rgba(245,158,11,0.05);animation:fpBannerShine 3s ease-in-out infinite">
+  <div style="font-size:13px;color:#d4d4d8;margin-bottom:4px">🏆 昨日战绩</div>
+  <div style="font-size:16px;font-weight:700;color:#f59e0b;text-shadow:0 0 12px rgba(245,158,11,0.5)">🔥 AI预测命中率 <span id="fp-yesterday-rate" style="font-size:28px;font-weight:900;background:linear-gradient(135deg,#f59e0b,#ef4444);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text"></span></div>
+  <div style="font-size:11px;color:#6b7280;margin-top:6px">⚡ 基于昨日全部已完赛比赛统计</div>
 </div>
 <div class="ai-acc" id="ai-acc">
 <div class="ai-acc-title">📊 AI预测实时命中率</div>
