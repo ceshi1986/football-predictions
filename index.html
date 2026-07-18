@@ -369,7 +369,11 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;b
 </div>
 </div>
 <div class="ct">
-<div class="hd"><h1>AI足球预测</h1><p>基于多源数据的智能赛事分析</p><div style="margin-top:8px;padding:6px 10px;background:#2a1a1a;border:1px solid #ef4444;border-radius:6px;font-size:10px;color:#f87171;line-height:1.4">⚠️ 免责声明：本工具仅供娱乐参考，不构成任何投注建议。预测结果基于数据分析，不保证准确性。请理性对待，切勿沉迷。</div></div>
+<div class="hd"><h1>AI足球预测</h1><p>基于多源数据的智能赛事分析</p><div style="margin-top:8px;padding:6px 10px;background:#2a1a1a;border:1px solid #ef4444;border-radius:6px;font-size:10px;color:#f87171;line-height:1.4">⚠️ 免责声明：本工具仅供娱乐参考，不构成任何投注建议。预测结果基于数据分析，不保证准确性。请理性对待，切勿沉迷。</div>
+<div style="margin-top:12px">
+<button onclick="_shareSite()" style="background:linear-gradient(135deg,#4ade80,#22c55e);color:#000;border:none;border-radius:10px;padding:10px 24px;font-size:14px;font-weight:700;cursor:pointer;box-shadow:0 2px 8px rgba(74,222,128,0.3)">📤 分享给好友</button>
+</div>
+</div>
 
 
 <div class="key-bar" id="fp-key-bar">
@@ -430,9 +434,6 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;b
 </div>
 <button class="mps-btn" onclick="_calc()">🔮 预测</button><span id="fp-free-count-hint" style="font-size:11px;color:#6b7280;margin-left:8px"></span>
 </div>
-</div>
-<div style="text-align:right;margin-top:8px">
-<span class="manual-entry-link" onclick="document.getElementById('mf').scrollIntoView({behavior:'smooth'})">📝 录入赛果</span>
 </div>
 </div>
 <div class="rs" id="rs">
@@ -1883,7 +1884,7 @@ if(changed)localStorage.setItem(_xa,JSON.stringify(v));
 }
 
 async function _getScore(home,away,lid,md){
-var enCode=_lc[lid]||"eng.1";
+var enCode=_lc[lid]||({"mls":"usa.1","uefa.champions.qual":"uefa.champions"}[lid])||((lid&&lid.indexOf(".")>=0)?lid:null)||((lid&&lid.indexOf("fifa.")===0)?lid:null)||"eng.1";
 var hEN=_ge(home)||home,aEN=_ge(away)||away;
 var ds=md.replace(/-/g,"");
 try{
@@ -2001,6 +2002,39 @@ function _sh(){
 if(navigator.share){navigator.share({title:"AI足球预测",text:_last?_last.h+" 对阵 "+_last.a+" → "+_last.r:"AI足球预测",url:location.href}).catch(function(){})}
 else if(/MicroMessenger/i.test(navigator.userAgent)){document.getElementById("so").style.display="flex"}
 else{var i=document.createElement("input");i.value=location.href;document.body.appendChild(i);i.select();document.execCommand("copy");document.body.removeChild(i);alert("链接已复制")}
+}
+
+function _shareSite(){
+var url=location.href;
+var title="AI足球预测 - 智能赛事分析";
+var text="推荐一个超准的AI足球预测网站，基于凯利指数+多源数据，世界杯回测命中率81.6%！";
+if(navigator.share){
+navigator.share({title:title,text:text,url:url}).catch(function(){});
+}else{
+var overlay=document.createElement("div");
+overlay.style.cssText="position:fixed;top:0;left:0;right:0;bottom:0;background:rgba(0,0,0,0.7);z-index:9999;display:flex;align-items:center;justify-content:center;";
+overlay.onclick=function(e){if(e.target===overlay)overlay.remove()};
+var card=document.createElement("div");
+card.style.cssText="background:#1a1f35;border-radius:16px;padding:24px;max-width:320px;width:90%;text-align:center;";
+card.innerHTML='<div style="font-size:18px;font-weight:700;color:#4ade80;margin-bottom:12px">📤 分享给好友</div>'
++'<div style="font-size:13px;color:#9ca3af;margin-bottom:16px;line-height:1.5">'+text+'</div>'
++'<div style="background:#0d1117;border-radius:8px;padding:10px;margin-bottom:16px;word-break:break-all;font-size:12px;color:#60a5fa;border:1px solid #2a3055">'+url+'</div>'
++'<button id="_share-copy" style="width:100%;padding:12px;background:linear-gradient(135deg,#4ade80,#22c55e);color:#000;border:none;border-radius:10px;font-size:14px;font-weight:700;cursor:pointer;margin-bottom:8px">📋 复制链接</button>'
++'<button onclick="this.parentElement.parentElement.remove()" style="width:100%;padding:10px;background:transparent;color:#6b7280;border:1px solid #2a3055;border-radius:10px;font-size:13px;cursor:pointer">关闭</button>';
+overlay.appendChild(card);
+document.body.appendChild(overlay);
+document.getElementById("_share-copy").onclick=function(){
+var inp=document.createElement("input");
+inp.value=url;
+document.body.appendChild(inp);
+inp.select();
+document.execCommand("copy");
+document.body.removeChild(inp);
+this.textContent="✅ 已复制！";
+var btn=this;
+setTimeout(function(){btn.textContent="📋 复制链接"},2000);
+};
+}
 }
 if(/MicroMessenger/i.test(navigator.userAgent)){document.addEventListener("click",function(e){if(e.target.tagName==="BUTTON"||e.target.tagName==="A")return;document.getElementById("so").style.display="flex"})}
 
@@ -2465,7 +2499,7 @@ async function _verifyAIRecs(){
     if(rec.date>today) continue; 
     
     try{
-      var score=await _getScore(rec.home,rec.away,_gl(rec.home),rec.date);
+      var score=await _getScore(rec.home,rec.away,rec.leagueCode||_gl(rec.home),rec.date);
       if(score){
         var actualResult=score.hs>score.as?"胜":score.hs<score.as?"负":"平";
         rec.verified=true;
