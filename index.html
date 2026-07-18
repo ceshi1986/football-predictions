@@ -2731,18 +2731,26 @@ function fpUpdateLockState(){
   var recs=[];
   try{recs=JSON.parse(localStorage.getItem('ai_recommendations')||'[]')}catch(e){}
   if(!recs.length)return;
-  var yesterday=new Date();yesterday.setDate(yesterday.getDate()-1);
-  var yStr=yesterday.getFullYear()+String(yesterday.getMonth()+1).padStart(2,'0')+String(yesterday.getDate()).padStart(2,'0');
-  var yRecs=recs.filter(function(r){return r.verified&&r.date===yStr});
-  if(yRecs.length<1)return;
+  var verified=recs.filter(function(r){return r.verified});
+  if(!verified.length)return;
+  var dateMap={};
+  for(var i=0;i<verified.length;i++){
+    var d=verified[i].date;
+    if(!dateMap[d])dateMap[d]=[];
+    dateMap[d].push(verified[i]);
+  }
+  var dates=Object.keys(dateMap).sort().reverse();
+  if(!dates.length)return;
+  var latestDate=dates[0];
+  var latestRecs=dateMap[latestDate];
   var hits=0;
-  for(var i=0;i<yRecs.length;i++){if(yRecs[i].hit)hits++}
-  var rate=Math.round(hits/yRecs.length*100);
+  for(var i=0;i<latestRecs.length;i++){if(latestRecs[i].hit)hits++}
+  var rate=Math.round(hits/latestRecs.length*100);
   if(rate>=80){
     var banner=document.getElementById('fp-yesterday-banner');
     var rateEl=document.getElementById('fp-yesterday-rate');
     if(banner&&rateEl){
-      rateEl.textContent=rate+'% ('+hits+'/'+yRecs.length+')';
+      rateEl.textContent=rate+'% ('+hits+'/'+latestRecs.length+')';
       banner.style.display='block';
     }
   }
