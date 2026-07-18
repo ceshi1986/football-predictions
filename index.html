@@ -2732,8 +2732,8 @@ function fpUpdateLockState(){
   try{recs=JSON.parse(localStorage.getItem('ai_recommendations')||'[]')}catch(e){}
   if(!recs.length)return;
   var yesterday=new Date();yesterday.setDate(yesterday.getDate()-1);
-  var yStr=yesterday.getFullYear()+'-'+String(yesterday.getMonth()+1).padStart(2,'0')+'-'+String(yesterday.getDate()).padStart(2,'0');
-  var yRecs=recs.filter(function(r){return r.verified&&r.matchDate===yStr});
+  var yStr=yesterday.getFullYear()+String(yesterday.getMonth()+1).padStart(2,'0')+String(yesterday.getDate()).padStart(2,'0');
+  var yRecs=recs.filter(function(r){return r.verified&&r.date===yStr});
   if(yRecs.length<1)return;
   var hits=0;
   for(var i=0;i<yRecs.length;i++){if(yRecs[i].hit)hits++}
