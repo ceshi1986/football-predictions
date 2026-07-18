@@ -1713,7 +1713,7 @@ bac.innerHTML=adviceHtml;
 ba.style.display="block";
 // === 双选时更新预测方向显示 ===
 var isDouble=false, spk="", spp=0;
-if((isStrongFav||isMediumFav)&&probDiff<=0.35){
+if(maxProb<0.60||(isStrongFav||isMediumFav)&&probDiff<=0.35){
   isDouble=true;
   if(r==="胜"){if(df>=af){spk="平";spp=Math.round(df*100)}else{spk="负";spp=Math.round(af*100)}}
   else if(r==="平"){if(hf>=af){spk="胜";spp=Math.round(hf*100)}else{spk="负";spp=Math.round(af*100)}}
