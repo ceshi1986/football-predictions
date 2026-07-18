@@ -52,7 +52,7 @@ _TEAM_DB_RAW = (
     "~上海海港|Shanghai Port|72|10~上海申花|Shanghai Shenhua|71|10~山东泰山|Shandong Taishan|70|10"
     "~北京国安|Beijing Guoan|70|10~武汉三镇|Wuhan Three Towns|69|10"
     "~川崎前锋|Kawasaki Frontale|74|11~横滨水手|Yokohama F Marinos|73|11~浦和红钻|Urawa Red Diamonds|72|11"
-    "~全北现代|Jeonbuk Hyundai|73|12~蔚山现代|Ulsan Hyundai|72|12"
+    "~FC首尔|FC Seoul|74|12~全北现代|Jeonbuk Hyundai|73|12~江原FC|Gangwon FC|71|12~浦项制铁|Pohang Steelers|71|12~蔚山HD|Ulsan HD|71|12~安养FC|FC Anyang|69|12~仁川联|Incheon United|69|12~济州SK|Jeju SK FC|68|12~富川FC|Bucheon FC|68|12~大田市民|Daejeon Hana Citizen|67|12~金泉尚武|Gimcheon Sangmu|67|12~光州FC|Gwangju FC|66|12"
     "~洛杉矶FC|LAFC|74|13~迈阿密国际|Inter Miami|73|13"
     "~弗拉门戈|Flamengo|80|14~帕尔梅拉斯|Palmeiras|79|14~河床|River Plate|79|15~博卡青年|Boca Juniors|78|15"
     "~河南|Henan|66|10~辽宁铁人|Liaoning Tieren|65|10~大连英博|Dalian Yingbo|64|10"
@@ -70,6 +70,7 @@ _TEAM_DB_RAW = (
     "~厄尔格里特|Örgryte IS|66|08~BK海肯|BK Häcken|71|08~哈尔姆斯塔德|Halmstads BK|65|08"
     "~尤尔加登|Djurgården|70|08~韦斯特罗斯|Västerås SK|66|08~米耶尔比|Mjällby AIF|67|08"
     "~盖斯|GAIS|68|08"
+    "~古比斯|KuPS|70|16~图尔库国际|FC Inter|69|16~VPS瓦萨|VPS|68|16~奥卢|AC Oulu|67|16~赫尔辛基|HJK|67|16~格尼斯坦|IF Gnistan|66|16~TPS图尔库|TPS|66|16~拉赫蒂|FC Lahti|65|16~埃尔维斯|Ilves|65|16~塞那乔其|SJK|64|16~雅罗|FF Jaro|63|16~玛丽港|IFK Mariehamn|62|16"
     "~博塔弗戈|Botafogo|76|14~桑托斯|Santos|72|14~维多利亚|Vitória|68|14~瓦斯科达伽马|Vasco da Game|70|14"
 )
 
@@ -497,10 +498,29 @@ ODDS_API_KEY = "0b8808a6d42b077c4f4016737004f22b"
 # 竞彩/北单支持的联赛代码（不含中超）
 # 只对这些联赛生成预测，并纳入命中率统计
 ACTIVE_LEAGUE_CODES = {
-    "bra.1",           # 巴甲
+    # ===== 五大联赛（竞彩核心场次） =====
+    "eng.1",           # 英超
+    "esp.1",           # 西甲
+    "ger.1",           # 德甲
+    "ita.1",           # 意甲
+    "fra.1",           # 法甲
+    # ===== 欧洲其他联赛 =====
+    "ned.1",           # 荷甲
+    "bel.1",           # 比甲
+    "por.1",           # 葡超
+    "tur.1",           # 土超
+    "aut.1",           # 奥超
     "nor.1",           # 挪超
     "swe.1",           # 瑞典超
+    "fin.1",           # 芬超
+    # ===== 亚洲联赛 =====
+    "jpn.1",           # 日职
+    "kor.1",           # 韩职
+    # ===== 美洲联赛 =====
     "mls", "usa.1",    # 美职
+    "bra.1",           # 巴甲
+    "arg.1",           # 阿甲
+    # ===== 国际赛事 =====
     "uefa.champions",  # 欧冠
     "uefa.champions.qual",  # 欧冠资格赛
     "uefa.europa",     # 欧联
