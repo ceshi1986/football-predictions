@@ -3259,8 +3259,19 @@ function showCompareResult(results) {
       return s.indexOf('让') === 0;
     });
   });
-  if (hasHandicapInResults) {
-    html += '<div style="font-size:11px;color:#6b7280;margin:8px 0 4px;text-align:center">* 让球选项已自动转换：让胜→胜、让平→胜（实际刚好赢让球数）、让负→方向不确定（胜平负均可能）</div>';
+  // 检查是否有让负
+  var hasHandicapFu = results.some(function(r) {
+    return r.originalUserSelections && r.originalUserSelections.some(function(s) { return s === '让负'; });
+  });
+  if (hasHandicapInResults || hasHandicapFu) {
+    html += '<div style="font-size:12px;color:#a78bfa;margin:12px 0 4px;padding:10px;background:#1a1535;border-radius:8px;border:1px solid #2d2065">';
+    html += '⚠️ <b>让球说明</b><br>';
+    html += '• <b>让胜</b>→对应「胜」（让球后仍赢，实力确认）<br>';
+    html += '• <b>让平</b>→对应「胜」（让球后平手=实际刚好赢让球数）<br>';
+    if (hasHandicapFu) {
+      html += '• <b>让负</b>→<span style="color:#f59e0b">方向不确定</span>，可能是胜/平/负，仅做提醒不做比对';
+    }
+    html += '</div>';
   }
 
   // Tip
