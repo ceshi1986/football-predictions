@@ -314,6 +314,51 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;b
 .pay-disclaimer{font-size:10px;color:#555;line-height:1.6;text-align:center;border-top:1px solid rgba(255,255,255,.05);padding-top:14px}
 .fp-buy-btn{display:inline-block;margin-left:8px;padding:6px 14px;background:linear-gradient(135deg,#f59e0b,#d97706);color:#000;border:none;border-radius:6px;font-size:12px;font-weight:700;cursor:pointer}
 .fp-buy-btn:hover{opacity:0.9}
+
+/* ===== 一键比对功能样式 ===== */
+.compare-btn{width:100%;padding:15px;border:none;border-radius:12px;font-size:16px;font-weight:700;cursor:pointer;margin-top:14px;background:linear-gradient(135deg,#6366f1,#8b5cf6);color:#fff;transition:all .2s;box-shadow:0 4px 16px rgba(99,102,241,.3);position:relative;overflow:hidden}
+.compare-btn:active{transform:scale(.97);opacity:.85}
+.compare-btn::after{content:'';position:absolute;top:-50%;left:-50%;width:200%;height:200%;background:linear-gradient(45deg,transparent,rgba(255,255,255,.1),transparent);transform:rotate(45deg);animation:compareShine 3s ease-in-out infinite}
+@keyframes compareShine{0%,100%{transform:translateX(-100%) rotate(45deg)}50%{transform:translateX(100%) rotate(45deg)}}
+.compare-modal-overlay{display:none;position:fixed;top:0;left:0;right:0;bottom:0;background:rgba(0,0,0,.75);z-index:10000;justify-content:center;align-items:flex-end;padding:0}
+.compare-modal-overlay.show{display:flex}
+.compare-modal{background:#151a2e;border-radius:20px 20px 0 0;width:100%;max-width:420px;max-height:90vh;overflow-y:auto;padding:24px 20px 32px;animation:slideUp .3s ease}
+@keyframes slideUp{from{transform:translateY(100%)}to{transform:translateY(0)}}
+.compare-modal-title{font-size:18px;font-weight:700;color:#8b5cf6;text-align:center;margin-bottom:16px;display:flex;align-items:center;justify-content:center;gap:8px}
+.compare-modal-close{position:absolute;top:16px;right:16px;background:none;border:none;color:#6b7280;font-size:20px;cursor:pointer;padding:4px 8px}
+.compare-guide{background:#1a1f35;border-radius:12px;padding:14px;margin-bottom:16px;border:1px solid #2a2f45}
+.compare-guide-text{font-size:12px;color:#9ca3af;line-height:1.6}
+.compare-guide-text strong{color:#e0e0e0}
+.compare-upload-area{text-align:center;padding:20px 0}
+.compare-upload-btns{display:flex;gap:12px;justify-content:center;margin-top:12px}
+.compare-upload-btn{flex:1;padding:14px 10px;border:2px dashed #2a2f45;border-radius:12px;background:#0d1117;color:#9ca3af;font-size:13px;cursor:pointer;transition:all .2s;display:flex;flex-direction:column;align-items:center;gap:6px}
+.compare-upload-btn:active{border-color:#8b5cf6;color:#8b5cf6}
+.compare-upload-btn .icon{font-size:28px}
+.compare-preview{margin:16px 0;text-align:center;display:none}
+.compare-preview img{max-width:100%;max-height:200px;border-radius:10px;border:2px solid #2a2f45}
+.compare-preview .remove-btn{background:#ef4444;color:#fff;border:none;padding:4px 12px;border-radius:6px;font-size:11px;cursor:pointer;margin-top:8px}
+.compare-start-btn{width:100%;padding:14px;border:none;border-radius:10px;font-size:15px;font-weight:700;cursor:pointer;background:linear-gradient(135deg,#22c55e,#16a34a);color:#fff;margin-top:12px;transition:all .2s}
+.compare-start-btn:disabled{opacity:.5;cursor:not-allowed}
+.compare-start-btn:active:not(:disabled){transform:scale(.97)}
+.compare-loading{text-align:center;padding:30px 0;display:none}
+.compare-loading .spinner{display:inline-block;width:40px;height:40px;border:3px solid #2a2f45;border-top-color:#8b5cf6;border-radius:50%;animation:spin 1s linear infinite}
+@keyframes spin{to{transform:rotate(360deg)}}
+.compare-loading p{color:#9ca3af;font-size:13px;margin-top:12px}
+.compare-result{display:none;margin-top:16px}
+.compare-result-header{text-align:center;padding:14px;background:linear-gradient(135deg,#1a2332,#151a2e);border-radius:12px;margin-bottom:14px;border:1px solid #2a2f45}
+.compare-result-summary{font-size:20px;font-weight:800;margin:6px 0}
+.compare-result-summary .good{color:#4ade80}
+.compare-result-summary .warn{color:#f59e0b}
+.compare-result-table{width:100%;border-collapse:collapse;font-size:12px}
+.compare-result-table th{background:#1a1f35;color:#6b7280;padding:8px 6px;text-align:left;font-weight:600;border-bottom:1px solid #2a2f45}
+.compare-result-table td{padding:8px 6px;border-bottom:1px solid #1e2340;color:#e0e0e0}
+.compare-result-table .match-ok{color:#4ade80}
+.compare-result-table .match-warn{color:#f59e0b}
+.compare-result-table .selection{font-size:11px;color:#9ca3af}
+.compare-result-tip{font-size:11px;color:#6b7280;text-align:center;margin-top:12px;padding:10px;background:#0d1117;border-radius:8px;line-height:1.6}
+.compare-error{display:none;text-align:center;padding:20px;background:rgba(239,68,68,.08);border:1px solid rgba(239,68,68,.2);border-radius:12px;margin-top:12px;color:#fca5a5;font-size:13px}
+.compare-free-badge{font-size:11px;color:#f59e0b;background:rgba(245,158,11,.1);padding:2px 8px;border-radius:6px;margin-left:8px}
+
 </style>
 </head>
 <body>
@@ -436,6 +481,10 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;b
 </div>
 </div>
 </div>
+
+<!-- 一键比对按钮 -->
+<button class="compare-btn" onclick="openCompareModal()">📸 一键比对<span id="compare-free-badge" class="compare-free-badge" style="display:none"></span></button>
+
 <div class="rs" id="rs">
 <div class="rc">
 <div class="rp">预测方向</div>
@@ -2790,6 +2839,390 @@ function closePayModal() {
   if (modal) modal.style.display = 'none';
 }
 </script>
+
+<!-- 一键比对弹窗 -->
+<div class="compare-modal-overlay" id="compareModal" onclick="if(event.target===this)closeCompareModal()">
+<div class="compare-modal">
+<div class="compare-modal-title">📸 竞彩截图比对 <button class="compare-modal-close" onclick="closeCompareModal()">✕</button></div>
+<div class="compare-guide">
+<div class="compare-guide-text">
+<strong>📋 使用说明：</strong><br>
+请上传竞彩APP的购彩截图（如 sporttery.cn 或模拟试玩页面截图），需包含<strong>比赛编号、队名和您的选择</strong>。<br><br>
+支持格式：计算器弹窗、已选列表、比赛详情页等竞彩截图。<br>
+AI 将自动识别您的选择，并与本站 AI 预测结果进行比对。
+</div>
+</div>
+<div class="compare-upload-area" id="compareUploadArea">
+<div class="compare-upload-btns">
+<label class="compare-upload-btn" for="compareCameraInput">
+<span class="icon">📷</span>
+<span>拍照上传</span>
+<input type="file" id="compareCameraInput" accept="image/*" capture="environment" style="display:none" onchange="handleCompareUpload(this)">
+</label>
+<label class="compare-upload-btn" for="compareFileInput">
+<span class="icon">🖼️</span>
+<span>从相册选择</span>
+<input type="file" id="compareFileInput" accept="image/*" style="display:none" onchange="handleCompareUpload(this)">
+</label>
+</div>
+</div>
+<div class="compare-preview" id="comparePreview">
+<img id="comparePreviewImg" src="" alt="预览">
+<br><button class="remove-btn" onclick="removeCompareImage()">✕ 移除图片</button>
+</div>
+<button class="compare-start-btn" id="compareStartBtn" onclick="startCompare()" disabled>🔍 开始比对</button>
+<div class="compare-loading" id="compareLoading">
+<div class="spinner"></div>
+<p>AI 正在识别截图中...</p>
+</div>
+<div class="compare-result" id="compareResult"></div>
+<div class="compare-error" id="compareError"></div>
+</div>
+</div>
+
+
+<script>
+// ===== 一键比对功能 =====
+var COMPARE_API_URL = 'https://metaphyai-api-v-cwpuwzgtdx.cn-shanghai.fcapp.run/compare-bets';
+var compareImageData = null;
+var comparePredictionsCache = null;
+
+// 免费试用管理
+function getCompareFreeTrial() {
+  return parseInt(localStorage.getItem('fp_compare_free_trial') || '0');
+}
+function setCompareFreeTrial(n) {
+  localStorage.setItem('fp_compare_free_trial', String(n));
+}
+function canUseCompareFree() {
+  return getCompareFreeTrial() < 1;
+}
+function updateCompareFreeBadge() {
+  var badge = document.getElementById('compare-free-badge');
+  if (!badge) return;
+  if (fpKeyState.valid && fpKeyState.remaining > 0) {
+    badge.textContent = '已解锁';
+    badge.style.color = '#4ade80';
+    badge.style.background = 'rgba(74,222,128,.1)';
+    badge.style.display = 'inline';
+  } else if (canUseCompareFree()) {
+    badge.textContent = '免费1次';
+    badge.style.display = 'inline';
+  } else {
+    badge.textContent = '需Key';
+    badge.style.color = '#ef4444';
+    badge.style.background = 'rgba(239,68,68,.1)';
+    badge.style.display = 'inline';
+  }
+}
+
+function openCompareModal() {
+  // 权限检查
+  var freeLeft = canUseCompareFree();
+  var hasKey = fpKeyState.valid && fpKeyState.remaining > 0;
+  if (!freeLeft && !hasKey) {
+    showToast('⚠️ 免费试用已用完，此功能需要 Premium Key 解锁');
+    return;
+  }
+  var modal = document.getElementById('compareModal');
+  if (modal) {
+    modal.classList.add('show');
+    // 重置状态
+    removeCompareImage();
+    var resultEl = document.getElementById('compareResult');
+    if (resultEl) { resultEl.style.display = 'none'; resultEl.innerHTML = ''; }
+    var errorEl = document.getElementById('compareError');
+    if (errorEl) errorEl.style.display = 'none';
+  }
+  updateCompareFreeBadge();
+}
+
+function closeCompareModal() {
+  var modal = document.getElementById('compareModal');
+  if (modal) modal.classList.remove('show');
+}
+
+function handleCompareUpload(input) {
+  if (!input.files || !input.files[0]) return;
+  var file = input.files[0];
+  if (file.size > 10 * 1024 * 1024) {
+    showToast('⚠️ 图片不能超过 10MB');
+    return;
+  }
+  var reader = new FileReader();
+  reader.onload = function(e) {
+    compareImageData = e.target.result; // data:image/...;base64,...
+    var preview = document.getElementById('comparePreview');
+    var previewImg = document.getElementById('comparePreviewImg');
+    var startBtn = document.getElementById('compareStartBtn');
+    if (preview) preview.style.display = 'block';
+    if (previewImg) previewImg.src = compareImageData;
+    if (startBtn) startBtn.disabled = false;
+    // 隐藏上传区
+    var uploadArea = document.getElementById('compareUploadArea');
+    if (uploadArea) uploadArea.style.display = 'none';
+  };
+  reader.readAsDataURL(file);
+  // Reset input so same file can be re-selected
+  input.value = '';
+}
+
+function removeCompareImage() {
+  compareImageData = null;
+  var preview = document.getElementById('comparePreview');
+  var uploadArea = document.getElementById('compareUploadArea');
+  var startBtn = document.getElementById('compareStartBtn');
+  if (preview) preview.style.display = 'none';
+  if (uploadArea) uploadArea.style.display = 'block';
+  if (startBtn) startBtn.disabled = true;
+}
+
+async function startCompare() {
+  if (!compareImageData) return;
+  
+  // 再次检查权限
+  var freeLeft = canUseCompareFree();
+  var hasKey = fpKeyState.valid && fpKeyState.remaining > 0;
+  if (!freeLeft && !hasKey) {
+    showToast('⚠️ 免费试用已用完，需要 Premium Key');
+    return;
+  }
+  
+  // 显示 loading
+  var startBtn = document.getElementById('compareStartBtn');
+  var loading = document.getElementById('compareLoading');
+  var resultEl = document.getElementById('compareResult');
+  var errorEl = document.getElementById('compareError');
+  if (startBtn) startBtn.style.display = 'none';
+  if (loading) loading.style.display = 'block';
+  if (resultEl) { resultEl.style.display = 'none'; resultEl.innerHTML = ''; }
+  if (errorEl) errorEl.style.display = 'none';
+  
+  try {
+    // 加载 AI 预测数据
+    if (!comparePredictionsCache) {
+      var predResp = await fetch('data/ai-predictions.json');
+      var predData = await predResp.json();
+      comparePredictionsCache = predData.predictions || [];
+    }
+    
+    // 调用后端 API
+    var requestBody = {
+      image_data: compareImageData
+    };
+    if (hasKey) {
+      requestBody.key = fpKeyState.key;
+    }
+    
+    var resp = await fetch(COMPARE_API_URL, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(requestBody)
+    });
+    
+    var data = await resp.json();
+    
+    if (!data.success || !data.data || data.data.length === 0) {
+      showError('未能识别截图中的竞彩信息，请确保截图清晰、包含比赛编号和队名');
+      return;
+    }
+    
+    // 消耗一次使用次数
+    if (freeLeft) {
+      setCompareFreeTrial(1);
+    } else if (hasKey) {
+      fpKeyState.remaining = Math.max(0, fpKeyState.remaining - 1);
+      localStorage.setItem('fp_paid_remaining', String(fpKeyState.remaining));
+      if (fpKeyState.remaining <= 0) {
+        fpKeyState.valid = false;
+      }
+    }
+    
+    // 比对
+    var results = performComparison(data.data, comparePredictionsCache);
+    showCompareResult(results);
+    
+  } catch (err) {
+    console.error('Compare error:', err);
+    showError('服务暂时不可用，请稍后再试');
+  } finally {
+    if (loading) loading.style.display = 'none';
+    if (startBtn) startBtn.style.display = 'block';
+  }
+}
+
+function performComparison(userBets, predictions) {
+  var results = [];
+  for (var i = 0; i < userBets.length; i++) {
+    var bet = userBets[i];
+    var matched = null;
+    
+    // 1. 尝试按队名模糊匹配
+    for (var j = 0; j < predictions.length; j++) {
+      var pred = predictions[j];
+      var homeMatch = bet.home && pred.home && (pred.home.indexOf(bet.home) >= 0 || bet.home.indexOf(pred.home) >= 0);
+      var awayMatch = bet.away && pred.away && (pred.away.indexOf(bet.away) >= 0 || bet.away.indexOf(pred.away) >= 0);
+      if (homeMatch && awayMatch) {
+        matched = pred;
+        break;
+      }
+    }
+    
+    // 2. 如果队名没匹配到，尝试只匹配一个队名
+    if (!matched) {
+      for (var j = 0; j < predictions.length; j++) {
+        var pred = predictions[j];
+        if (bet.home && pred.home && (pred.home === bet.home || pred.home.indexOf(bet.home) >= 0 || bet.home.indexOf(pred.home) >= 0)) {
+          matched = pred;
+          break;
+        }
+        if (bet.away && pred.away && (pred.away === bet.away || pred.away.indexOf(bet.away) >= 0 || bet.away.indexOf(pred.away) >= 0)) {
+          matched = pred;
+          break;
+        }
+      }
+    }
+    
+    if (matched) {
+      // 获取 AI 预测的选择
+      var aiSelections = [];
+      if (matched.type === 'double' && matched.doublePick) {
+        aiSelections = matched.doublePick.slice();
+      } else if (matched.type === 'single' && matched.prediction) {
+        aiSelections = matched.prediction.split(/[+、,]/);
+      }
+      // 标准化
+      aiSelections = aiSelections.map(function(s) { return s.trim(); });
+      
+      var userSel = (bet.selections || []).slice();
+      
+      // 判断是否一致
+      var isMatch = arraysEqual(userSel.sort(), aiSelections.sort());
+      
+      results.push({
+        matchId: bet.matchId || '-',
+        home: bet.home || matched.home,
+        away: bet.away || matched.away,
+        userSelections: userSel,
+        aiSelections: aiSelections,
+        match: isMatch,
+        league: matched.league || '',
+        matchTime: matched.matchTime || ''
+      });
+    } else {
+      // 未匹配到 AI 预测
+      results.push({
+        matchId: bet.matchId || '-',
+        home: bet.home || '?',
+        away: bet.away || '?',
+        userSelections: bet.selections || [],
+        aiSelections: [],
+        match: null, // null = 未找到AI预测
+        league: '',
+        matchTime: ''
+      });
+    }
+  }
+  return results;
+}
+
+function arraysEqual(a, b) {
+  if (a.length !== b.length) return false;
+  for (var i = 0; i < a.length; i++) {
+    if (a[i] !== b[i]) return false;
+  }
+  return true;
+}
+
+function showCompareResult(results) {
+  var resultEl = document.getElementById('compareResult');
+  if (!resultEl) return;
+  
+  var matched = 0, diff = 0, notFound = 0;
+  for (var i = 0; i < results.length; i++) {
+    if (results[i].match === true) matched++;
+    else if (results[i].match === false) diff++;
+    else notFound++;
+  }
+  
+  var total = results.length;
+  var html = '';
+  
+  // Header
+  html += '<div class="compare-result-header">';
+  html += '<div style="font-size:13px;color:#9ca3af">📊 比对结果</div>';
+  html += '<div class="compare-result-summary">';
+  if (diff === 0 && notFound === 0) {
+    html += '<span class="good">全部 ' + total + ' 场一致 ✅</span>';
+  } else {
+    html += '<span class="good">' + matched + ' 场一致</span>，';
+    if (diff > 0) html += '<span class="warn">' + diff + ' 场有差异 ⚠️</span>';
+    if (notFound > 0) html += '<span style="color:#6b7280">' + notFound + ' 场未匹配</span>';
+  }
+  html += '</div></div>';
+  
+  // Table
+  html += '<table class="compare-result-table"><thead><tr>';
+  html += '<th>场次</th><th>比赛</th><th>您的选择</th><th>AI预测</th><th>状态</th>';
+  html += '</tr></thead><tbody>';
+  
+  for (var i = 0; i < results.length; i++) {
+    var r = results[i];
+    var statusHtml = '';
+    if (r.match === true) {
+      statusHtml = '<span class="match-ok">✅</span>';
+    } else if (r.match === false) {
+      statusHtml = '<span class="match-warn">⚠️ 差异</span>';
+    } else {
+      statusHtml = '<span style="color:#6b7280">未找到</span>';
+    }
+    
+    var userSelText = r.userSelections.join('+') || '-';
+    var aiSelText = r.aiSelections.length > 0 ? r.aiSelections.join('+') : '<span style="color:#6b7280">-</span>';
+    
+    html += '<tr>';
+    html += '<td style="color:#6b7280;font-size:11px">' + escapeHtml(r.matchId) + '</td>';
+    html += '<td><span style="font-size:11px">' + escapeHtml(r.home) + '</span><br><span style="font-size:11px;color:#6b7280">vs ' + escapeHtml(r.away) + '</span></td>';
+    html += '<td class="selection">' + escapeHtml(userSelText) + '</td>';
+    html += '<td class="selection">' + aiSelText + '</td>';
+    html += '<td>' + statusHtml + '</td>';
+    html += '</tr>';
+  }
+  
+  html += '</tbody></table>';
+  
+  // Tip
+  if (diff > 0) {
+    html += '<div class="compare-result-tip">💡 有差异的比赛建议重新评估，AI 预测基于多模型综合赔率分析。差异不代表对错，仅供参考。</div>';
+  } else if (notFound > 0) {
+    html += '<div class="compare-result-tip">💡 部分比赛未在 AI 预测数据中找到，可能因为比赛不在预测范围内。</div>';
+  } else {
+    html += '<div class="compare-result-tip">🎉 恭喜！您的选择与 AI 预测完全一致！AI 预测基于多模型综合赔率分析，仅供参考。</div>';
+  }
+  
+  resultEl.innerHTML = html;
+  resultEl.style.display = 'block';
+}
+
+function showError(msg) {
+  var loading = document.getElementById('compareLoading');
+  var errorEl = document.getElementById('compareError');
+  var startBtn = document.getElementById('compareStartBtn');
+  if (loading) loading.style.display = 'none';
+  if (errorEl) { errorEl.textContent = '⚠️ ' + msg; errorEl.style.display = 'block'; }
+  if (startBtn) startBtn.style.display = 'block';
+}
+
+function escapeHtml(str) {
+  var div = document.createElement('div');
+  div.appendChild(document.createTextNode(str));
+  return div.innerHTML;
+}
+
+// 初始化 badge
+(function(){ updateCompareFreeBadge(); })();
+</script>
+
 <!-- Pay Modal -->
 <div id="payModal" class="pay-overlay" onclick="if(event.target===this)closePayModal()" style="display:none">
   <div class="pay-card"></div>
