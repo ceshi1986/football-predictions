@@ -3117,32 +3117,56 @@ function performComparison(userBets, predictions) {
       
       var userSel = (bet.selections || []).slice();
       
-      // 让球→胜平负转换（主队让球）：
-      // 让胜 → 胜（让球后仍赢，主队实力确认）
-      // 让平 → 胜（让球后平=主队实际赢刚好让球数）
-      // 让负 → 取决于让球数：
-      //   让1球负 → 平或负（主队赢不了1球以上）
-      //   让2球+负 → 胜/平/负均可能（主队可能赢1球但不够让球数）
-      // 同时支持从选择文本中提取让球数，如"(-1)主负"、"让2球负"等格式
+      // 让球→胜平负转换：
+      // 【主队让球 (-N)】：让胜→胜，让平→胜，让1球负→平/负，让2球+负→任意
+      // 【客队让球 (+N)】：方向反转
+      //   (+1)胜→胜/平，(+1)平→负，(+1)负→负
+      //   (+2+)胜→任意，(+2+)平→负，(+2+)负→负
       var normalizedUserSel = userSel.map(function(s) {
-        // 尝试提取让球数
-        var handicapNum = 0;
-        var numMatch = s.match(/\((-?\d+)\)/);
-        if (numMatch) handicapNum = Math.abs(parseInt(numMatch[1]));
+        // 提取让球数和方向（负=主队让，正=客队让）
+        var handicapVal = 0;
+        var numMatch = s.match(/\(([+-]?\d+)\)/);
+        if (numMatch) handicapVal = parseInt(numMatch[1]);
         var numMatch2 = s.match(/让(\d+)球/);
-        if (numMatch2) handicapNum = parseInt(numMatch2[1]);
+        if (numMatch2) handicapVal = -parseInt(numMatch2[1]); // "让N球" = 主队让 = 负值
         
-        // 让胜
-        if (s.indexOf('让胜') >= 0 || s.indexOf('主胜') >= 0 && handicapNum > 0) return '胜';
-        // 让平
-        if (s.indexOf('让平') >= 0 || s.indexOf('主平') >= 0 && handicapNum > 0) return '胜';
-        // 让负 - 根据让球数区分
-        if (s.indexOf('让负') >= 0 || (s.indexOf('主负') >= 0 && handicapNum > 0) || s.indexOf('负') >= 0 && handicapNum > 0) {
-          if (handicapNum <= 1) return '平/负';  // 让1球负：只可能是平或负
-          return '任意';  // 让2球+负：胜平负均可能
+        var absHandicap = Math.abs(handicapVal);
+        var isHomeGive = handicapVal < 0;  // 主队让球 (-)
+        var isAwayGive = handicapVal > 0;  // 客队让球 (+)
+        
+        // 判断选择类型
+        var isWin = s.indexOf('胜') >= 0 && s.indexOf('平') < 0 && s.indexOf('负') < 0 || s.indexOf('让胜') >= 0 || s.indexOf('主胜') >= 0;
+        var isDraw = s.indexOf('平') >= 0 && s.indexOf('胜') < 0 && s.indexOf('负') < 0 || s.indexOf('让平') >= 0 || s.indexOf('主平') >= 0;
+        var isLoss = s.indexOf('负') >= 0 && s.indexOf('胜') < 0 && s.indexOf('平') < 0 || s.indexOf('让负') >= 0 || s.indexOf('主负') >= 0;
+        
+        // 无让球标记的普通选项
+        if (absHandicap === 0) {
+          if (s === '胜' || s === '平' || s === '负') return s;
+          // "让胜/让平/让负" 不带数字，默认按主队让1球处理
+          if (s === '让胜') return '胜';
+          if (s === '让平') return '胜';
+          if (s === '让负') return '平/负';  // 默认按让1球负
+          return s;
         }
-        // 普通选项（不含让球标记的）
-        if (s === '胜' || s === '平' || s === '负') return s;
+        
+        if (isHomeGive) {
+          // 主队让球 (-N)
+          if (isWin) return '胜';
+          if (isDraw) return '胜';  // 让平 = 实际赢刚好让球数
+          if (isLoss) {
+            if (absHandicap <= 1) return '平/负';
+            return '任意';
+          }
+        } else if (isAwayGive) {
+          // 客队让球 (+N)
+          if (isWin) {
+            if (absHandicap <= 1) return '胜/平';
+            return '任意';
+          }
+          if (isDraw) return '负';  // (+N)平 = 客队赢刚好让球数 = 主队负
+          if (isLoss) return '负';  // (+N)负 = 客队赢超让球数 = 主队负
+        }
+        
         return s;
       });
       
@@ -3274,22 +3298,20 @@ function showCompareResult(results) {
   // 让球转换说明
   var hasHandicapInResults = results.some(function(r) {
     return r.originalUserSelections && r.originalUserSelections.some(function(s) {
-      return s.indexOf('让') === 0;
+      return s.indexOf('让') === 0 || /\([+-]\d\)/.test(s) || s.indexOf('主胜') >= 0 || s.indexOf('主平') >= 0 || s.indexOf('主负') >= 0;
     });
   });
-  // 检查是否有让负
+  // 检查是否有让负（含主队让球负和客队让球负）
   var hasHandicapFu = results.some(function(r) {
-    return r.originalUserSelections && r.originalUserSelections.some(function(s) { return s === '让负'; });
+    return r.originalUserSelections && r.originalUserSelections.some(function(s) { 
+      return s === '让负' || (s.indexOf('负') >= 0 && /\([+-]\d\)/.test(s));
+    });
   });
   if (hasHandicapInResults || hasHandicapFu) {
     html += '<div style="font-size:12px;color:#a78bfa;margin:12px 0 4px;padding:10px;background:#1a1535;border-radius:8px;border:1px solid #2d2065">';
     html += '⚠️ <b>让球说明</b><br>';
-    html += '• <b>让胜</b>→对应「胜」（让球后仍赢，实力确认）<br>';
-    html += '• <b>让平</b>→对应「胜」（让球后平手=实际刚好赢让球数）<br>';
-    if (hasHandicapFu) {
-      html += '• <b>让1球负</b>→<span style="color:#f59e0b">平/负</span>（只可能是平局或输球）<br>';
-      html += '• <b>让2球+负</b>→<span style="color:#f59e0b">方向不确定</span>，可能是胜/平/负，仅做提醒不做比对';
-    }
+    html += '<b>主队让球(-)</b>：让胜→胜 | 让平→胜 | 让1球负→平/负 | 让2球+负→方向不定<br>';
+    html += '<b>客队让球(+)</b>：(+1)胜→胜/平 | (+1)平/负→负 | (+2+)胜→方向不定';
     html += '</div>';
   }
 
