@@ -2818,6 +2818,20 @@ function fpUpdateLockState(){
 
 
 </script>
+<script>
+// 准确率分层展示
+(function(){
+  var bvs=document.querySelectorAll('.bv');
+  for(var i=0;i<bvs.length;i++){
+    var t=bvs[i].textContent.trim();
+    var m=t.match(/^([\d.]+)%$/);
+    if(!m)continue;
+    var v=parseFloat(m[1]);
+    if(v>=90){bvs[i].classList.add('bv-tier1')}
+    else if(v>=80){bvs[i].classList.add('bv-tier2')}
+  }
+})();
+</script>
 <script>(function(){document.addEventListener("contextmenu",function(e){e.preventDefault()});document.addEventListener("keydown",function(e){if(e.key==="F12"||(e.ctrlKey&&e.shiftKey&&(e.key==="I"||e.key==="J"||e.key==="C"))||(e.ctrlKey&&e.key==="U")){e.preventDefault()}});})();</script>
 <script>
 function showPayModal(productName) {
