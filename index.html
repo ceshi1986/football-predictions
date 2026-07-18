@@ -3117,16 +3117,25 @@ function performComparison(userBets, predictions) {
       
       var userSel = (bet.selections || []).slice();
       
-      // 判断是否一致
-      var isMatch = arraysEqual(userSel.sort(), aiSelections.sort());
+      // 让球→胜平负转换：检测用户选择是否包含让球选项，映射到对应的胜平负方向
+      var normalizedUserSel = userSel.map(function(s) {
+        if (s === '让胜') return '胜';
+        if (s === '让平') return '平';
+        if (s === '让负') return '负';
+        return s;
+      });
+      
+      // 判断是否一致（使用转换后的选项比对）
+      var isMatch = arraysEqual(normalizedUserSel.sort(), aiSelections.sort());
       
       results.push({
         matchId: bet.matchId || '-',
         home: bet.home || matched.home,
         away: bet.away || matched.away,
-        userSelections: userSel,
+        userSelections: normalizedUserSel,
         aiSelections: aiSelections,
         match: isMatch,
+        originalUserSelections: userSel,
         league: matched.league || '',
         matchTime: matched.matchTime || ''
       });
@@ -3212,6 +3221,16 @@ function showCompareResult(results) {
   
   html += '</tbody></table>';
   
+  // 让球转换说明
+  var hasHandicapInResults = results.some(function(r) {
+    return r.originalUserSelections && r.originalUserSelections.some(function(s) {
+      return s.indexOf('让') === 0;
+    });
+  });
+  if (hasHandicapInResults) {
+    html += '<div style="font-size:11px;color:#6b7280;margin:8px 0 4px;text-align:center">* 让球选项已自动转换为对应胜平负方向进行比对（让胜→胜、让平→平、让负→负）</div>';
+  }
+
   // Tip
   if (diff > 0) {
     html += '<div class="compare-result-tip">💡 有差异的比赛建议重新评估，AI 预测基于多模型综合赔率分析。差异不代表对错，仅供参考。</div>';
