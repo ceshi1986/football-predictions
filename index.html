@@ -3117,16 +3117,19 @@ function performComparison(userBets, predictions) {
       
       var userSel = (bet.selections || []).slice();
       
-      // 让球→胜平负转换：检测用户选择是否包含让球选项，映射到对应的胜平负方向
+      // 让球→胜平负转换（以主队让球为例）：
+      // 让胜 = 让球后主队赢 → 主队至少赢2球 → 对应「胜」
+      // 让平 = 让球后平手 → 主队实际赢1球 → 也对应「胜」
+      // 让负 = 让球后主队输 → 主队实际平局或输球 → 对应「平」或「负」（不确定）
       var normalizedUserSel = userSel.map(function(s) {
         if (s === '让胜') return '胜';
-        if (s === '让平') return '平';
-        if (s === '让负') return '负';
+        if (s === '让平') return '胜';  // 让平实际意味主队赢1球
+        if (s === '让负') return '平/负';  // 让负可能是平局或输球，特殊标记
         return s;
       });
       
-      // 判断是否一致（使用转换后的选项比对）
-      var isMatch = arraysEqual(normalizedUserSel.sort(), aiSelections.sort());
+      // 判断是否一致（使用转换后的选项比对，支持让球的"平/负"等复合选项）
+      var isMatch = compareSelections(normalizedUserSel, aiSelections);
       
       results.push({
         matchId: bet.matchId || '-',
@@ -3154,6 +3157,27 @@ function performComparison(userBets, predictions) {
     }
   }
   return results;
+}
+
+// 比对用户选择和AI预测，支持"平/负"等复合选项
+function compareSelections(userSel, aiSel) {
+  // 展开复合选项（如"平/负"展开为"平"和"负"两个可选）
+  var userExpanded = [];
+  for (var i = 0; i < userSel.length; i++) {
+    if (userSel[i].indexOf('/') > 0) {
+      var parts = userSel[i].split('/');
+      for (var j = 0; j < parts.length; j++) userExpanded.push(parts[j]);
+    } else {
+      userExpanded.push(userSel[i]);
+    }
+  }
+  // 用户展开后的集合与AI预测集合取交集，有交集即匹配
+  for (var i = 0; i < userExpanded.length; i++) {
+    for (var j = 0; j < aiSel.length; j++) {
+      if (userExpanded[i] === aiSel[j]) return true;
+    }
+  }
+  return false;
 }
 
 function arraysEqual(a, b) {
@@ -3228,7 +3252,7 @@ function showCompareResult(results) {
     });
   });
   if (hasHandicapInResults) {
-    html += '<div style="font-size:11px;color:#6b7280;margin:8px 0 4px;text-align:center">* 让球选项已自动转换为对应胜平负方向进行比对（让胜→胜、让平→平、让负→负）</div>';
+    html += '<div style="font-size:11px;color:#6b7280;margin:8px 0 4px;text-align:center">* 让球选项已自动转换为胜平负方向比对：让胜→胜、让平→胜（实际赢1球）、让负→平/负</div>';
   }
 
   // Tip
