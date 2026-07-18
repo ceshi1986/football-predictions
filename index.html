@@ -3124,7 +3124,7 @@ function performComparison(userBets, predictions) {
       var normalizedUserSel = userSel.map(function(s) {
         if (s === '让胜') return '胜';
         if (s === '让平') return '胜';  // 让平实际意味主队赢1球
-        if (s === '让负') return '平/负';  // 让负可能是平局或输球，特殊标记
+        if (s === '让负') return '任意';  // 让负可能是胜/平/负任意结果（取决于让球数）
         return s;
       });
       
@@ -3173,6 +3173,8 @@ function compareSelections(userSel, aiSel) {
   }
   // 用户展开后的集合与AI预测集合取交集，有交集即匹配
   for (var i = 0; i < userExpanded.length; i++) {
+    // "任意"表示让负，无法确定方向，直接视为一致（不报错）
+    if (userExpanded[i] === '任意') return true;
     for (var j = 0; j < aiSel.length; j++) {
       if (userExpanded[i] === aiSel[j]) return true;
     }
@@ -3231,7 +3233,13 @@ function showCompareResult(results) {
       statusHtml = '<span style="color:#6b7280">未找到</span>';
     }
     
-    var userSelText = r.userSelections.join('+') || '-';
+    // 显示原始用户选择（让球选项保留原文）
+    var displaySel = r.originalUserSelections && r.originalUserSelections.length > 0 ? r.originalUserSelections : r.userSelections;
+    var userSelText = displaySel.join('+') || '-';
+    // 让负加个小标记
+    if (userSelText.indexOf('让负') >= 0) {
+      userSelText += '<span style="font-size:10px;color:#9ca3f;display:block">方向不定</span>';
+    }
     var aiSelText = r.aiSelections.length > 0 ? r.aiSelections.join('+') : '<span style="color:#6b7280">-</span>';
     
     html += '<tr>';
@@ -3252,7 +3260,7 @@ function showCompareResult(results) {
     });
   });
   if (hasHandicapInResults) {
-    html += '<div style="font-size:11px;color:#6b7280;margin:8px 0 4px;text-align:center">* 让球选项已自动转换为胜平负方向比对：让胜→胜、让平→胜（实际赢1球）、让负→平/负</div>';
+    html += '<div style="font-size:11px;color:#6b7280;margin:8px 0 4px;text-align:center">* 让球选项已自动转换：让胜→胜、让平→胜（实际刚好赢让球数）、让负→方向不确定（胜平负均可能）</div>';
   }
 
   // Tip
