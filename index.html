@@ -2015,27 +2015,35 @@ if(navigator.share){
 navigator.share({title:title,text:text,url:url}).catch(function(){});
 }else{
 var overlay=document.createElement("div");
-overlay.style.cssText="position:fixed;top:0;left:0;right:0;bottom:0;background:rgba(0,0,0,0.7);z-index:9999;display:flex;align-items:center;justify-content:center;";
+overlay.id="_share-overlay";
+overlay.style.cssText="position:fixed;top:0;left:0;right:0;bottom:0;background:rgba(0,0,0,0.7);z-index:99999;display:flex;align-items:center;justify-content:center;";
 overlay.onclick=function(e){if(e.target===overlay)overlay.remove()};
 var card=document.createElement("div");
-card.style.cssText="background:#1a1f35;border-radius:16px;padding:24px;max-width:320px;width:90%;text-align:center;";
-card.innerHTML='<div style="font-size:18px;font-weight:700;color:#4ade80;margin-bottom:12px">📤 分享给好友</div>'
+card.style.cssText="background:#1a1f35;border-radius:16px;padding:24px;max-width:320px;width:90%;text-align:center;box-shadow:0 8px 32px rgba(0,0,0,0.4);";
+card.innerHTML='<div style="font-size:18px;font-weight:700;color:#4ade80;margin-bottom:12px"> 分享给好友</div>'
 +'<div style="font-size:13px;color:#9ca3af;margin-bottom:16px;line-height:1.5">'+text+'</div>'
-+'<div style="background:#0d1117;border-radius:8px;padding:10px;margin-bottom:16px;word-break:break-all;font-size:12px;color:#60a5fa;border:1px solid #2a3055">'+url+'</div>'
-+'<button id="_share-copy" style="width:100%;padding:12px;background:linear-gradient(135deg,#4ade80,#22c55e);color:#000;border:none;border-radius:10px;font-size:14px;font-weight:700;cursor:pointer;margin-bottom:8px">📋 复制链接</button>'
-+'<button onclick="this.parentElement.parentElement.remove()" style="width:100%;padding:10px;background:transparent;color:#6b7280;border:1px solid #2a3055;border-radius:10px;font-size:13px;cursor:pointer">关闭</button>';
++'<div style="background:#0d1117;border-radius:8px;padding:10px;margin-bottom:16px;word-break:break-all;font-size:12px;color:#60a5fa;border:1px solid #2a3055;user-select:all">'+url+'</div>'
++'<button id="_share-copy" style="width:100%;padding:12px;background:linear-gradient(135deg,#4ade80,#22c55e);color:#000;border:none;border-radius:10px;font-size:14px;font-weight:700;cursor:pointer;margin-bottom:8px">📋 点击复制链接</button>'
++'<button onclick="document.getElementById(\'_share-overlay\').remove()" style="width:100%;padding:10px;background:transparent;color:#6b7280;border:1px solid #2a3055;border-radius:10px;font-size:13px;cursor:pointer">关闭</button>';
 overlay.appendChild(card);
 document.body.appendChild(overlay);
 document.getElementById("_share-copy").onclick=function(){
-var inp=document.createElement("input");
-inp.value=url;
-document.body.appendChild(inp);
-inp.select();
-document.execCommand("copy");
-document.body.removeChild(inp);
-this.textContent="✅ 已复制！";
 var btn=this;
-setTimeout(function(){btn.textContent="📋 复制链接"},2000);
+if(navigator.clipboard&&navigator.clipboard.writeText){
+navigator.clipboard.writeText(url).then(function(){
+btn.textContent="✅ 已复制！";
+setTimeout(function(){btn.textContent="📋 点击复制链接"},2000);
+}).catch(function(){
+btn.textContent="❌ 复制失败，请手动长按复制上方链接";
+});
+}else{
+var ta=document.createElement("textarea");
+ta.value=url;ta.style.cssText="position:fixed;left:-9999px";
+document.body.appendChild(ta);ta.select();
+try{document.execCommand("copy");btn.textContent="✅ 已复制！";setTimeout(function(){btn.textContent="📋 点击复制链接"},2000)}
+catch(e){btn.textContent="❌ 请手动长按复制上方链接"}
+document.body.removeChild(ta);
+}
 };
 }
 }
