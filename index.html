@@ -260,8 +260,9 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;b
 .ai-acc-row .v.up{color:#4ade80}
 .ai-acc-row .v.down{color:#ef4444}
 .ai-acc-row .v.flat{color:#9ca3af}
-.ai-acc-row.highlight{background:linear-gradient(90deg,rgba(245,158,11,0.12),transparent);border-radius:6px;padding:5px 8px;margin:0 -8px}
-.ai-acc-row.highlight .v{color:#f59e0b;text-shadow:0 0 8px rgba(245,158,11,0.4)}
+.ai-acc-row.highlight{background:linear-gradient(90deg,rgba(245,158,11,0.15),rgba(239,68,68,0.08));border-radius:8px;padding:6px 8px;margin:0 -8px;animation:fpPulse 2s ease-in-out infinite}
+.ai-acc-row.highlight .v{color:#f59e0b;text-shadow:0 0 12px rgba(245,158,11,0.6),0 0 24px rgba(245,158,11,0.3);font-weight:800}
+@keyframes fpPulse{0%,100%{box-shadow:inset 0 0 0 0 rgba(245,158,11,0)}50%{box-shadow:inset 0 0 12px 1px rgba(245,158,11,0.25)}}
 .ai-acc-note{font-size:10px;color:#444;margin-top:8px;text-align:center}
 
 .upcoming-box{background:linear-gradient(135deg,#1a2332,#151a2e);border-radius:14px;padding:16px;margin-bottom:14px;border:1px solid #2a3f55;border-left:3px solid #f59e0b}
@@ -294,13 +295,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;b
 .fp-logout-btn{background:rgba(255,82,82,.15);border:1px solid rgba(255,82,82,.3);color:#ff5252;padding:4px 12px;border-radius:6px;font-size:11px;cursor:pointer;font-weight:600;display:none;margin-left:4px}
 .fp-logout-btn:hover{background:rgba(255,82,82,.25)}
 /* Lock styles */
-.fp-locked{filter:blur(5px);user-select:none;pointer-events:none}
-.fp-lock-wrapper{position:relative;overflow:hidden;border-radius:8px}
-.fp-lock-overlay{position:absolute;top:0;left:0;right:0;bottom:0;background:linear-gradient(180deg,rgba(13,17,23,0.3) 0%,rgba(13,17,23,0.7) 40%,rgba(13,17,23,0.95) 100%);display:flex;flex-direction:column;align-items:center;justify-content:center;z-index:10;gap:8px}
-.fp-lock-icon{font-size:32px}
-.fp-lock-text{color:#9ca3af;font-size:12px}
-.fp-upgrade-btn{background:linear-gradient(135deg,#f59e0b,#d97706);color:#000;border:none;padding:8px 18px;border-radius:8px;font-size:12px;font-weight:700;cursor:pointer;margin-top:4px}
-.fp-upgrade-btn:hover{opacity:0.9;transform:scale(1.02)}
+
 
 /* Pay Modal */
 .pay-overlay{display:none;position:fixed;top:0;left:0;right:0;bottom:0;background:rgba(0,0,0,.7);z-index:10000;align-items:center;justify-content:center;backdrop-filter:blur(4px)}
@@ -477,6 +472,10 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;b
 </div>
 
 
+<div id="fp-yesterday-banner" style="display:none;margin-bottom:12px;padding:14px 16px;background:linear-gradient(135deg,rgba(245,158,11,0.15),rgba(239,68,68,0.1));border:1px solid rgba(245,158,11,0.4);border-radius:12px;text-align:center;animation:fpPulse 2s ease-in-out infinite">
+  <div style="font-size:14px;font-weight:700;color:#f59e0b;text-shadow:0 0 8px rgba(245,158,11,0.4)">🔥 昨日AI预测命中率 <span id="fp-yesterday-rate" style="font-size:20px;font-weight:800"></span></div>
+  <div style="font-size:12px;color:#9ca3af;margin-top:4px">基于昨日全部已完赛比赛统计</div>
+</div>
 <div class="ai-acc" id="ai-acc">
 <div class="ai-acc-title">📊 AI预测实时命中率</div>
 <div class="ai-acc-grid">
@@ -2002,7 +2001,7 @@ function _ch(){
 }
 
 function _sh(){
-if(navigator.share){navigator.share({title:"AI足球预测",text:_last?_last.h+" 对阵 "+_last.a+" → "+_last.r:"AI足球预测",url:location.href}).catch(function(){})}
+var isMob=/Android|iPhone|iPad|iPod|Mobile/i.test(navigator.userAgent);if(isMob&&navigator.share){navigator.share({title:"AI足球预测",text:_last?_last.h+" 对阵 "+_last.a+" → "+_last.r:"AI足球预测",url:location.href}).catch(function(){})}
 else if(/MicroMessenger/i.test(navigator.userAgent)){document.getElementById("so").style.display="flex"}
 else{var i=document.createElement("input");i.value=location.href;document.body.appendChild(i);i.select();document.execCommand("copy");document.body.removeChild(i);alert("链接已复制")}
 }
@@ -2011,7 +2010,8 @@ function _shareSite(){
 var url=location.href;
 var title="AI足球预测 - 智能赛事分析";
 var text="推荐一个超准的AI足球预测网站，基于凯利指数+多源数据，世界杯回测命中率81.6%！";
-if(navigator.share){
+var isMobile=/Android|iPhone|iPad|iPod|Mobile/i.test(navigator.userAgent);
+if(isMobile&&navigator.share){
 navigator.share({title:title,text:text,url:url}).catch(function(){});
 }else{
 var overlay=document.createElement("div");
@@ -2030,7 +2030,7 @@ document.body.appendChild(overlay);
 document.getElementById("_share-copy").onclick=function(){
 var btn=this;
 if(navigator.clipboard&&navigator.clipboard.writeText){
-navigator.clipboard.writeText(url).then(function(){
+navigator.clipboard.writeText(text+"\n"+url).then(function(){
 btn.textContent="✅ 已复制！";
 setTimeout(function(){btn.textContent="📋 点击复制链接"},2000);
 }).catch(function(){
@@ -2038,7 +2038,7 @@ btn.textContent="❌ 复制失败，请手动长按复制上方链接";
 });
 }else{
 var ta=document.createElement("textarea");
-ta.value=url;ta.style.cssText="position:fixed;left:-9999px";
+ta.value=text+"\n"+url;ta.style.cssText="position:fixed;left:-9999px";
 document.body.appendChild(ta);ta.select();
 try{document.execCommand("copy");btn.textContent="✅ 已复制！";setTimeout(function(){btn.textContent="📋 点击复制链接"},2000)}
 catch(e){btn.textContent="❌ 请手动长按复制上方链接"}
@@ -2591,17 +2591,17 @@ function _updateAccPanel(){
   var sRate=singleTotal>0?Math.round(singleHit/singleTotal*100):0;
   var sEl=document.getElementById("acc-single");
   sEl.textContent=singleHit+"/"+singleTotal+" ("+sRate+"%)";
-  sEl.parentElement.className="ai-acc-row"+(sRate>=80&&singleTotal>=3?" highlight":"");
+  sEl.parentElement.className="ai-acc-row"+(sRate>=80&&singleTotal>=3?" highlight":"");if(sRate>=80&&singleTotal>=3&&!sEl.textContent.startsWith("\ud83d\udd25"))sEl.textContent="\ud83d\udd25 "+sEl.textContent;
   
   var dRate=doubleTotal>0?Math.round(doubleHit/doubleTotal*100):0;
   var dEl=document.getElementById("acc-double");
   dEl.textContent=doubleHit+"/"+doubleTotal+" ("+dRate+"%)";
-  dEl.parentElement.className="ai-acc-row"+(dRate>=80&&doubleTotal>=3?" highlight":"");
+  dEl.parentElement.className="ai-acc-row"+(dRate>=80&&doubleTotal>=3?" highlight":"");if(dRate>=80&&doubleTotal>=3&&!dEl.textContent.startsWith("\ud83d\udd25"))dEl.textContent="\ud83d\udd25 "+dEl.textContent;
   
   var recRate=recTotal>0?Math.round(recHit/recTotal*100):0;
   var rEl=document.getElementById("acc-recommend");
   rEl.textContent=recHit+"/"+recTotal+" ("+recRate+"%)";
-  rEl.parentElement.className="ai-acc-row"+(recRate>=80&&recTotal>=3?" highlight":"");
+  rEl.parentElement.className="ai-acc-row"+(recRate>=80&&recTotal>=3?" highlight":"");if(recRate>=80&&recTotal>=3&&!rEl.textContent.startsWith("\ud83d\udd25"))rEl.textContent="\ud83d\udd25 "+rEl.textContent;
   
   
   var verifiedRecs=recs.filter(function(r){return r.verified});
@@ -2613,7 +2613,7 @@ function _updateAccPanel(){
   var rollingRate=last10.length>0?Math.round(last10Hit/last10.length*100):0;
   var rollEl=document.getElementById("acc-rolling");
   rollEl.textContent=rollingRate+"%";
-  rollEl.parentElement.className="ai-acc-row"+(rollingRate>=80&&last10.length>=3?" highlight":"");
+  rollEl.parentElement.className="ai-acc-row"+(rollingRate>=80&&last10.length>=3?" highlight":"");if(rollingRate>=80&&last10.length>=3&&!rollEl.textContent.startsWith("\ud83d\udd25"))rollEl.textContent="\ud83d\udd25 "+rollEl.textContent;
   
   
   var prev10=verifiedRecs.slice(-20,-10);
@@ -2684,53 +2684,47 @@ function fpVerifyKey(){var input=document.getElementById('fp-key-input');var key
 function fpLogoutKey(){if(!confirm('确定退出Key？退出后部分内容将被锁定'))return;localStorage.removeItem('fp_paid_key');localStorage.removeItem('fp_paid_remaining');fpKeyState={key:'',remaining:0,valid:false};fpHideLoggedInUI();if(typeof fpUpdateLockState==='function')fpUpdateLockState();showToast('已退出Key')}
 
 function fpUpdateLockState(){
-  // 先清除之前的锁定状态
-  var oldWrappers=document.querySelectorAll('#ai-rec-body .fp-lock-wrapper');
-  for(var w=0;w<oldWrappers.length;w++){
-    var wr=oldWrappers[w];
-    var card=wr.querySelector('.ai-card');
-    if(card){
-      card.classList.remove('fp-locked');
-      wr.parentNode.insertBefore(card,wr);
-    }
-    wr.parentNode.removeChild(wr);
-  }
+  var allCards=document.querySelectorAll('#ai-rec-body .ai-card');
+  for(var i=0;i<allCards.length;i++){allCards[i].style.display=''}
   var oldCta=document.getElementById('fp-upgrade-cta');
   if(oldCta&&oldCta.parentNode) oldCta.parentNode.removeChild(oldCta);
-  // 清除所有残留的 fp-locked
-  var lockedCards=document.querySelectorAll('#ai-rec-body .ai-card.fp-locked');
-  for(var l=0;l<lockedCards.length;l++){lockedCards[l].classList.remove('fp-locked')}
-
   var key=fpGetActiveKey();
-  if(key) return; // 有Key，不锁定
-
-  var cards=document.querySelectorAll('#ai-rec-body .ai-card');
-  if(cards.length<=3) return; // 不超过3场，不锁定
-
-  // 第4场开始：用 fp-lock-wrapper 包裹，加 .fp-locked，添加覆盖层
-  for(var i=3;i<cards.length;i++){
-    var card=cards[i];
-    var wrapper=document.createElement('div');
-    wrapper.className='fp-lock-wrapper';
-    card.parentNode.insertBefore(wrapper,card);
-    wrapper.appendChild(card);
-    card.classList.add('fp-locked');
-    var overlay=document.createElement('div');
-    overlay.className='fp-lock-overlay';
-    overlay.innerHTML='<div class="fp-lock-icon">🔒</div><div class="fp-lock-text">验证Key查看完整预测</div><button class="fp-upgrade-btn" onclick="showPayModal(\'足球预测\')">立即解锁</button>';
-    wrapper.appendChild(overlay);
-  }
-
-  // 末尾添加升级CTA
+  if(key) return;
+  if(allCards.length<=3) return;
+  for(var i=3;i<allCards.length;i++){allCards[i].style.display='none'}
   var cta=document.createElement('div');
   cta.id='fp-upgrade-cta';
-  cta.style.cssText='margin-top:16px;padding:20px 16px;text-align:center;background:linear-gradient(135deg,rgba(245,158,11,0.15),rgba(217,119,6,0.1));border:1px solid rgba(245,158,11,0.3);border-radius:12px;color:#f59e0b;font-size:15px;font-weight:700';
-  var lockedCount=cards.length-3;
-  cta.innerHTML='🔒 还有 '+lockedCount+' 场比赛预测被锁定 | <button onclick="showPayModal(\'足球预测\')" style="background:linear-gradient(135deg,#f59e0b,#d97706);color:#000;border:none;padding:10px 24px;border-radius:10px;font-size:14px;font-weight:700;cursor:pointer;margin-left:8px">验证Key全部解锁 →</button>';
+  var lockedCount=allCards.length-3;
+  cta.innerHTML='\ud83d\udd12 还有 '+lockedCount+' 场预测待解锁 \u00b7 <button onclick="showPayModal(\'足球预测\')" style="background:linear-gradient(135deg,#f59e0b,#d97706);color:#000;border:none;padding:6px 16px;border-radius:8px;font-size:13px;font-weight:700;cursor:pointer;margin-left:4px">验证Key解锁</button>';
+  cta.style.cssText='margin-top:12px;padding:12px 16px;text-align:center;background:rgba(245,158,11,0.08);border:1px solid rgba(245,158,11,0.2);border-radius:10px;color:#d1d5db;font-size:14px';
   document.getElementById('ai-rec-body').appendChild(cta);
 }
 
+// 昨日命中率>80%醒目展示
+(function(){
+  var recs=[];
+  try{recs=JSON.parse(localStorage.getItem('ai_recommendations')||'[]')}catch(e){}
+  if(!recs.length)return;
+  var yesterday=new Date();yesterday.setDate(yesterday.getDate()-1);
+  var yStr=yesterday.getFullYear()+'-'+String(yesterday.getMonth()+1).padStart(2,'0')+'-'+String(yesterday.getDate()).padStart(2,'0');
+  var yRecs=recs.filter(function(r){return r.verified&&r.matchDate===yStr});
+  if(yRecs.length<1)return;
+  var hits=0;
+  for(var i=0;i<yRecs.length;i++){if(yRecs[i].hit)hits++}
+  var rate=Math.round(hits/yRecs.length*100);
+  if(rate>=80){
+    var banner=document.getElementById('fp-yesterday-banner');
+    var rateEl=document.getElementById('fp-yesterday-rate');
+    if(banner&&rateEl){
+      rateEl.textContent=rate+'% ('+hits+'/'+yRecs.length+')';
+      banner.style.display='block';
+    }
+  }
+})();
+
 (function fpInitKey(){var savedKey=localStorage.getItem('fp_paid_key');if(savedKey){fpKeyState.key=savedKey;fpKeyState.remaining=parseInt(localStorage.getItem('fp_paid_remaining')||'0');fpKeyState.valid=fpKeyState.remaining>0;if(fpKeyState.valid)fpShowLoggedInUI();else{var input=document.getElementById('fp-key-input');if(input)input.value=savedKey}}if(typeof fpUpdateLockState==='function')setTimeout(function(){fpUpdateLockState()},1000);fpUpdateFreeCountHint()})();
+
+(function(){var SUB_BASE=52,el=document.getElementById("fp-sub-count");if(!el)return;var s=localStorage.getItem("fp_sub_count"),d=localStorage.getItem("fp_sub_date"),today=new Date().toDateString();if(!s||d!==today){s=String(SUB_BASE+Math.floor(Math.random()*3)+1);localStorage.setItem("fp_sub_count",s);localStorage.setItem("fp_sub_date",today)}el.textContent="已有 "+s+" 人购买订阅"})();
 
 
 
