@@ -514,19 +514,10 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;b
 <div class="ad" id="avd">等待比赛结束后自动获取比分验证</div>
 <div class="ar" id="avr"></div>
 </div>
-<div class="sb" id="sb" style="display:none">
-<h3>我的预测战绩</h3>
-<div class="ss">
-<div class="si"><div class="n" id="s1">0</div><div class="l">已预测</div></div>
-<div class="si"><div class="n" id="s2">0</div><div class="l">已验证</div></div>
-<div class="si"><div class="n" id="s3">0%</div><div class="l">命中率</div></div>
-</div>
-</div>
 <div class="hb" id="hb" style="display:none">
 <h3>历史记录</h3>
 <div class="tbs">
-<div class="tb on" id="t1" onclick="_sw(1)">我的预测</div>
-<div class="tb" id="t2" onclick="_sw(2)">模型回测</div>
+<div class="tb on" id="t2" onclick="_sw(2)">模型回测</div>
 </div>
 <div id="hl"></div>
 <div id="bl" class="bl" style="display:none"></div>
@@ -1945,13 +1936,7 @@ function _mt(a,b,c){if(!a)return false;var x=a.toLowerCase().replace(/[^a-z0-9]/
 function _autoCheck(){var v=JSON.parse(localStorage.getItem(_xa)||"[]");var hp=false;var today=new Date().toISOString().split("T")[0];for(var i=0;i<v.length;i++){if(!v[i].done&&v[i].md<=today){hp=true;break}}if(hp)_tryFetch()}
 
 function _renderSt(){
-var d=JSON.parse(localStorage.getItem(_gp)||"[]");
-var tv=d.length,vv=0,hit=0;
-for(var i=0;i<d.length;i++){if(d[i].v){vv++;if(d[i].hit)hit++}}
-document.getElementById("sb").style.display="block";
-document.getElementById("s1").textContent=tv;
-document.getElementById("s2").textContent=vv;
-document.getElementById("s3").textContent=vv>0?Math.round(hit/vv*100)+"%":"0%";
+// 我的预测战绩已移除
 }
 
 
@@ -2058,16 +2043,15 @@ callback([]);
 
 function _renderHiLocal(d){
 document.getElementById("hb").style.display="block";
-document.getElementById("sb").style.display="block";
 var total=d.length;
 var verified=0;
 var hits=0;
 for(var i=0;i<d.length;i++){
 if(d[i].v){verified++;if(d[i].hit)hits++}
 }
-document.getElementById("s1").textContent=total;
-document.getElementById("s2").textContent=verified;
-document.getElementById("s3").textContent=verified>0?Math.round(hits/verified*100)+"%":"0%";
+if(document.getElementById("s1"))document.getElementById("s1").textContent=total;
+if(document.getElementById("s2"))document.getElementById("s2").textContent=verified;
+if(document.getElementById("s3"))document.getElementById("s3").textContent=verified>0?Math.round(hits/verified*100)+"%":"0%";
 var h="";
 for(var i=0;i<Math.min(d.length,20);i++){
 var x=d[i];
@@ -2250,6 +2234,8 @@ async function _ensureServerSync(){
 // === End server-side sync ===
 
 
+function _dateKey(d){var m=d.getMonth()+1,day=d.getDate();return d.getFullYear()+""+(m<10?"0"+m:m)+""+(day<10?"0"+day:day)}
+
 function _genAIRec(){
   var el=document.getElementById("ai-rec-body");
   el.innerHTML='<div class="ai-loading"><span class="spinner"></span>AI分析中...</div>';
@@ -2329,8 +2315,13 @@ async function _doGenAIRec(){
   
   _saveAIRecs(recs);
   
-  var unverified=recs.filter(function(r){return!r.verified});
-  _renderAIRec(unverified);
+  var today=_dateKey(new Date());
+  var yesterday=_dateKey(new Date(Date.now()-86400000));
+  var displayRecs=recs.filter(function(r){
+    if(!r.verified) return true;
+    return r.date===today||r.date===yesterday;
+  });
+  _renderAIRec(displayRecs);
   if(typeof fpUpdateLockState==="function")fpUpdateLockState();
   
   _updateAccPanel();
@@ -2610,8 +2601,13 @@ async function _verifyAIRecs(){
   if(changed){
     _saveAIRecs(recs);
     _updateAccPanel();
-    
-    _renderAIRec(recs);
+    var today=_dateKey(new Date());
+    var yesterday=_dateKey(new Date(Date.now()-86400000));
+    var displayRecs=recs.filter(function(r){
+      if(!r.verified) return true;
+      return r.date===today||r.date===yesterday;
+    });
+    _renderAIRec(displayRecs);
     _renderUpcoming();
   }
 }
