@@ -1,5 +1,5 @@
 {
-  "lastUpdated": "2026-07-18T16:51:06.029Z",
+  "lastUpdated": "2026-07-18T17:06:32.020Z",
   "predictions": [
     {
       "matchId": "760642",
@@ -1382,6 +1382,99 @@
       "awayScore": 0
     },
     {
+      "prediction": "负+胜",
+      "type": "double",
+      "skip": false,
+      "skipReason": "",
+      "confidence": 46,
+      "reason": "方向不够明确，双选覆盖",
+      "doublePick": [
+        "负",
+        "胜"
+      ],
+      "matchId": "760515",
+      "home": "英格兰",
+      "away": "阿根廷",
+      "league": "世界杯",
+      "leagueCode": "fifa.world",
+      "date": "20260716",
+      "matchTime": "7/16 周四 03:00",
+      "verified": true,
+      "actualResult": "负",
+      "hit": true,
+      "homeScore": 1,
+      "awayScore": 2
+    },
+    {
+      "prediction": "胜+平",
+      "type": "double",
+      "skip": false,
+      "skipReason": "",
+      "confidence": 41,
+      "reason": "方向不够明确，双选覆盖 · 竞彩网赔率",
+      "doublePick": [
+        "胜",
+        "平"
+      ],
+      "matchId": "401842759",
+      "home": "IFK哥德堡",
+      "away": "布鲁马波卡纳",
+      "league": "瑞典",
+      "leagueCode": "swe.1",
+      "date": "20260718",
+      "matchTime": "7/18 周六 01:00",
+      "verified": true,
+      "actualResult": "胜",
+      "hit": true,
+      "homeScore": 2,
+      "awayScore": 1
+    },
+    {
+      "prediction": "胜+负",
+      "type": "double",
+      "skip": false,
+      "skipReason": "",
+      "confidence": 54,
+      "reason": "方向偏胜(54%)，双选防冷 · 竞彩网赔率",
+      "doublePick": [
+        "胜",
+        "负"
+      ],
+      "matchId": "401873917",
+      "home": "博德闪耀",
+      "away": "腓特烈斯塔",
+      "league": "挪超",
+      "leagueCode": "nor.1",
+      "date": "20260718",
+      "matchTime": "7/18 周六 01:15",
+      "verified": true,
+      "actualResult": "胜",
+      "hit": true,
+      "homeScore": 1,
+      "awayScore": 0
+    },
+    {
+      "matchId": "760514",
+      "home": "法国",
+      "away": "西班牙",
+      "league": "世界杯",
+      "leagueCode": "fifa.world",
+      "date": "20260715",
+      "matchTime": "07/15 周三 03:00",
+      "prediction": "负",
+      "type": "single",
+      "confidence": 45,
+      "reason": "西班牙传控优势明显",
+      "verified": true,
+      "homeScore": 0,
+      "awayScore": 2,
+      "actualResult": "负",
+      "hit": true,
+      "skip": false,
+      "skipReason": "",
+      "predictTime": "2026-07-14T12:00:00+08:00"
+    },
+    {
       "prediction": "胜+负",
       "type": "double",
       "skip": true,
@@ -1921,8 +2014,8 @@
     }
   ],
   "stats": {
-    "total": 84,
-    "verified": 65,
-    "accuracy": 69
+    "total": 88,
+    "verified": 69,
+    "accuracy": 71
   }
 }
