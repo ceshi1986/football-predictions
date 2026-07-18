@@ -2508,15 +2508,17 @@ function _updateAccPanel(){
   // 竞彩/北单联赛代码（不含中超）
   var _activeLeagues={"bra.1":1,"nor.1":1,"swe.1":1,"mls":1,"usa.1":1,"uefa.champions":1,"uefa.champions.qual":1,"uefa.europa":1,"fifa.world":1};
   
-  var total=recs.length;
+  var total=0;
+  for(var i=0;i<recs.length;i++){if(!recs[i].skip&&_activeLeagues[recs[i].leagueCode])total++}
   var verified=0,verHits=0;
   var singleTotal=0,singleHit=0;
   var doubleTotal=0,doubleHit=0;
   var recTotal=0,recHit=0; 
   
   for(var i=0;i<recs.length;i++){
-    // 只统计竞彩/北单联赛的命中率
+    // 只统计竞彩/北单联赛的命中率，排除不推荐(skip)的
     if(!_activeLeagues[recs[i].leagueCode]) continue;
+    if(recs[i].skip) continue;
     if(recs[i].verified){
       verified++;
       if(recs[i].hit) verHits++;
