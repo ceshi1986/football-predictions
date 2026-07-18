@@ -3202,6 +3202,7 @@ function performComparison(userBets, predictions) {
 }
 
 // 比对用户选择和AI预测，支持"平/负"等复合选项
+// 返回: "full"=完全一致, "partial"=部分一致(包含在内), false=不一致
 function compareSelections(userSel, aiSel) {
   // 展开复合选项（如"平/负"展开为"平"和"负"两个可选）
   var userExpanded = [];
@@ -3213,15 +3214,22 @@ function compareSelections(userSel, aiSel) {
       userExpanded.push(userSel[i]);
     }
   }
-  // 用户展开后的集合与AI预测集合取交集，有交集即匹配
+  // "任意"表示让负，无法确定方向，直接视为完全一致（不报错）
   for (var i = 0; i < userExpanded.length; i++) {
-    // "任意"表示让负，无法确定方向，直接视为一致（不报错）
-    if (userExpanded[i] === '任意') return true;
+    if (userExpanded[i] === '任意') return "full";
+  }
+  // 统计用户选择中有多少项命中了AI预测
+  var matchCount = 0;
+  for (var i = 0; i < userExpanded.length; i++) {
     for (var j = 0; j < aiSel.length; j++) {
-      if (userExpanded[i] === aiSel[j]) return true;
+      if (userExpanded[i] === aiSel[j]) { matchCount++; break; }
     }
   }
-  return false;
+  if (matchCount === 0) return false;
+  // 完全一致：用户项数=AI项数，且全部命中
+  if (matchCount === userExpanded.length && userExpanded.length === aiSel.length) return "full";
+  // 部分一致：用户的在AI范围内，但不是完全相同（如AI双选用户单选）
+  return "partial";
 }
 
 function arraysEqual(a, b) {
@@ -3236,9 +3244,10 @@ function showCompareResult(results) {
   var resultEl = document.getElementById('compareResult');
   if (!resultEl) return;
   
-  var matched = 0, diff = 0, notFound = 0;
+  var matched = 0, partial = 0, diff = 0, notFound = 0;
   for (var i = 0; i < results.length; i++) {
-    if (results[i].match === true) matched++;
+    if (results[i].match === "full") matched++;
+    else if (results[i].match === "partial") partial++;
     else if (results[i].match === false) diff++;
     else notFound++;
   }
@@ -3250,12 +3259,15 @@ function showCompareResult(results) {
   html += '<div class="compare-result-header">';
   html += '<div style="font-size:13px;color:#9ca3af">📊 比对结果</div>';
   html += '<div class="compare-result-summary">';
-  if (diff === 0 && notFound === 0) {
-    html += '<span class="good">全部 ' + total + ' 场一致 ✅</span>';
+  if (partial === 0 && diff === 0 && notFound === 0) {
+    html += '<span class="good">全部 ' + total + ' 场完全一致 ✅</span>';
   } else {
-    html += '<span class="good">' + matched + ' 场一致</span>，';
-    if (diff > 0) html += '<span class="warn">' + diff + ' 场有差异 ⚠️</span>';
-    if (notFound > 0) html += '<span style="color:#6b7280">' + notFound + ' 场未匹配</span>';
+    var parts = [];
+    if (matched > 0) parts.push('<span class="good">' + matched + ' 场完全一致 ✅</span>');
+    if (partial > 0) parts.push('<span style="color:#f59e0b">' + partial + ' 场包含在内 ⚡</span>');
+    if (diff > 0) parts.push('<span class="warn">' + diff + ' 场不一致 ⚠️</span>');
+    if (notFound > 0) parts.push('<span style="color:#6b7280">' + notFound + ' 场未匹配</span>');
+    html += parts.join('，');
   }
   html += '</div></div>';
   
@@ -3267,10 +3279,12 @@ function showCompareResult(results) {
   for (var i = 0; i < results.length; i++) {
     var r = results[i];
     var statusHtml = '';
-    if (r.match === true) {
-      statusHtml = '<span class="match-ok">✅</span>';
+    if (r.match === "full") {
+      statusHtml = '<span class="match-ok">✅ 完全一致</span>';
+    } else if (r.match === "partial") {
+      statusHtml = '<span style="color:#f59e0b;font-size:11px;font-weight:600">⚡ 包含在内</span>';
     } else if (r.match === false) {
-      statusHtml = '<span class="match-warn">⚠️ 差异</span>';
+      statusHtml = '<span class="match-warn">⚠️ 不一致</span>';
     } else {
       statusHtml = '<span style="color:#6b7280">未找到</span>';
     }
@@ -3317,7 +3331,9 @@ function showCompareResult(results) {
 
   // Tip
   if (diff > 0) {
-    html += '<div class="compare-result-tip">💡 有差异的比赛建议重新评估，AI 预测基于多模型综合赔率分析。差异不代表对错，仅供参考。</div>';
+    html += '<div class="compare-result-tip">💡 不一致的比赛建议重新评估，AI 预测基于多模型综合赔率分析。差异不代表对错，仅供参考。</div>';
+  } else if (partial > 0) {
+    html += '<div class="compare-result-tip">💡 部分一致的比赛，您的选择在 AI 双选预测范围内，但 AI 预测为双选而非单选。仅供参考。</div>';
   } else if (notFound > 0) {
     html += '<div class="compare-result-tip">💡 部分比赛未在 AI 预测数据中找到，可能因为比赛不在预测范围内。</div>';
   } else {
