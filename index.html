@@ -2496,7 +2496,7 @@ function _aiJudge(m,hf,df,af){
     if(usedOdds){
       var keys=[["胜","w"],["平","d"],["负","l"]];
       for(var i=0;i<3;i++){
-        if(keys[i][0]!==mainPick)remaining.push([keys[i][0],m.odds[keys[i][1]]||1]);
+        if(keys[i][0]!==mainPick)remaining.push([keys[i][0],(probs.find(function(x){return x.r===keys[i][0]})||{}).p||0]);
       }
       remaining.sort(function(a,b){return b[1]-a[1]});
     }
