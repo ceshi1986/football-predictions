@@ -67,6 +67,42 @@ TEAM_ZH = {
     "Shandong Taishan":"山东泰山","Changchun Yatai":"长春亚泰",
     "Wuhan Three Towns":"武汉三镇","Zhejiang FC":"浙江队",
     "Chengdu Rongcheng":"成都蓉城","Tianjin Jinmen Tiger":"天津津门虎",
+    # 巴甲
+    "Atlético-MG":"米内罗竞技","Atletico-MG":"米内罗竞技",
+    "Bahia":"巴伊亚","Coritiba":"科里蒂巴","Palmeiras":"帕尔梅拉斯",
+    "Chapecoense":"沙佩科恩斯","Flamengo":"弗拉门戈","Internacional":"国际体育",
+    "Cruzeiro":"克鲁塞罗","São Paulo":"圣保罗","Sao Paulo":"圣保罗",
+    "Athletico-PR":"帕拉纳竞技","Botafogo":"博塔弗戈","Vitória":"维多利亚","Vitoria":"维多利亚",
+    "Corinthians":"科林蒂安","Remo":"雷莫",
+    # 阿甲
+    "Belgrano (Córdoba)":"贝尔格拉诺","Belgrano":"贝尔格拉诺",
+    "Rosario Central":"罗萨里奥中央",
+    "Sarmiento (Junín)":"萨米恩托","Sarmiento":"萨米恩托",
+    "Argentinos Juniors":"阿根廷青年人",
+    "Defensa y Justicia":"国防与司法","Aldosivi":"阿尔多西维",
+    "Gimnasia (Mendoza)":"门多萨体操","Gimnasia La Plata":"拉普拉塔体操",
+    "Central Córdoba (Santiago del Estero)":"圣地亚哥中央科尔多瓦",
+    "Racing Club":"竞赛","Vélez Sarsfield":"萨斯菲尔德","Velez Sarsfield":"萨斯菲尔德",
+    "Instituto (Córdoba)":"科尔多瓦学院","Instituto":"科尔多瓦学院",
+    "Huracán":"飓风","Huracan":"飓风","Banfield":"班菲尔德",
+    "Platense":"普拉滕斯","Unión (Santa Fe)":"圣菲联合","Union (Santa Fe)":"圣菲联合",
+    # 挪超
+    "Hamarkameratene":"哈马坎","Tromso":"特罗姆瑟","Tromsø":"特罗姆瑟",
+    "IK Start":"斯塔特","Rosenborg":"罗森博格",
+    "Kristiansund BK":"克里斯蒂安松","Sarpsborg FK":"萨尔普斯博格",
+    "Lillestrom":"利勒斯特罗姆","Lillestrøm":"利勒斯特罗姆",
+    "KFUM Oslo":"奥斯陆KFUM","Molde":"莫尔德","SK Brann":"布兰",
+    "Viking FK":"维京","Sandefjord":"桑德菲尤尔",
+    "Bodo/Glimt":"博德闪耀","Bodø/Glimt":"博德闪耀",
+    # 瑞典超
+    "AIK":"AIK索尔纳","GAIS":"盖斯",
+    "BK Häcken":"哈根","Hammarby IF":"哈马比",
+    "Degerfors IF":"代格福什","Djurgården":"尤尔加登","Djurgarden":"尤尔加登",
+    "Halmstads BK":"哈尔姆斯塔德","IF Elfsborg":"埃尔夫斯堡",
+    "IK Sirius":"西里乌斯","Kalmar FF":"卡尔马",
+    "Malmö FF":"马尔默","Malmö":"马尔默","Malmoe":"马尔默",
+    "Örgryte IS":"奥格里特","Orgryte IS":"奥格里特",
+    "Västerås SK":"瓦斯特拉斯","Vasteras SK":"瓦斯特拉斯",
 }
 
 def zh(name):
