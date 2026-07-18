@@ -3117,14 +3117,32 @@ function performComparison(userBets, predictions) {
       
       var userSel = (bet.selections || []).slice();
       
-      // 让球→胜平负转换（以主队让球为例）：
-      // 让胜 = 让球后主队赢 → 主队至少赢2球 → 对应「胜」
-      // 让平 = 让球后平手 → 主队实际赢1球 → 也对应「胜」
-      // 让负 = 让球后主队输 → 主队实际平局或输球 → 对应「平」或「负」（不确定）
+      // 让球→胜平负转换（主队让球）：
+      // 让胜 → 胜（让球后仍赢，主队实力确认）
+      // 让平 → 胜（让球后平=主队实际赢刚好让球数）
+      // 让负 → 取决于让球数：
+      //   让1球负 → 平或负（主队赢不了1球以上）
+      //   让2球+负 → 胜/平/负均可能（主队可能赢1球但不够让球数）
+      // 同时支持从选择文本中提取让球数，如"(-1)主负"、"让2球负"等格式
       var normalizedUserSel = userSel.map(function(s) {
-        if (s === '让胜') return '胜';
-        if (s === '让平') return '胜';  // 让平实际意味主队赢1球
-        if (s === '让负') return '任意';  // 让负可能是胜/平/负任意结果（取决于让球数）
+        // 尝试提取让球数
+        var handicapNum = 0;
+        var numMatch = s.match(/\((-?\d+)\)/);
+        if (numMatch) handicapNum = Math.abs(parseInt(numMatch[1]));
+        var numMatch2 = s.match(/让(\d+)球/);
+        if (numMatch2) handicapNum = parseInt(numMatch2[1]);
+        
+        // 让胜
+        if (s.indexOf('让胜') >= 0 || s.indexOf('主胜') >= 0 && handicapNum > 0) return '胜';
+        // 让平
+        if (s.indexOf('让平') >= 0 || s.indexOf('主平') >= 0 && handicapNum > 0) return '胜';
+        // 让负 - 根据让球数区分
+        if (s.indexOf('让负') >= 0 || (s.indexOf('主负') >= 0 && handicapNum > 0) || s.indexOf('负') >= 0 && handicapNum > 0) {
+          if (handicapNum <= 1) return '平/负';  // 让1球负：只可能是平或负
+          return '任意';  // 让2球+负：胜平负均可能
+        }
+        // 普通选项（不含让球标记的）
+        if (s === '胜' || s === '平' || s === '负') return s;
         return s;
       });
       
@@ -3269,7 +3287,8 @@ function showCompareResult(results) {
     html += '• <b>让胜</b>→对应「胜」（让球后仍赢，实力确认）<br>';
     html += '• <b>让平</b>→对应「胜」（让球后平手=实际刚好赢让球数）<br>';
     if (hasHandicapFu) {
-      html += '• <b>让负</b>→<span style="color:#f59e0b">方向不确定</span>，可能是胜/平/负，仅做提醒不做比对';
+      html += '• <b>让1球负</b>→<span style="color:#f59e0b">平/负</span>（只可能是平局或输球）<br>';
+      html += '• <b>让2球+负</b>→<span style="color:#f59e0b">方向不确定</span>，可能是胜/平/负，仅做提醒不做比对';
     }
     html += '</div>';
   }
