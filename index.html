@@ -1696,13 +1696,13 @@ if(isExtremeFav){
 }
 bac.innerHTML=adviceHtml;
 ba.style.display="block";
-// === 双选时更新预测方向显示（和赛程卡片统一：按概率选第二高）===
+// === 双选时更新预测方向显示（排除平局，和后端AI预测统一）===
 var isDouble=false, spk="", spp=0;
 if(!(maxProb>=0.60&&probDiff>=0.20&&minOdds>=1.40)){
   isDouble=true;
-  if(r==="胜"){if(df>=af){spk="平";spp=Math.round(df*100)}else{spk="负";spp=Math.round(af*100)}}
+  if(r==="胜"){spk="负";spp=Math.round(af*100)}
   else if(r==="平"){if(hf>=af){spk="胜";spp=Math.round(hf*100)}else{spk="负";spp=Math.round(af*100)}}
-  else{if(hf>=df){spk="胜";spp=Math.round(hf*100)}else{spk="平";spp=Math.round(df*100)}}
+  else{spk="胜";spp=Math.round(hf*100)}
   var sn={"胜":"主胜","平":"平局","负":"客胜"};
   document.getElementById("pr").textContent=r+" + "+spk;
   document.getElementById("an").textContent="综合"+p+"%倾向"+sn[r]+"，双选防"+sn[spk]+"("+spp+"%)";

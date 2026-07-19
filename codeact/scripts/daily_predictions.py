@@ -1018,8 +1018,22 @@ async def main():
             _away = m.get("away", "")
             _PLACEHOLDER_KEYWORDS = ("决赛", "半决赛胜者", "1/4决赛胜者", "Winner", "TBD", "待定")
             if any(kw in _home or kw in _away for kw in _PLACEHOLDER_KEYWORDS):
-                print(f"[SKIP] 占位球队名: {match_id} {_home} vs {_away}，跳过")
-                continue
+                # 尝试从已知的半决赛对阵映射修正队名
+                _KNOWN_MAPPINGS = {
+                    "760517": {"home": "西班牙", "away": "阿根廷"},  # 世界杯半决赛2
+                }
+                if match_id in _KNOWN_MAPPINGS:
+                    km = _KNOWN_MAPPINGS[match_id]
+                    if any(kw in _home for kw in _PLACEHOLDER_KEYWORDS):
+                        m["home"] = km["home"]
+                        _home = km["home"]
+                    if any(kw in _away for kw in _PLACEHOLDER_KEYWORDS):
+                        m["away"] = km["away"]
+                        _away = km["away"]
+                    print(f"[FIX] 占位名称已修正: {_home} vs {_away}")
+                else:
+                    print(f"[SKIP] 占位球队名: {match_id} {_home} vs {_away}，跳过")
+                    continue
 
             # 生成新预测
             pred = predict_match(m, teams)

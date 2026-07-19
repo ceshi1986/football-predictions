@@ -27,7 +27,7 @@ TEAM_ZH = {
     "Wales":"威尔士","Tunisia":"突尼斯","Sweden":"瑞典","Austria":"奥地利",
     "Quarterfinal 1 Winner":"1/4决赛胜者1","Quarterfinal 2 Winner":"1/4决赛胜者2",
     "Quarterfinal 3 Winner":"1/4决赛胜者3","Quarterfinal 4 Winner":"1/4决赛胜者4",
-    "Semifinal 1 Winner":"半决赛胜者1","Semifinal 2 Winner":"半决赛胜者2",
+    "Semifinal 1 Winner":"英格兰","Semifinal 2 Winner":"阿根廷",
     "Third Place":"季军赛","Final":"决赛",
     # 欧洲联赛球队
     "Manchester United":"曼联","Manchester City":"曼城","Liverpool":"利物浦",
