@@ -953,6 +953,18 @@ async def main():
 
         schedule = json.loads(schedule_content)
         all_matches = schedule.get("matches", [])
+        # 队名映射修正：将占位名称替换为真实球队名
+        _TEAM_NAME_FIX = {
+            "760517": {"home": "西班牙", "away": "阿根廷"},  # 世界杯半决赛
+        }
+        for m in all_matches:
+            mid = m.get("id", "")
+            if mid in _TEAM_NAME_FIX:
+                fix = _TEAM_NAME_FIX[mid]
+                if m.get("home", "") != fix["home"] or m.get("away", "") != fix["away"]:
+                    print(f"[FIX] 队名修正: {m.get('home','')} vs {m.get('away','')} -> {fix['home']} vs {fix['away']}")
+                    m["home"] = fix["home"]
+                    m["away"] = fix["away"]
         print(f"[OK] 赛程: {len(all_matches)} 场比赛")
 
         # ===== 3. 获取历史预测 =====
