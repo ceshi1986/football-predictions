@@ -1013,6 +1013,14 @@ async def main():
                 keep_count += 1
                 continue
 
+            # 队名校验：跳过占位名称（如"决赛"、"半决赛胜者2"等）
+            _home = m.get("home", "")
+            _away = m.get("away", "")
+            _PLACEHOLDER_KEYWORDS = ("决赛", "半决赛胜者", "1/4决赛胜者", "Winner", "TBD", "待定")
+            if any(kw in _home or kw in _away for kw in _PLACEHOLDER_KEYWORDS):
+                print(f"[SKIP] 占位球队名: {match_id} {_home} vs {_away}，跳过")
+                continue
+
             # 生成新预测
             pred = predict_match(m, teams)
 
