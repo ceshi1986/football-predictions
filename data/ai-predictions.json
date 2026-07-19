@@ -1,5 +1,5 @@
 {
-  "lastUpdated": "2026-07-19T14:21:53.493Z",
+  "lastUpdated": "2026-07-19T14:26:33.103Z",
   "predictions": [
     {
       "matchId": "760631",
@@ -1683,17 +1683,20 @@
       "leagueCode": "swe.1",
       "date": "20260719",
       "matchTime": "07/19 周日 22:30",
-      "prediction": "负",
-      "type": "single",
-      "confidence": 50,
+      "prediction": "负+胜",
+      "type": "double",
+      "confidence": 60,
       "skip": false,
       "skipReason": "",
-      "reason": "模型预测客胜概率64%",
-      "doublePick": null,
-      "stars": 4,
-      "hasOdds": false,
-      "spread": 0.4232,
-      "handicapDir": null,
+      "reason": "方向偏负(64%)，双选防冷 · 竞彩网赔率",
+      "doublePick": [
+        "负",
+        "胜"
+      ],
+      "stars": 5,
+      "hasOdds": true,
+      "spread": 0.4491,
+      "handicapDir": "负",
       "kellyScenario": null,
       "kellySignal": null,
       "ladbrokesDrawKelly": null,
@@ -1703,7 +1706,24 @@
       "kellyReverseSignal": null,
       "verified": false,
       "actualResult": null,
-      "hit": null
+      "hit": null,
+      "odds": {
+        "source": "竞彩网",
+        "w": 5.1,
+        "d": 4.7,
+        "l": 1.39,
+        "odds_0": {
+          "胜": 5.1,
+          "平": 4.7,
+          "负": 1.39
+        },
+        "odds_+1": {
+          "胜": 2.48,
+          "平": 3.38,
+          "负": 2.33
+        }
+      },
+      "odds_source": "竞彩网"
     },
     {
       "matchId": "401842760",
@@ -1736,7 +1756,24 @@
       "kellyReverseSignal": null,
       "verified": false,
       "actualResult": null,
-      "hit": null
+      "hit": null,
+      "odds": {
+        "source": "竞彩网",
+        "w": 1.13,
+        "d": 6.1,
+        "l": 12.5,
+        "odds_0": {
+          "胜": 1.13,
+          "平": 6.1,
+          "负": 12.5
+        },
+        "odds_-2": {
+          "胜": 2.62,
+          "平": 3.6,
+          "负": 2.13
+        }
+      },
+      "odds_source": "竞彩网"
     },
     {
       "matchId": "401842755",
@@ -1802,7 +1839,24 @@
       "kellyReverseSignal": null,
       "verified": false,
       "actualResult": null,
-      "hit": null
+      "hit": null,
+      "odds": {
+        "source": "竞彩网",
+        "w": 2.11,
+        "d": 2.96,
+        "l": 3.15,
+        "odds_0": {
+          "胜": 2.11,
+          "平": 2.96,
+          "负": 3.15
+        },
+        "odds_-1": {
+          "胜": 4.5,
+          "平": 3.71,
+          "负": 1.57
+        }
+      },
+      "odds_source": "竞彩网"
     },
     {
       "matchId": "401842758",
@@ -1835,7 +1889,24 @@
       "kellyReverseSignal": null,
       "verified": false,
       "actualResult": null,
-      "hit": null
+      "hit": null,
+      "odds": {
+        "source": "竞彩网",
+        "w": 2.3,
+        "d": 3.45,
+        "l": 2.47,
+        "odds_0": {
+          "胜": 2.3,
+          "平": 3.45,
+          "负": 2.47
+        },
+        "odds_-1": {
+          "胜": 4.92,
+          "平": 4.15,
+          "负": 1.46
+        }
+      },
+      "odds_source": "竞彩网"
     },
     {
       "matchId": "401842756",
