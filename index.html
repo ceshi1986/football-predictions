@@ -2477,15 +2477,16 @@ function _aiJudge(m,hf,df,af){
   }else{
     type="double";
     var mainPick=probs[0].r;
-    var remaining=[];
+    var upset;
     if(usedOdds){
-      var keys=[["胜","w"],["平","d"],["负","l"]];
-      for(var i=0;i<3;i++){
-        if(keys[i][0]!==mainPick)remaining.push([keys[i][0],(probs.find(function(x){return x.r===keys[i][0]})||{}).p||0]);
-      }
-      remaining.sort(function(a,b){return b[1]-a[1]});
+      var oddsMap={"胜":oddsData.h,"平":oddsData.d,"负":oddsData.a};
+      var nonDraw=(mainPick==="胜")?"负":"胜";
+      upset=nonDraw;
+    }else{
+      if(mainPick==="胜"){upset="负";}
+      else if(mainPick==="负"){upset="胜";}
+      else{upset="胜";}
     }
-    var upset=remaining.length>0?remaining[0][0]:(mainPick==="胜"?"负":"胜");
     prediction=mainPick+"+"+upset;
     doublePick=[mainPick,upset];
     if(effConf>=0.50&&probDiff>=0.10)reason="方向偏"+mainPick+"("+Math.round(effConf*100)+"%)，双选防冷";
