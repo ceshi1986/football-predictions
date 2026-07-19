@@ -2757,11 +2757,11 @@ function fpGetActiveKey(){
 }
 
 function fpFormatTokens(n){if(n>=10000)return(n/10000).toFixed(1)+'万';return String(n)}
-function fpShowLoggedInUI(){var statusEl=document.getElementById('fp-key-status');var hintEl=document.getElementById('fp-key-hint');var inputEl=document.getElementById('fp-key-input');var verifyBtn=document.querySelector('.key-verify-btn');var buyBtn=document.querySelector('.fp-buy-btn');var logoutBtn=document.getElementById('fp-logout-btn');if(statusEl){statusEl.textContent='\u2705 已解锁 (剩余 '+fpFormatTokens(fpKeyState.remaining)+' token)';statusEl.style.color='#4ade80'}if(hintEl)hintEl.textContent='\ud83d\udd13 Key已验证 \u00b7 完整内容已解锁';if(inputEl)inputEl.style.display='none';if(verifyBtn)verifyBtn.style.display='none';if(buyBtn)buyBtn.style.display='none';if(logoutBtn)logoutBtn.style.display='inline-block';fpUpdateFreeCountHint()}
+function fpShowLoggedInUI(){var statusEl=document.getElementById('fp-key-status');var hintEl=document.getElementById('fp-key-hint');var inputEl=document.getElementById('fp-key-input');var verifyBtn=document.querySelector('.key-verify-btn');var buyBtn=document.querySelector('.fp-buy-btn');var logoutBtn=document.getElementById('fp-logout-btn');if(statusEl){statusEl.textContent='\u2705 已解锁 (剩余 '+fpFormatTokens(fpKeyState.remaining)+' token)';statusEl.style.color='#4ade80'}if(hintEl)hintEl.textContent='\ud83d\udd13 Key已验证 \u00b7 可解锁完整预测';if(inputEl)inputEl.style.display='none';if(verifyBtn)verifyBtn.style.display='none';if(buyBtn)buyBtn.style.display='none';if(logoutBtn)logoutBtn.style.display='inline-block';fpUpdateFreeCountHint()}
 
 function fpHideLoggedInUI(){var statusEl=document.getElementById('fp-key-status');var hintEl=document.getElementById('fp-key-hint');var inputEl=document.getElementById('fp-key-input');var verifyBtn=document.querySelector('.key-verify-btn');var buyBtn=document.querySelector('.fp-buy-btn');var logoutBtn=document.getElementById('fp-logout-btn');if(statusEl){statusEl.textContent='';statusEl.style.color='#9ca3af'}if(hintEl)hintEl.textContent='\ud83c\udf81 免费查看基础预测 | 验证Key解锁完整分析+AI预测+投注建议';if(inputEl){inputEl.style.display='';inputEl.value=''}if(verifyBtn)verifyBtn.style.display='';if(buyBtn)buyBtn.style.display='';if(logoutBtn)logoutBtn.style.display='none';fpUpdateFreeCountHint()}
 
-function fpVerifyKey(){var input=document.getElementById('fp-key-input');var key=input.value.trim();if(!key){showToast('请输入Key');return}var statusEl=document.getElementById('fp-key-status');statusEl.textContent='验证中...';statusEl.style.color='#9ca3af';fetch('https://metaphyai-api-v-cwpuwzgtdx.cn-shanghai.fcapp.run',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({action:'key_validate',key:key})}).then(function(r){return r.json()}).then(function(data){if(data.success&&data.valid){fpKeyState.key=key;fpKeyState.valid=true;fpKeyState.remaining=data.remaining||data.token_remaining||0;localStorage.setItem('fp_paid_key',key);localStorage.setItem('fp_paid_remaining',String(fpKeyState.remaining));fpShowLoggedInUI();showToast('\ud83c\udf89 Key验证成功，完整内容已解锁！');if(typeof fpUpdateLockState==='function')fpUpdateLockState();if(typeof closePayModal==='function')closePayModal()}else{statusEl.textContent='\u274c Key无效';statusEl.style.color='#ef4444'}}).catch(function(){statusEl.textContent='\u274c 网络错误';statusEl.style.color='#ef4444'})}
+function fpVerifyKey(){var input=document.getElementById('fp-key-input');var key=input.value.trim();if(!key){showToast('请输入Key');return}var statusEl=document.getElementById('fp-key-status');statusEl.textContent='验证中...';statusEl.style.color='#9ca3af';fetch('https://metaphyai-api-v-cwpuwzgtdx.cn-shanghai.fcapp.run',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({action:'key_validate',key:key})}).then(function(r){return r.json()}).then(function(data){if(data.success&&data.valid){fpKeyState.key=key;fpKeyState.valid=true;fpKeyState.remaining=data.remaining||data.token_remaining||0;localStorage.setItem('fp_paid_key',key);localStorage.setItem('fp_paid_remaining',String(fpKeyState.remaining));fpShowLoggedInUI();showToast('\ud83c\udf89 Key验证成功！');if(typeof fpUpdateLockState==='function')fpUpdateLockState();if(typeof closePayModal==='function')closePayModal()}else{statusEl.textContent='\u274c Key无效';statusEl.style.color='#ef4444'}}).catch(function(){statusEl.textContent='\u274c 网络错误';statusEl.style.color='#ef4444'})}
 
 function fpLogoutKey(){if(!confirm('确定退出Key？退出后部分内容将被锁定'))return;localStorage.removeItem('fp_paid_key');localStorage.removeItem('fp_paid_remaining');fpKeyState={key:'',remaining:0,valid:false};fpHideLoggedInUI();if(typeof fpUpdateLockState==='function')fpUpdateLockState();showToast('已退出Key')}
 
@@ -2770,16 +2770,75 @@ function fpUpdateLockState(){
   for(var i=0;i<allCards.length;i++){allCards[i].style.display=''}
   var oldCta=document.getElementById('fp-upgrade-cta');
   if(oldCta&&oldCta.parentNode) oldCta.parentNode.removeChild(oldCta);
-  var key=fpGetActiveKey();
-  if(key) return;
+
+  // 今天已解锁？直接展示全部
+  var today=new Date().toISOString().split('T')[0];
+  if(localStorage.getItem('fp_predictions_unlocked_date')===today) return;
+
   if(allCards.length<=3) return;
+
+  // 锁住第4场及之后
   for(var i=3;i<allCards.length;i++){allCards[i].style.display='none'}
+  var lockedCount=allCards.length-3;
+
   var cta=document.createElement('div');
   cta.id='fp-upgrade-cta';
-  var lockedCount=allCards.length-3;
-  cta.innerHTML='\ud83d\udd12 还有 '+lockedCount+' 场预测待解锁 \u00b7 <button onclick="showPayModal(\'足球预测\')" style="background:linear-gradient(135deg,#f59e0b,#d97706);color:#000;border:none;padding:6px 16px;border-radius:8px;font-size:13px;font-weight:700;cursor:pointer;margin-left:4px">验证Key解锁</button>';
   cta.style.cssText='margin-top:12px;padding:12px 16px;text-align:center;background:rgba(245,158,11,0.08);border:1px solid rgba(245,158,11,0.2);border-radius:10px;color:#d1d5db;font-size:14px';
+
+  var key=fpGetActiveKey();
+  if(key){
+    // Key用户：一键解锁，扣token
+    cta.innerHTML='\ud83d\udd12 还有 '+lockedCount+' 场预测待解锁 \u00b7 <button onclick="fpUnlockAllPredictions()" style="background:linear-gradient(135deg,#f59e0b,#d97706);color:#000;border:none;padding:6px 16px;border-radius:8px;font-size:13px;font-weight:700;cursor:pointer;margin-left:4px">\ud83d\udd13 一键解锁（消耗 '+lockedCount+' token）</button>';
+  }else{
+    // 非Key用户：引导购买
+    cta.innerHTML='\ud83d\udd12 还有 '+lockedCount+' 场预测待解锁 \u00b7 <button onclick="showPayModal(\'足球预测\')" style="background:linear-gradient(135deg,#f59e0b,#d97706);color:#000;border:none;padding:6px 16px;border-radius:8px;font-size:13px;font-weight:700;cursor:pointer;margin-left:4px">验证Key解锁</button>';
+  }
   document.getElementById('ai-rec-body').appendChild(cta);
+}
+
+function fpUnlockAllPredictions(){
+  var key=fpGetActiveKey();
+  if(!key){showToast('请先验证Key');showPayModal('足球预测');return}
+
+  var allCards=document.querySelectorAll('#ai-rec-body .ai-card');
+  var lockedCount=Math.max(0,allCards.length-3);
+  if(lockedCount===0){showToast('没有需要解锁的预测');return}
+
+  // 检查token余额
+  var remaining=parseInt(localStorage.getItem('fp_paid_remaining')||'0');
+  if(remaining<lockedCount){
+    showToast('⚠️ Token不足！需要 '+lockedCount+' 个，当前剩余 '+remaining+' 个');
+    return;
+  }
+
+  // 扣token
+  var newRemaining=remaining-lockedCount;
+  localStorage.setItem('fp_paid_remaining',String(newRemaining));
+  fpKeyState.remaining=newRemaining;
+  if(newRemaining<=0){
+    fpKeyState.valid=false;
+    localStorage.removeItem('fp_paid_key');
+  }
+
+  // 记录今天已解锁
+  var today=new Date().toISOString().split('T')[0];
+  localStorage.setItem('fp_predictions_unlocked_date',today);
+
+  // 显示全部卡片
+  for(var i=0;i<allCards.length;i++){allCards[i].style.display=''}
+
+  // 替换CTA为已解锁提示
+  var oldCta=document.getElementById('fp-upgrade-cta');
+  if(oldCta&&oldCta.parentNode) oldCta.parentNode.removeChild(oldCta);
+  var msg=document.createElement('div');
+  msg.id='fp-upgrade-cta';
+  msg.style.cssText='margin-top:12px;padding:10px 16px;text-align:center;background:rgba(74,222,128,0.08);border:1px solid rgba(74,222,128,0.2);border-radius:10px;color:#4ade80;font-size:14px';
+  msg.innerHTML='✅ 已解锁全部 '+allCards.length+' 场预测（消耗 '+lockedCount+' token）';
+  document.getElementById('ai-rec-body').appendChild(msg);
+
+  // 更新顶部状态
+  if(typeof fpShowLoggedInUI==='function') fpShowLoggedInUI();
+  showToast('🎉 已解锁全部预测，扣除 '+lockedCount+' token');
 }
 
 // 昨日命中率>80%醒目展示
