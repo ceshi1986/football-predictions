@@ -2325,7 +2325,7 @@ async function _doGenAIRec(){
   });
   displayRecs.sort(function(a,b){
     var getTime=function(r){var m=(r.matchTime||"").match(/(\d{2}):(\d{2})/);return m?m[1]+m[2]:"0000"};
-    var ka=r.date+"_"+getTime(a);
+    var ka=a.date+"_"+getTime(a);
     var kb=b.date+"_"+getTime(b);
     if(kb!==ka) return kb>ka?1:-1;
     return 0;
@@ -2618,7 +2618,7 @@ async function _verifyAIRecs(){
     });
     displayRecs.sort(function(a,b){
       var getTime=function(r){var m=(r.matchTime||"").match(/(\d{2}):(\d{2})/);return m?m[1]+m[2]:"0000"};
-      var ka=r.date+"_"+getTime(a);
+      var ka=a.date+"_"+getTime(a);
       var kb=b.date+"_"+getTime(b);
       if(kb!==ka) return kb>ka?1:-1;
       return 0;
