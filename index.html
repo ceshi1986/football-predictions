@@ -2323,6 +2323,13 @@ async function _doGenAIRec(){
     if(!r.verified) return true;
     return r.date===today||r.date===yesterday;
   });
+  displayRecs.sort(function(a,b){
+    var getTime=function(r){var m=(r.matchTime||"").match(/(\d{2}):(\d{2})/);return m?m[1]+m[2]:"0000"};
+    var ka=r.date+"_"+getTime(a);
+    var kb=b.date+"_"+getTime(b);
+    if(kb!==ka) return kb>ka?1:-1;
+    return 0;
+  });
   _renderAIRec(displayRecs);
   if(typeof fpUpdateLockState==="function")fpUpdateLockState();
   
@@ -2608,6 +2615,13 @@ async function _verifyAIRecs(){
     var displayRecs=recs.filter(function(r){
       if(!r.verified) return true;
       return r.date===today||r.date===yesterday;
+    });
+    displayRecs.sort(function(a,b){
+      var getTime=function(r){var m=(r.matchTime||"").match(/(\d{2}):(\d{2})/);return m?m[1]+m[2]:"0000"};
+      var ka=r.date+"_"+getTime(a);
+      var kb=b.date+"_"+getTime(b);
+      if(kb!==ka) return kb>ka?1:-1;
+      return 0;
     });
     _renderAIRec(displayRecs);
     _renderUpcoming();
