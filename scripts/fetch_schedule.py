@@ -103,6 +103,29 @@ TEAM_ZH = {
     "Malmö FF":"马尔默","Malmö":"马尔默","Malmoe":"马尔默",
     "Örgryte IS":"奥格里特","Orgryte IS":"奥格里特",
     "Västerås SK":"瓦斯特拉斯","Vasteras SK":"瓦斯特拉斯",
+    # 芬超
+    "HJK Helsinki":"赫尔辛基","KuPS Kuopio":"古比斯","KuPS":"古比斯",
+    "FC Inter Turku":"国际图尔库","Inter Turku":"国际图尔库",
+    "VPS Vaasa":"VPS瓦萨","VPS":"VPS瓦萨",
+    "AC Oulu":"奥卢","IF Gnistan":"格尼斯坦","Gnistan":"格尼斯坦",
+    "TPS Turku":"TPS图尔库","TPS":"TPS图尔库",
+    "FC Lahti":"拉赫蒂","Lahti":"拉赫蒂",
+    "Ilves Tampere":"埃尔维斯","Ilves":"埃尔维斯",
+    "SJK Seinäjoki":"塞那乔其","SJK":"塞那乔其",
+    "Jaro":"雅罗","FF Jaro":"雅罗",
+    "IFK Mariehamn":"玛丽港","Mariehamn":"玛丽港",
+    # 奥甲
+    "SK Sturm Graz":"格拉茨风暴","Sturm Graz":"格拉茨风暴",
+    "Red Bull Salzburg":"萨尔茨堡","RB Salzburg":"萨尔茨堡",
+    "Rapid Wien":"维也纳快速","Rapid Vienna":"维也纳快速",
+    "Austria Wien":"维也纳奥地利","Austria Vienna":"维也纳奥地利",
+    "LASK":"林茨","Wolfsberger AC":"沃尔夫斯贝格",
+    "Hartberg":"哈特贝格","TSV Hartberg":"哈特贝格",
+    "WSG Tirol":"蒂罗尔","Altach":"阿尔塔赫",
+    "SCR Altach":"阿尔塔赫","Blau-Weiß Linz":"蓝白林茨",
+    "Austria Klagenfurt":"克拉根福","Grazer AK":"格拉茨AK",
+    "Austria Lustenau":"卢斯特瑙","Ried":"里德",
+    "Rheindorf Altach":"莱因多夫阿尔塔赫",
 }
 
 def zh(name):

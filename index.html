@@ -2195,17 +2195,17 @@ async function _syncToServer(){
     var content=btoa(unescape(encodeURIComponent(JSON.stringify(data,null,2))));
     if(!_aiSha){
       try{
-        var headResp=await fetch(_AI_API_URL,{headers:{"Authorization":"token "+_TK1+_TK2,"Accept":"application/vnd.github.v3+json"}});
+        var headCtrl=new AbortController(),headTid=setTimeout(()=>headCtrl.abort(),8000);var headResp=await fetch(_AI_API_URL,{headers:{"Authorization":"token "+_TK1+_TK2,"Accept":"application/vnd.github.v3+json"},signal:headCtrl.signal});clearTimeout(headTid);
         if(headResp.ok){var hd=await headResp.json();_aiSha=hd.sha}
       }catch(e){}
     }
     var body={message:"更新AI预测 "+new Date().toISOString().split("T")[0],content:content,branch:"main"};
     if(_aiSha)body.sha=_aiSha;
-    var resp=await fetch(_AI_API_URL,{
+    var putCtrl=new AbortController(),putTid=setTimeout(()=>putCtrl.abort(),15000);var resp=await fetch(_AI_API_URL,{
       method:"PUT",
       headers:{"Authorization":"token "+_TK1+_TK2,"Accept":"application/vnd.github.v3+json","Content-Type":"application/json"},
-      body:JSON.stringify(body)
-    });
+      body:JSON.stringify(body),signal:putCtrl.signal
+    });clearTimeout(putTid);
     if(resp.ok){
       var result=await resp.json();
       _aiSha=result.content.sha;

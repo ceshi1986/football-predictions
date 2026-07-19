@@ -141,15 +141,14 @@ def normalize_odds(odds: dict) -> tuple:
         w = o0.get("胜", 0)
         d = o0.get("平", 0)
         l = o0.get("负", 0)
-        # 让球赔率：优先 odds_minus1，其次 odds_-1，再次 odds_+1
-        handicap_odds = odds.get("odds_minus1") or odds.get("odds_-1") or odds.get("odds_+1")
+        handicap_odds = odds.get("odds_minus1")
         source = odds.get("source", "竞彩")
     elif "w" in odds:
         # 简单格式
         w = odds.get("w", 0)
         d = odds.get("d", 0)
         l = odds.get("l", 0)
-        source = odds.get("source", "足彩网")
+        source = "足彩网"
     else:
         return None, None, None, None, None
 
@@ -180,7 +179,7 @@ def get_handicap_direction(handicap_odds: dict) -> str:
 
 # ===== 凯利场景分析 =====
 # 核心bookmaker key映射（The Odds API key -> 内部标识）
-# 旧版逻辑：Pinnacle作为凯利分析核心庄家（Pinnacle返还率最高，赔率最接近真实概率）
+# B365+BV覆盖率97.4%，远高于Pinnacle的39.8%
 _KEY_BOOKMAKERS = {
     "bet365": "bet365",
     "betvictor": "betvictor",
@@ -188,7 +187,6 @@ _KEY_BOOKMAKERS = {
     "williamhill": "williamhill",
     "coral": "coral",
     "betway": "betway",
-    "pinnacle": "pinnacle",
 }
 
 # 立博平局Kelly阈值：低于返还率=立博对平局比市场更保守
@@ -200,7 +198,7 @@ KELLY_MIN_FILTER_THRESHOLD = 0.87
 
 def calc_kelly_scenario(bookmaker_odds: dict, home_team: str, away_team: str) -> dict:
     """
-    计算凯利场景分析（旧版逻辑：Pinnacle作为核心庄家）
+    计算凯利场景分析
 
     bookmaker_odds: {bookmaker_key: {home: odds, draw: odds, away: odds}}
                     赔率为欧赔(decimal)格式
@@ -212,9 +210,9 @@ def calc_kelly_scenario(bookmaker_odds: dict, home_team: str, away_team: str) ->
         scenario: "A"/"B"/"C"/"D" 或 None,
         kelly_min_filter_pass: bool (True=通过, 即无异常),
         ladbrokes_draw_kelly: float 或 None,
-        pinnacle_kelly: {"胜": k, "平": k, "负": k} 或 None,
+        bet365_kelly: {"胜": k, "平": k, "负": k} 或 None,
         betvictor_kelly: {"胜": k, "平": k, "负": k} 或 None,
-        pinnacle_payout: float 或 None (Pinnacle实际返还率),
+        bet365_payout: float 或 None (Bet365实际返还率),
         betvictor_payout: float 或 None (BetVictor实际返还率),
         signal: str 或 None (信号描述),
         kellyUniqueSignal: str 或 None (唯独低于返还率信号),
@@ -223,8 +221,8 @@ def calc_kelly_scenario(bookmaker_odds: dict, home_team: str, away_team: str) ->
     }
     """
     _empty = {"scenario": None, "kelly_min_filter_pass": True,
-              "ladbrokes_draw_kelly": None, "pinnacle_kelly": None,
-              "betvictor_kelly": None, "pinnacle_payout": None,
+              "ladbrokes_draw_kelly": None, "bet365_kelly": None,
+              "betvictor_kelly": None, "bet365_payout": None,
               "betvictor_payout": None, "signal": None,
               "kellyUniqueSignal": None, "kellyUniqueDirection": None,
               "kellyUniqueConfidence": None,
@@ -269,31 +267,31 @@ def calc_kelly_scenario(bookmaker_odds: dict, home_team: str, away_team: str) ->
     for bk_key, odds in bookmaker_odds.items():
         kelly_by_bookmaker[bk_key] = _calc_direction_kelly(odds)
 
-    # --- 3. 获取 Pinnacle 和 BetVictor 的 Kelly 和返还率（旧版用Pinnacle，不用B365） ---
-    pinnacle_kelly = kelly_by_bookmaker.get("pinnacle")
+    # --- 3. 获取 Bet365 和 BetVictor 的 Kelly 和返还率 ---
+    bet365_kelly = kelly_by_bookmaker.get("bet365")
     betvictor_kelly = kelly_by_bookmaker.get("betvictor")
-    pinnacle_payout = None
+    bet365_payout = None
     betvictor_payout = None
 
     # 计算每家公司的实际返还率
-    pinnacle_odds = bookmaker_odds.get("pinnacle", {})
-    if pinnacle_odds.get("home", 0) > 1 and pinnacle_odds.get("draw", 0) > 1 and pinnacle_odds.get("away", 0) > 1:
-        pinnacle_payout = 1 / (1/pinnacle_odds["home"] + 1/pinnacle_odds["draw"] + 1/pinnacle_odds["away"])
-        pinnacle_payout = round(pinnacle_payout, 4)
+    bet365_odds = bookmaker_odds.get("bet365", {})
+    if bet365_odds.get("home", 0) > 1 and bet365_odds.get("draw", 0) > 1 and bet365_odds.get("away", 0) > 1:
+        bet365_payout = 1 / (1/bet365_odds["home"] + 1/bet365_odds["draw"] + 1/bet365_odds["away"])
+        bet365_payout = round(bet365_payout, 4)
 
     betvictor_odds = bookmaker_odds.get("betvictor", {})
     if betvictor_odds.get("home", 0) > 1 and betvictor_odds.get("draw", 0) > 1 and betvictor_odds.get("away", 0) > 1:
         betvictor_payout = 1 / (1/betvictor_odds["home"] + 1/betvictor_odds["draw"] + 1/betvictor_odds["away"])
         betvictor_payout = round(betvictor_payout, 4)
 
-    if not pinnacle_kelly or not betvictor_kelly:
+    if not bet365_kelly or not betvictor_kelly:
         return {**_empty,
-                "pinnacle_kelly": pinnacle_kelly,
+                "bet365_kelly": bet365_kelly,
                 "betvictor_kelly": betvictor_kelly,
-                "pinnacle_payout": pinnacle_payout,
+                "bet365_payout": bet365_payout,
                 "betvictor_payout": betvictor_payout}
 
-    # --- 4. "唯独低于返还率"信号检测（旧版只检测，不做增强） ---
+    # --- 4. "唯独低于返还率"信号检测 ---
     kellyUniqueSignal = None
     kellyUniqueDirection = None
     kellyUniqueConfidence = None
@@ -309,44 +307,44 @@ def calc_kelly_scenario(bookmaker_odds: dict, home_team: str, away_team: str) ->
             return True, below_dirs[0]
         return False, None
 
-    ps_unique, ps_unique_dir = _check_unique_below_payout(pinnacle_kelly, pinnacle_payout) if pinnacle_payout else (False, None)
+    b365_unique, b365_unique_dir = _check_unique_below_payout(bet365_kelly, bet365_payout) if bet365_payout else (False, None)
     bv_unique, bv_unique_dir = _check_unique_below_payout(betvictor_kelly, betvictor_payout) if betvictor_payout else (False, None)
 
     # 两家一致：都满足"唯独"且方向相同
-    if ps_unique and bv_unique and ps_unique_dir == bv_unique_dir:
+    if b365_unique and bv_unique and b365_unique_dir == bv_unique_dir:
         dir_map = {"胜": "H", "平": "D", "负": "A"}
         dir_cn = {"胜": "主胜", "平": "平局", "负": "客胜"}
-        kellyUniqueDirection = dir_map[ps_unique_dir]
-        kellyUniqueSignal = f"唯独低于返还率·{dir_cn[ps_unique_dir]}"
-        # 旧版：只标记，不加置信度增强
-        if ps_unique_dir != "平":
-            kellyUniqueConfidence = 15  # 保留字段但旧版不用于增强
+        kellyUniqueDirection = dir_map[b365_unique_dir]
+        kellyUniqueSignal = f"唯独低于返还率·{dir_cn[b365_unique_dir]}"
+        # 平局方向不显著，不加提升
+        if b365_unique_dir != "平":
+            kellyUniqueConfidence = 15
         else:
             kellyUniqueConfidence = 0
 
-    # --- 5. 找各公司最低 Kelly 方向（用Pinnacle替代B365） ---
+    # --- 5. 找各公司最低 Kelly 方向（保留场景D逻辑作为备用） ---
     def _min_direction(kelly_dict):
         """返回 (最低方向, 最低值)"""
         items = list(kelly_dict.items())
         items.sort(key=lambda x: x[1])
         return items[0]
 
-    ps_min_dir, ps_min_val = _min_direction(pinnacle_kelly)
+    b365_min_dir, b365_min_val = _min_direction(bet365_kelly)
     bv_min_dir, bv_min_val = _min_direction(betvictor_kelly)
 
-    # --- 6. 分类场景 A/B/C/D（Pinnacle + BetVictor） ---
+    # --- 6. 分类场景 A/B/C/D ---
     # A: 两家最低Kelly均为平局
     # B: 两家最低Kelly相反（一胜一负）
     # C: 两家最低不同+至少一家平局
     # D: 两家最低相同且非平局
     scenario = None
-    if ps_min_dir == "平" and bv_min_dir == "平":
+    if b365_min_dir == "平" and bv_min_dir == "平":
         scenario = "A"
-    elif (ps_min_dir == "胜" and bv_min_dir == "负") or (ps_min_dir == "负" and bv_min_dir == "胜"):
+    elif (b365_min_dir == "胜" and bv_min_dir == "负") or (b365_min_dir == "负" and bv_min_dir == "胜"):
         scenario = "B"
-    elif ps_min_dir == bv_min_dir and ps_min_dir != "平":
+    elif b365_min_dir == bv_min_dir and b365_min_dir != "平":
         scenario = "D"
-    elif ps_min_dir != bv_min_dir and (ps_min_dir == "平" or bv_min_dir == "平"):
+    elif b365_min_dir != bv_min_dir and (b365_min_dir == "平" or bv_min_dir == "平"):
         scenario = "C"
     else:
         # 其他情况（如两家最低不同但都不是平局且不是严格相反）
@@ -364,7 +362,7 @@ def calc_kelly_scenario(bookmaker_odds: dict, home_team: str, away_team: str) ->
 
     kelly_min_filter_pass = all(k >= KELLY_MIN_FILTER_THRESHOLD for k in all_kelly_values) if all_kelly_values else True
 
-    # --- 9. 反向信号检测（旧版：只提示，不排除） ---
+    # --- 9. 反向信号检测：两家最高Kelly方向一致 → 该方向出现率显著偏低 ---
     # 最高Kelly方向 = 庄家最不保护/最激进的方向
     kellyReverseDirection = None
     kellyReverseSignal = None
@@ -375,20 +373,20 @@ def calc_kelly_scenario(bookmaker_odds: dict, home_team: str, away_team: str) ->
         items.sort(key=lambda x: -x[1])
         return items[0]
 
-    ps_max_dir, ps_max_val = _max_direction(pinnacle_kelly)
+    b365_max_dir, b365_max_val = _max_direction(bet365_kelly)
     bv_max_dir, bv_max_val = _max_direction(betvictor_kelly)
 
-    # 两家最高Kelly方向一致 → 反向信号（旧版：提示而非排除）
-    if ps_max_dir == bv_max_dir:
+    # 两家最高Kelly方向一致 → 反向信号
+    if b365_max_dir == bv_max_dir:
         dir_map_rev = {"胜": "H", "平": "D", "负": "A"}
         dir_cn_rev = {"胜": "主胜", "平": "平局", "负": "客胜"}
-        kellyReverseDirection = dir_map_rev[ps_max_dir]
-        kellyReverseSignal = f"反向信号·提示排除{dir_cn_rev[ps_max_dir]}"
+        kellyReverseDirection = dir_map_rev[b365_max_dir]
+        kellyReverseSignal = f"反向信号·排除{dir_cn_rev[b365_max_dir]}"
 
-    # --- 10. 生成信号描述（场景D用5%加成而非8%） ---
+    # --- 10. 生成信号描述（保留场景D信号作为备用） ---
     signal = None
     if scenario == "D":
-        min_dir = ps_min_dir  # D场景两家相同
+        min_dir = b365_min_dir  # D场景两家相同
         if min_dir == "负" and ladbrokes_draw_kelly is not None and ladbrokes_draw_kelly <= LADBROKES_DRAW_KELLY_MEDIAN:
             signal = "凯利D客胜+立博平局保护"
         elif min_dir == "胜" and ladbrokes_draw_kelly is not None and ladbrokes_draw_kelly <= LADBROKES_DRAW_KELLY_MEDIAN:
@@ -404,9 +402,9 @@ def calc_kelly_scenario(bookmaker_odds: dict, home_team: str, away_team: str) ->
         "scenario": scenario,
         "kelly_min_filter_pass": kelly_min_filter_pass,
         "ladbrokes_draw_kelly": round(ladbrokes_draw_kelly, 4) if ladbrokes_draw_kelly else None,
-        "pinnacle_kelly": {k: round(v, 4) for k, v in pinnacle_kelly.items()},
+        "bet365_kelly": {k: round(v, 4) for k, v in bet365_kelly.items()},
         "betvictor_kelly": {k: round(v, 4) for k, v in betvictor_kelly.items()},
-        "pinnacle_payout": pinnacle_payout,
+        "bet365_payout": bet365_payout,
         "betvictor_payout": betvictor_payout,
         "signal": signal,
         "kellyUniqueSignal": kellyUniqueSignal,
@@ -523,11 +521,6 @@ def predict_match(match: dict, teams: dict, kelly_data: dict = None) -> dict:
         if not skip:
             skip = True
             skip_reason = "结果太不确定，各方向概率接近"
-    # 旧版独有：ct<35%时skip
-    if ct < 35:
-        if not skip:
-            skip = True
-            skip_reason = f"置信度过低({ct}%)"
 
     # ===== 单/双选判断 =====
     prediction = ""
@@ -585,7 +578,7 @@ def predict_match(match: dict, teams: dict, kelly_data: dict = None) -> dict:
         if has_odds:
             reason += f" · {odds_source}赔率"
 
-    # ===== 凯利场景增强（旧版逻辑：唯独信号只标记不增强，反向信号只提示不排除，场景D+5%） =====
+    # ===== 凯利场景增强（基于多公司赔率的场景分析） =====
     kelly_scenario = None
     kelly_signal = None
     ladbrokes_draw_kelly = None
@@ -606,27 +599,48 @@ def predict_match(match: dict, teams: dict, kelly_data: dict = None) -> dict:
         # --- Kelly异常过滤：任一方向Kelly<0.87 ---
         if not kelly_data.get("kelly_min_filter_pass", True):
             ct = max(0, ct - 10)
+            if "凯利异常" not in reason:
+                reason += " · 凯利异常"
 
-        # --- 旧版：唯独信号只标记，不加置信度和星级 ---
-        # 不做任何增强（旧版没有 +20%/+15% 加成，不加星）
+        # --- "唯独低于返还率"信号增强（优先级高于场景D） ---
+        if kelly_unique_direction and kelly_unique_direction != "D":
+            # 非平局方向（H/A）增强，平局方向不增强
+            if kelly_unique_direction == "H":
+                # 唯独低于返还率·主胜：回测53.5%(基线42.8%)，最强单一信号之一
+                # 置信度+20%，星级+1
+                ct = min(100, ct + 20)
+                stars = min(5, stars + 1)
+                if kelly_unique_signal and kelly_unique_signal not in reason:
+                    reason += f" · {kelly_unique_signal}"
+            elif kelly_unique_direction == "A":
+                # 唯独低于返还率·客胜：回测46.2%(基线30.7%)，置信度+15%，星级+1
+                ct = min(100, ct + 15)
+                stars = min(5, stars + 1)
+                if kelly_unique_signal and kelly_unique_signal not in reason:
+                    reason += f" · {kelly_unique_signal}"
+            # D（平局方向）不增强
 
-        # --- 场景D增强（旧版：5%加成，不是8%） ---
+        # --- 场景D增强（作为备用信号） ---
         if kelly_scenario == "D":
-            pinnacle_kelly = kelly_data.get("pinnacle_kelly", {})
+            b365_kelly = kelly_data.get("bet365_kelly", {})
             # D场景：两家最低相同方向
-            min_dir = min(pinnacle_kelly, key=pinnacle_kelly.get) if pinnacle_kelly else None
+            min_dir = min(b365_kelly, key=b365_kelly.get) if b365_kelly else None
             ldk = ladbrokes_draw_kelly
 
             # 仅当"唯独"信号未触发时才应用场景D增强
             if not kelly_unique_direction:
                 if min_dir == "负" and ldk is not None and ldk <= LADBROKES_DRAW_KELLY_MEDIAN:
-                    # 旧版：场景D客胜加成5%
-                    ct = min(100, ct + 5)
+                    # 场景D客胜+立博平局保护：B365+BV覆盖率高，客胜加成调回+8%
+                    ct = min(100, ct + 8)
+                    if "凯利D客胜+立博平局保护" not in reason:
+                        reason += " · 凯利D客胜+立博平局保护"
                 elif min_dir == "胜" and ldk is not None and ldk <= LADBROKES_DRAW_KELLY_MEDIAN:
-                    # 旧版：场景D主胜加成5%
-                    ct = min(100, ct + 5)
+                    # 场景D主胜+立博平局保护：置信度+8%
+                    ct = min(100, ct + 8)
+                    if "凯利D主胜+立博平局保护" not in reason:
+                        reason += " · 凯利D主胜+立博平局保护"
 
-        # --- 场景B平局排除（旧版保留此逻辑） ---
+        # --- 场景B平局排除 ---
         elif kelly_scenario == "B":
             ldk = ladbrokes_draw_kelly
             if ldk is not None and ldk > LADBROKES_DRAW_KELLY_MEDIAN:
@@ -638,10 +652,37 @@ def predict_match(match: dict, teams: dict, kelly_data: dict = None) -> dict:
                         double_pick = remaining
                         prediction = remaining[0]
                         pred_type = "single"
+                        if "立博不看好平局" not in reason:
+                            reason += " · 立博不看好平局"
 
-        # --- 旧版：反向信号只做提示，不做排除 ---
-        # 旧版逻辑：只在 reason 中添加提示，不改变 double_pick 或 prediction
-        # 不做任何排除操作（与优化版的核心区别）
+        # --- 反向信号处理 ---
+        # 两家最高Kelly方向一致 → 该方向出现率显著偏低 → 排除该方向
+        if kelly_reverse_direction:
+            reverse_dir_map = {"H": "胜", "D": "平", "A": "负"}
+            reverse_cn = {"H": "主胜", "D": "平局", "A": "客胜"}
+            reverse_dir_cn = reverse_cn.get(kelly_reverse_direction, "")
+            reverse_dir_zh = reverse_dir_map.get(kelly_reverse_direction, "")
+
+            if pred_type == "double" and double_pick:
+                # 双选：如果某个选择方向与反向信号冲突，排除该方向
+                if reverse_dir_zh in double_pick:
+                    remaining = [x for x in double_pick if x != reverse_dir_zh]
+                    if remaining:
+                        double_pick = remaining
+                        if len(double_pick) == 1:
+                            # 排除后只剩一个方向 → 变单选
+                            prediction = double_pick[0]
+                            pred_type = "single"
+                        else:
+                            prediction = "+".join(double_pick)
+                        if kelly_reverse_signal and kelly_reverse_signal not in reason:
+                            reason += f" · {kelly_reverse_signal}"
+            elif pred_type == "single":
+                # 单选：反向信号升级为置信度-10%惩罚（回测：反向信号排除命中率72.4%，排除正确率很高）
+                if kelly_reverse_direction:
+                    ct = max(0, ct - 10)
+                    if kelly_reverse_signal and kelly_reverse_signal not in reason:
+                        reason += f" · {kelly_reverse_signal}(置信度-10%)"
 
     return {
         "prediction": prediction,
@@ -1113,12 +1154,8 @@ async def _fetch_odds_api_odds(league_code: str) -> list:
                             "away": away_odds,
                         }
 
-                # 至少需要2家核心公司赔率才有场景分析价值
-                # 优先 bet365+betvictor，其次 pinnacle+betvictor（小联赛bet365常缺）
-                key_count = len(bookmakers)
-                has_b365_bv = "bet365" in bookmakers and "betvictor" in bookmakers
-                has_pin_bv = "pinnacle" in bookmakers and "betvictor" in bookmakers
-                if key_count >= 2 and (has_b365_bv or has_pin_bv):
+                # 至少需要 bet365 + betvictor 才有场景分析价值
+                if "bet365" in bookmakers and "betvictor" in bookmakers:
                     results.append({
                         "homeEN": home_team,
                         "awayEN": away_team,
@@ -1160,373 +1197,6 @@ async def _fetch_world_cup_results() -> list:
     except Exception as e:
         print(f"[WARN] 世界杯 API 异常: {e}")
     return []
-
-
-# ===== 竞彩网赔率备选数据源 =====
-
-def _parse_sporttery_content(content: str) -> dict:
-    """
-    解析竞彩网(sporttery.cn)赔率页面内容，提取胜平负赔率
-    
-    页面内容可能是:
-    1. JSON 格式: {"data":{"content":"...表格内容..."}}
-    2. 纯文本/HTML: 包含 markdown 表格
-    
-    返回: { (home_cn_norm, away_cn_norm): {"w": float, "d": float, "l": float,
-                                             "hcp_w": float, "hcp_d": float, "hcp_l": float,
-                                             "handicap": str, "home_cn": str, "away_cn": str} }
-    """
-    import re as _re
-    
-    if not content:
-        return {}
-    
-    # Step 1: 尝试解析为 JSON（sporttery.cn 可能返回 JSON 响应）
-    actual_content = content
-    try:
-        data = json.loads(content)
-        if isinstance(data, dict):
-            # JSON API 格式: {"data": {"content": "..."}}
-            actual_content = data.get("data", {}).get("content", "")
-            if not actual_content:
-                # 也可能是直接的数据格式: {"data": {"match_id": {"h_cn": ..., ...}}}
-                raw_data = data.get("data", {})
-                if isinstance(raw_data, dict) and not isinstance(
-                    next(iter(raw_data.values()), None), str
-                ):
-                    # 这是 JSON API 格式，直接解析
-                    return _parse_sporttery_api_data(raw_data)
-    except (json.JSONDecodeError, TypeError, AttributeError):
-        pass
-    
-    if not actual_content:
-        return {}
-    
-    # Step 2: 清理 HTML/Markdown 标记
-    # 注意：竞彩网页面是单行 markdown 表格，<br> 在单元格内，不能转为换行（否则拆行）
-    text = _re.sub(r'<br\s*/?>', ' ', actual_content)
-    # 移除 markdown 图片: ![alt](url)
-    text = _re.sub(r'!\[[^\]]*\]\([^)]*\)', '', text)
-    # 清理竞彩网嵌套括号链接格式:
-    #   [[联赛+排名]队名](url) → 队名   如 [[芬超11]雅罗](url) → 雅罗
-    #   [队名[联赛+排名]](url) → 队名   如 [国际图尔[芬超2]](url) → 国际图尔
-    # 先去掉 URL 部分: ](url) → ]
-    text = _re.sub(r'\]\([^)]*\)', ']', text)
-    # 处理 [[x]y] → y (嵌套左括号: [[联赛+排名]队名])
-    text = _re.sub(r'\[\[[^\]]*\]([^\[\]]*)\]', r'\1', text)
-    # 处理 [x[y]] → x (嵌套右括号: [队名[联赛+排名]])
-    text = _re.sub(r'\[([^\[\]]*)\[[^\]]*\]\]', r'\1', text)
-    # 移除剩余的简单 [xxx] 标记
-    text = _re.sub(r'\[[^\]]*\]', '', text)
-    
-    # Step 3: 按表格行解析赔率
-    # 竞彩网页面是 markdown 表格，每行用 | 分隔，格式：
-    # | 编号 | 联赛 | 时间 | 主队VS客队 | 让球 | 标准赔率\n让球赔率 | 同奖 | 支持率 | ...
-    results = {}
-    
-    # 按行分割表格（每行以 | 开头）
-    lines = text.split('\n')
-    for line in lines:
-        line = line.strip()
-        if 'VS' not in line:
-            continue
-        # 跳过表头行
-        if '主队' in line and '客队' in line:
-            continue
-        
-        # 用 | 分割列
-        cols = [c.strip() for c in line.split('|')]
-        # 过滤空列
-        cols = [c for c in cols if c]
-        
-        # 至少需要 6 列（编号、联赛、时间、队名VS、让球、赔率）
-        if len(cols) < 6:
-            continue
-        
-        # 查找包含 VS 的列
-        vs_col_idx = -1
-        for i, c in enumerate(cols):
-            if 'VS' in c:
-                vs_col_idx = i
-                break
-        
-        if vs_col_idx < 0:
-            continue
-        
-        # 提取队名
-        vs_text = cols[vs_col_idx]
-        vs_parts = vs_text.split('VS')
-        if len(vs_parts) != 2:
-            continue
-        
-        home_cn = vs_parts[0].strip()
-        away_cn = vs_parts[1].strip()
-        
-        # 清理队名中的非队名字符（数字、百分号等）
-        home_cn = _re.sub(r'^[\d\s%]+', '', home_cn).strip()
-        away_cn = _re.sub(r'[\d\s%]+$', '', away_cn).strip()
-        
-        if not home_cn or not away_cn:
-            continue
-        
-        # 在 VS 列之后的列中查找赔率（标准赔率+让球赔率共6个数字）
-        # 赔率列可能在 vs_col_idx+1 或 vs_col_idx+2 位置
-        odds_text = ""
-        for i in range(vs_col_idx + 1, min(len(cols), vs_col_idx + 4)):
-            odds_text += " " + cols[i]
-        
-        all_odds = _re.findall(r'\d+\.\d{2}', odds_text)
-        if len(all_odds) < 6:
-            # 尝试从整行提取（某些格式赔率不在独立列中）
-            all_odds = _re.findall(r'\d+\.\d{2}', line)
-            # 找到 VS 之后的赔率
-            vs_pos_in_line = line.find('VS')
-            if vs_pos_in_line >= 0:
-                after_vs_text = line[vs_pos_in_line:]
-                all_odds_after = _re.findall(r'\d+\.\d{2}', after_vs_text)
-                if len(all_odds_after) >= 6:
-                    all_odds = all_odds_after
-        
-        if len(all_odds) < 6:
-            continue
-        
-        try:
-            std_w = float(all_odds[0])
-            std_d = float(all_odds[1])
-            std_l = float(all_odds[2])
-            hcp_w = float(all_odds[3])
-            hcp_d = float(all_odds[4])
-            hcp_l = float(all_odds[5])
-        except (ValueError, IndexError):
-            continue
-        
-        # 验证赔率有效性（标准赔率必须 > 1.0）
-        if std_w <= 1.0 or std_d <= 1.0 or std_l <= 1.0:
-            continue
-        
-        # 提取让球数（在 VS 列和赔率列之间）
-        # 竞彩网格式: "0 +1" 或 "0 -2"，第一个0是默认让球，后面是实际让球
-        handicap = ""
-        for i in range(vs_col_idx + 1, min(len(cols), vs_col_idx + 3)):
-            # 找所有 [+-]N 格式的让球数
-            hcp_matches = _re.findall(r'([+-]\d+)', cols[i])
-            if hcp_matches:
-                handicap = hcp_matches[-1]  # 取最后一个（实际让球）
-        
-        # 存储结果
-        key = (_normalize_name(home_cn), _normalize_name(away_cn))
-        results[key] = {
-            "w": std_w, "d": std_d, "l": std_l,
-            "hcp_w": hcp_w, "hcp_d": hcp_d, "hcp_l": hcp_l,
-            "handicap": handicap,
-            "home_cn": home_cn,
-            "away_cn": away_cn,
-        }
-    
-    return results
-
-
-def _parse_sporttery_api_data(raw_data: dict) -> dict:
-    """
-    解析 i.sporttery.cn JSON API 返回的赔率数据
-    数据格式: {match_id: {"h_cn": "西班牙", "a_cn": "阿根廷", "had": {"h": "2.11", ...}, ...}}
-    
-    返回: 同 _parse_sporttery_content 格式
-    """
-    results = {}
-    
-    for match_id, match_data in raw_data.items():
-        if not isinstance(match_data, dict):
-            continue
-        
-        home_cn = match_data.get("h_cn", "").strip()
-        away_cn = match_data.get("a_cn", "").strip()
-        if not home_cn or not away_cn:
-            continue
-        
-        # 胜平负赔率
-        had = match_data.get("had", {})
-        std_w = float(had.get("h", "0"))
-        std_d = float(had.get("d", "0"))
-        std_l = float(had.get("a", "0"))
-        
-        if std_w <= 1.0 or std_d <= 1.0 or std_l <= 1.0:
-            continue
-        
-        # 让球胜平负赔率
-        hhad = match_data.get("hhad", {})
-        hcp_w = float(hhad.get("h", "0")) if hhad else 0
-        hcp_d = float(hhad.get("d", "0")) if hhad else 0
-        hcp_l = float(hhad.get("a", "0")) if hhad else 0
-        
-        handicap = had.get("hgd", hhad.get("hgd", "")) if isinstance(had, dict) else ""
-        
-        key = (_normalize_name(home_cn), _normalize_name(away_cn))
-        results[key] = {
-            "w": std_w, "d": std_d, "l": std_l,
-            "hcp_w": hcp_w, "hcp_d": hcp_d, "hcp_l": hcp_l,
-            "handicap": str(handicap),
-            "home_cn": home_cn,
-            "away_cn": away_cn,
-        }
-    
-    return results
-
-
-async def _fetch_sporttery_odds(sdk) -> dict:
-    """
-    从竞彩网(sporttery.cn)获取胜平负赔率作为备选数据源
-    
-    优先尝试 i.sporttery.cn JSON API（数据结构化），回退到 www.sporttery.cn 页面解析
-    
-    返回: { (home_cn_norm, away_cn_norm): odds_dict }
-    """
-    # 方法1: 尝试 i.sporttery.cn JSON API
-    api_url = "https://i.sporttery.cn/odds_calculator/get_odds?i_format=json&poolcode[]=had&poolcode[]=hhad"
-    try:
-        fetch_result = await sdk.call_tool(
-            "codeact_fetch_web",
-            {"url": api_url},
-            schema_version=TOOL_SCHEMA_VERSIONS["codeact_fetch_web"],
-        )
-        if fetch_result.get("is_success"):
-            content = fetch_result.get("content", "")
-            if content:
-                # JSONP 响应格式: callback({...}); 去掉回调包装
-                try:
-                    # 尝试直接解析
-                    data = json.loads(content)
-                    raw_data = data.get("data", {})
-                    if raw_data:
-                        parsed = _parse_sporttery_api_data(raw_data)
-                        if parsed:
-                            print(f"[OK] 竞彩网 API 赔率: {len(parsed)} 场比赛")
-                            return parsed
-                except json.JSONDecodeError:
-                    # 可能是 JSONP 格式，尝试去掉回调包装
-                    try:
-                        # JSONP: callback({...}) → 取 {...}
-                        json_start = content.index('(')
-                        json_end = content.rindex(')')
-                        inner = content[json_start + 1:json_end]
-                        data = json.loads(inner)
-                        raw_data = data.get("data", {})
-                        if raw_data:
-                            parsed = _parse_sporttery_api_data(raw_data)
-                            if parsed:
-                                print(f"[OK] 竞彩网 API(JSONP) 赔率: {len(parsed)} 场比赛")
-                                return parsed
-                    except (ValueError, json.JSONDecodeError):
-                        pass
-    except Exception as e:
-        print(f"[WARN] 竞彩网 API 获取异常: {e}")
-    
-    # 方法2: 解析 www.sporttery.cn 页面
-    page_url = "https://www.sporttery.cn/jc/jsq/zqspf/"
-    try:
-        fetch_result = await sdk.call_tool(
-            "codeact_fetch_web",
-            {"url": page_url},
-            schema_version=TOOL_SCHEMA_VERSIONS["codeact_fetch_web"],
-        )
-        if fetch_result.get("is_success"):
-            content = fetch_result.get("content", "")
-            if content:
-                parsed = _parse_sporttery_content(content)
-                if parsed:
-                    print(f"[OK] 竞彩网页面赔率: {len(parsed)} 场比赛")
-                    return parsed
-                else:
-                    print(f"[WARN] 竞彩网页面解析无结果 (内容长度: {len(content)})")
-        else:
-            print(f"[WARN] 竞彩网页面获取失败: {fetch_result.get('error', '')}")
-    except Exception as e:
-        print(f"[WARN] 竞彩网页面获取异常: {e}")
-    
-    print("[WARN] 竞彩网赔率获取失败，将使用 Elo 降级")
-    return {}
-
-
-def _match_sporttery_odds(home_cn: str, away_cn: str, sporttery_odds: dict) -> dict:
-    """
-    在竞彩网赔率数据中查找匹配的比赛赔率
-    支持精确匹配和模糊匹配（子串包含）
-    
-    返回: odds_dict 或 None
-    """
-    if not sporttery_odds:
-        return None
-    
-    # 竞彩网常用缩写/别名 → 预测中的标准名称 映射
-    _NAME_ALIASES = {
-        "埃夫斯堡": "埃尔夫斯堡",
-        "哈尔姆斯": "哈尔姆斯塔德",
-        "赫根": "哈根",
-        "厄格里特": "厄尔格里特",
-        "佐加顿斯": "尤尔加登",
-        "坦山猫": "坦佩雷山猫",
-        "国际图尔": "国际图尔库",
-        "天狼星": "西里乌斯",
-        "马尔默": "马尔默",
-    }
-    
-    def _apply_aliases(name: str) -> list:
-        """返回名称的所有可能变体（原名 + 别名映射）"""
-        variants = [name]
-        # 如果名称是别名键，添加映射值
-        if name in _NAME_ALIASES:
-            variants.append(_NAME_ALIASES[name])
-        # 如果名称是别名值，添加映射键
-        for k, v in _NAME_ALIASES.items():
-            if v == name:
-                variants.append(k)
-        return variants
-    
-    # 方法1: 精确标准化名称匹配（含别名变体）
-    home_variants = _apply_aliases(home_cn)
-    away_variants = _apply_aliases(away_cn)
-    
-    for hv in home_variants:
-        for av in away_variants:
-            key = (_normalize_name(hv), _normalize_name(av))
-            if key in sporttery_odds:
-                return sporttery_odds[key]
-            # 主客颠倒匹配
-            key_rev = (_normalize_name(av), _normalize_name(hv))
-            if key_rev in sporttery_odds:
-                odds = sporttery_odds[key_rev]
-                return {
-                    "w": odds["l"], "d": odds["d"], "l": odds["w"],
-                    "hcp_w": odds.get("hcp_l", 0), "hcp_d": odds.get("hcp_d", 0), "hcp_l": odds.get("hcp_w", 0),
-                    "handicap": odds.get("handicap", ""),
-                    "home_cn": odds.get("away_cn", away_cn),
-                    "away_cn": odds.get("home_cn", home_cn),
-                }
-    
-    # 方法2: 模糊匹配（子串包含，含别名变体）
-    for hv in home_variants:
-        for av in away_variants:
-            hv_norm = _normalize_name(hv)
-            av_norm = _normalize_name(av)
-            for (s_home, s_away), odds in sporttery_odds.items():
-                # 检查是否一方包含另一方
-                home_match = (hv_norm in s_home or s_home in hv_norm)
-                away_match = (av_norm in s_away or s_away in av_norm)
-                if home_match and away_match:
-                    return odds
-                # 也尝试交叉匹配
-                home_match_x = (hv_norm in s_away or s_away in hv_norm)
-                away_match_x = (av_norm in s_home or s_home in av_norm)
-                if home_match_x and away_match_x:
-                    return {
-                        "w": odds["l"], "d": odds["d"], "l": odds["w"],
-                        "hcp_w": odds.get("hcp_l", 0), "hcp_d": odds.get("hcp_d", 0), "hcp_l": odds.get("hcp_w", 0),
-                        "handicap": odds.get("handicap", ""),
-                        "home_cn": odds.get("away_cn", away_cn),
-                        "away_cn": odds.get("home_cn", home_cn),
-                    }
-    
-    return None
 
 
 async def verify_predictions(predictions: list, all_matches: list):
@@ -1734,105 +1404,6 @@ async def main():
                     m["away"] = fix["away"]
         print(f"[OK] 赛程: {len(all_matches)} 场比赛")
 
-        # ===== 2.5 补充 schedule.json 中缺失的联赛赛程（从 Odds API 获取） =====
-        # ESPN API 可能不覆盖某些联赛（如 fin.1 芬超），导致 schedule.json 无该联赛数据
-        # 此处从 The Odds API /scores/ 端点获取缺失联赛的赛程并注入
-        schedule_leagues = set(m.get("league", "") for m in all_matches)
-        missing_leagues = [lc for lc in ACTIVE_LEAGUE_CODES
-                           if lc not in schedule_leagues and lc in _ODDS_API_LEAGUE_MAP]
-        if missing_leagues:
-            print(f"[INFO] schedule.json 缺失联赛: {missing_leagues}，尝试从 Odds API 补充...")
-            # 芬超等小联赛球队中文映射
-            _ODDS_TEAM_ZH = {
-                # 芬超
-                "HJK Helsinki": "赫尔辛基", "HJK": "赫尔辛基",
-                "KuPS Kuopio": "古比斯", "KuPS": "古比斯",
-                "FC Inter Turku": "国际图尔库", "FC Inter": "国际图尔库", "Inter Turku": "国际图尔库",
-                "VPS Vaasa": "VPS瓦萨", "VPS": "VPS瓦萨",
-                "AC Oulu": "奥卢",
-                "IF Gnistan": "格尼斯坦", "Gnistan": "格尼斯坦",
-                "TPS Turku": "TPS图尔库", "TPS": "TPS图尔库",
-                "FC Lahti": "拉赫蒂", "Lahti": "拉赫蒂",
-                "Ilves Tampere": "埃尔维斯", "Ilves": "埃尔维斯",
-                "SJK Seinäjoki": "塞那乔其", "SJK": "塞那乔其",
-                "Jaro": "雅罗", "FF Jaro": "雅罗",
-                "IFK Mariehamn": "玛丽港", "Mariehamn": "玛丽港",
-                # 奥超
-                "SK Sturm Graz": "格拉茨风暴", "Sturm Graz": "格拉茨风暴",
-                "Red Bull Salzburg": "萨尔茨堡", "RB Salzburg": "萨尔茨堡",
-                "Rapid Wien": "维也纳快速", "Rapid Vienna": "维也纳快速",
-                "Austria Wien": "维也纳奥地利", "Austria Vienna": "维也纳奥地利",
-                "LASK": "林茨", "Wolfsberger AC": "沃尔夫斯贝格",
-                "Hartberg": "哈特贝格", "TSV Hartberg": "哈特贝格",
-                "WSG Tirol": "蒂罗尔", "Altach": "阿尔塔赫",
-                "SCR Altach": "阿尔塔赫", "Blau-Weiß Linz": "蓝白林茨",
-                "Austria Klagenfurt": "克拉根福",
-            }
-            # 联赛中文信息
-            _LEAGUE_ZH = {
-                "fin.1": ("芬超", "芬超", 3),
-                "aut.1": ("奥甲", "奥甲", 3),
-            }
-            injected_count = 0
-            for lc in missing_leagues:
-                sport_key = _ODDS_API_LEAGUE_MAP.get(lc)
-                if not sport_key:
-                    continue
-                url = f"https://api.the-odds-api.com/v4/sports/{sport_key}/scores/"
-                params = {"apiKey": ODDS_API_KEY, "daysFrom": 3}
-                try:
-                    resp = requests.get(url, params=params, timeout=15)
-                    if resp.status_code != 200:
-                        print(f"[WARN] Odds API scores {lc}: HTTP {resp.status_code}")
-                        continue
-                    events = resp.json()
-                    league_info = _LEAGUE_ZH.get(lc, (lc, lc, 3))
-                    for evt in events:
-                        if evt.get("completed"):
-                            continue
-                        home_en = evt.get("home_team", "")
-                        away_en = evt.get("away_team", "")
-                        raw_date = evt.get("commence_time", "")
-                        # 转换为北京时间
-                        try:
-                            dt = datetime.fromisoformat(raw_date.replace("Z", "+00:00"))
-                            dt_beijing = dt.astimezone(timezone(timedelta(hours=8)))
-                            beijing_date = dt_beijing.strftime("%Y-%m-%dT%H:%M:%S") + "+08:00"
-                            weekdays = ["周一", "周二", "周三", "周四", "周五", "周六", "周日"]
-                            wd = weekdays[dt_beijing.weekday()]
-                            status_str = f"{dt_beijing.month}/{dt_beijing.day} {wd} {dt_beijing.hour:02d}:{dt_beijing.minute:02d}"
-                        except Exception:
-                            beijing_date = raw_date
-                            status_str = raw_date
-                        # 中文名查找
-                        home_cn = _ODDS_TEAM_ZH.get(home_en, home_en)
-                        away_cn = _ODDS_TEAM_ZH.get(away_en, away_en)
-                        match_entry = {
-                            "id": f"oddsapi_{evt.get('id', '')}",
-                            "home": home_cn,
-                            "away": away_cn,
-                            "homeEN": home_en,
-                            "awayEN": away_en,
-                            "date": beijing_date,
-                            "league": lc,
-                            "leagueName": league_info[0],
-                            "leagueShort": league_info[1],
-                            "status": status_str,
-                            "statusClass": "scheduled",
-                            "completed": False,
-                            "homeScore": 0,
-                            "awayScore": 0,
-                            "weight": league_info[2],
-                        }
-                        all_matches.append(match_entry)
-                        injected_count += 1
-                        print(f"[INJECT] {lc} {home_cn} vs {away_cn} | {beijing_date}")
-                except Exception as e:
-                    print(f"[WARN] Odds API scores {lc} 异常: {e}")
-                await asyncio.sleep(0.5)
-            if injected_count:
-                print(f"[OK] Odds API 补充赛程: {injected_count} 场比赛注入")
-
         # ===== 3. 获取历史预测 =====
         print("[INFO] 获取历史预测...")
         predictions_content, predictions_sha = fetch_github_file(
@@ -1899,11 +1470,6 @@ async def main():
 
         # 构建 schedule 英文名映射，用于匹配 The Odds API 队名
         schedule_en_map_for_odds = _build_schedule_en_map(all_matches)
-
-        # ===== 6.6 获取竞彩网赔率（备选数据源 fallback） =====
-        print("[INFO] 获取竞彩网赔率（备选数据源）...")
-        sporttery_odds = await _fetch_sporttery_odds(sdk)
-        print(f"[OK] 竞彩网赔率: {len(sporttery_odds)} 场比赛可用")
 
         # ===== 7. 生成新预测 =====
         new_count = 0
@@ -1985,32 +1551,6 @@ async def main():
                         reverse_tag = f" [反向{rev_dir_label}]"
                     print(f"[KELLY] {_home} vs {_away}: 场景{kelly_data['scenario']} {kelly_data.get('signal', '')}{unique_tag}{reverse_tag}")
 
-            # ===== 竞彩网赔率 fallback =====
-            # 当 schedule.json 无赔率且 The Odds API 无多公司数据时，
-            # 从竞彩网获取胜平负赔率作为备选数据源
-            if not m.get("odds") and not kelly_data:
-                sporttery_match = _match_sporttery_odds(_home, _away, sporttery_odds)
-                if sporttery_match:
-                    # 构建赔率数据（兼容 normalize_odds 的简单格式）
-                    odds_data = {
-                        "source": "竞彩网",
-                        "w": sporttery_match["w"],
-                        "d": sporttery_match["d"],
-                        "l": sporttery_match["l"],
-                    }
-                    # 如果有让球赔率，也添加进来
-                    hcp_w = sporttery_match.get("hcp_w", 0)
-                    hcp_d = sporttery_match.get("hcp_d", 0)
-                    hcp_l = sporttery_match.get("hcp_l", 0)
-                    handicap = sporttery_match.get("handicap", "")
-                    if hcp_w > 1.0 and hcp_d > 1.0 and hcp_l > 1.0 and handicap:
-                        # 将让球赔率存储为竞彩格式（normalize_odds 已支持）
-                        hcp_key = f"odds_{handicap}"  # e.g., "odds_-1" or "odds_+1"
-                        odds_data["odds_0"] = {"胜": sporttery_match["w"], "平": sporttery_match["d"], "负": sporttery_match["l"]}
-                        odds_data[hcp_key] = {"胜": hcp_w, "平": hcp_d, "负": hcp_l}
-                    m["odds"] = odds_data
-                    print(f"[FALLBACK] {_home} vs {_away}: 竞彩网赔率 {sporttery_match['w']:.2f}/{sporttery_match['d']:.2f}/{sporttery_match['l']:.2f}")
-
             # 生成新预测
             pred = predict_match(m, teams, kelly_data=kelly_data)
 
@@ -2055,11 +1595,6 @@ async def main():
                 new_count += 1
                 pred_map[match_id] = record
 
-            # 保存赔率数据到 record（竞彩网 fallback 或已有赔率）
-            if m.get("odds"):
-                pred_map[match_id]["odds"] = m["odds"]
-                pred_map[match_id]["odds_source"] = m["odds"].get("source", "unknown")
-
         # ===== 8. 组装最终预测列表 =====
         # 保留所有已验证的旧预测 + 新的/更新的未验证预测
         final_predictions = []
@@ -2077,11 +1612,6 @@ async def main():
         print(f"[DEBUG] 未验证预测: {len(unverified_preds)} 条 (新增{new_count}+更新{update_count})")
 
         print(f"[INFO] 预测统计: 保留已验证 {keep_count}, 更新 {update_count}, 新增 {new_count}")
-
-        # Debug: 检查有多少预测包含赔率
-        _preds_with_odds = [p for p in final_predictions if p.get("odds")]
-        _preds_with_jc = [p for p in final_predictions if p.get("odds_source") == "竞彩网"]
-        print(f"[DEBUG] final_predictions 中有赔率: {len(_preds_with_odds)} 场, 竞彩网: {len(_preds_with_jc)} 场")
 
         # ===== 9. 推送到 GitHub =====
         output_data = {

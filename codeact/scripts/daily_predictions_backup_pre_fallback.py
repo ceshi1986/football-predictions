@@ -141,15 +141,14 @@ def normalize_odds(odds: dict) -> tuple:
         w = o0.get("胜", 0)
         d = o0.get("平", 0)
         l = o0.get("负", 0)
-        # 让球赔率：优先 odds_minus1，其次 odds_-1，再次 odds_+1
-        handicap_odds = odds.get("odds_minus1") or odds.get("odds_-1") or odds.get("odds_+1")
+        handicap_odds = odds.get("odds_minus1")
         source = odds.get("source", "竞彩")
     elif "w" in odds:
         # 简单格式
         w = odds.get("w", 0)
         d = odds.get("d", 0)
         l = odds.get("l", 0)
-        source = odds.get("source", "足彩网")
+        source = "足彩网"
     else:
         return None, None, None, None, None
 
@@ -1113,12 +1112,8 @@ async def _fetch_odds_api_odds(league_code: str) -> list:
                             "away": away_odds,
                         }
 
-                # 至少需要2家核心公司赔率才有场景分析价值
-                # 优先 bet365+betvictor，其次 pinnacle+betvictor（小联赛bet365常缺）
-                key_count = len(bookmakers)
-                has_b365_bv = "bet365" in bookmakers and "betvictor" in bookmakers
-                has_pin_bv = "pinnacle" in bookmakers and "betvictor" in bookmakers
-                if key_count >= 2 and (has_b365_bv or has_pin_bv):
+                # 至少需要 bet365 + betvictor 才有场景分析价值
+                if "bet365" in bookmakers and "betvictor" in bookmakers:
                     results.append({
                         "homeEN": home_team,
                         "awayEN": away_team,
@@ -1160,373 +1155,6 @@ async def _fetch_world_cup_results() -> list:
     except Exception as e:
         print(f"[WARN] 世界杯 API 异常: {e}")
     return []
-
-
-# ===== 竞彩网赔率备选数据源 =====
-
-def _parse_sporttery_content(content: str) -> dict:
-    """
-    解析竞彩网(sporttery.cn)赔率页面内容，提取胜平负赔率
-    
-    页面内容可能是:
-    1. JSON 格式: {"data":{"content":"...表格内容..."}}
-    2. 纯文本/HTML: 包含 markdown 表格
-    
-    返回: { (home_cn_norm, away_cn_norm): {"w": float, "d": float, "l": float,
-                                             "hcp_w": float, "hcp_d": float, "hcp_l": float,
-                                             "handicap": str, "home_cn": str, "away_cn": str} }
-    """
-    import re as _re
-    
-    if not content:
-        return {}
-    
-    # Step 1: 尝试解析为 JSON（sporttery.cn 可能返回 JSON 响应）
-    actual_content = content
-    try:
-        data = json.loads(content)
-        if isinstance(data, dict):
-            # JSON API 格式: {"data": {"content": "..."}}
-            actual_content = data.get("data", {}).get("content", "")
-            if not actual_content:
-                # 也可能是直接的数据格式: {"data": {"match_id": {"h_cn": ..., ...}}}
-                raw_data = data.get("data", {})
-                if isinstance(raw_data, dict) and not isinstance(
-                    next(iter(raw_data.values()), None), str
-                ):
-                    # 这是 JSON API 格式，直接解析
-                    return _parse_sporttery_api_data(raw_data)
-    except (json.JSONDecodeError, TypeError, AttributeError):
-        pass
-    
-    if not actual_content:
-        return {}
-    
-    # Step 2: 清理 HTML/Markdown 标记
-    # 注意：竞彩网页面是单行 markdown 表格，<br> 在单元格内，不能转为换行（否则拆行）
-    text = _re.sub(r'<br\s*/?>', ' ', actual_content)
-    # 移除 markdown 图片: ![alt](url)
-    text = _re.sub(r'!\[[^\]]*\]\([^)]*\)', '', text)
-    # 清理竞彩网嵌套括号链接格式:
-    #   [[联赛+排名]队名](url) → 队名   如 [[芬超11]雅罗](url) → 雅罗
-    #   [队名[联赛+排名]](url) → 队名   如 [国际图尔[芬超2]](url) → 国际图尔
-    # 先去掉 URL 部分: ](url) → ]
-    text = _re.sub(r'\]\([^)]*\)', ']', text)
-    # 处理 [[x]y] → y (嵌套左括号: [[联赛+排名]队名])
-    text = _re.sub(r'\[\[[^\]]*\]([^\[\]]*)\]', r'\1', text)
-    # 处理 [x[y]] → x (嵌套右括号: [队名[联赛+排名]])
-    text = _re.sub(r'\[([^\[\]]*)\[[^\]]*\]\]', r'\1', text)
-    # 移除剩余的简单 [xxx] 标记
-    text = _re.sub(r'\[[^\]]*\]', '', text)
-    
-    # Step 3: 按表格行解析赔率
-    # 竞彩网页面是 markdown 表格，每行用 | 分隔，格式：
-    # | 编号 | 联赛 | 时间 | 主队VS客队 | 让球 | 标准赔率\n让球赔率 | 同奖 | 支持率 | ...
-    results = {}
-    
-    # 按行分割表格（每行以 | 开头）
-    lines = text.split('\n')
-    for line in lines:
-        line = line.strip()
-        if 'VS' not in line:
-            continue
-        # 跳过表头行
-        if '主队' in line and '客队' in line:
-            continue
-        
-        # 用 | 分割列
-        cols = [c.strip() for c in line.split('|')]
-        # 过滤空列
-        cols = [c for c in cols if c]
-        
-        # 至少需要 6 列（编号、联赛、时间、队名VS、让球、赔率）
-        if len(cols) < 6:
-            continue
-        
-        # 查找包含 VS 的列
-        vs_col_idx = -1
-        for i, c in enumerate(cols):
-            if 'VS' in c:
-                vs_col_idx = i
-                break
-        
-        if vs_col_idx < 0:
-            continue
-        
-        # 提取队名
-        vs_text = cols[vs_col_idx]
-        vs_parts = vs_text.split('VS')
-        if len(vs_parts) != 2:
-            continue
-        
-        home_cn = vs_parts[0].strip()
-        away_cn = vs_parts[1].strip()
-        
-        # 清理队名中的非队名字符（数字、百分号等）
-        home_cn = _re.sub(r'^[\d\s%]+', '', home_cn).strip()
-        away_cn = _re.sub(r'[\d\s%]+$', '', away_cn).strip()
-        
-        if not home_cn or not away_cn:
-            continue
-        
-        # 在 VS 列之后的列中查找赔率（标准赔率+让球赔率共6个数字）
-        # 赔率列可能在 vs_col_idx+1 或 vs_col_idx+2 位置
-        odds_text = ""
-        for i in range(vs_col_idx + 1, min(len(cols), vs_col_idx + 4)):
-            odds_text += " " + cols[i]
-        
-        all_odds = _re.findall(r'\d+\.\d{2}', odds_text)
-        if len(all_odds) < 6:
-            # 尝试从整行提取（某些格式赔率不在独立列中）
-            all_odds = _re.findall(r'\d+\.\d{2}', line)
-            # 找到 VS 之后的赔率
-            vs_pos_in_line = line.find('VS')
-            if vs_pos_in_line >= 0:
-                after_vs_text = line[vs_pos_in_line:]
-                all_odds_after = _re.findall(r'\d+\.\d{2}', after_vs_text)
-                if len(all_odds_after) >= 6:
-                    all_odds = all_odds_after
-        
-        if len(all_odds) < 6:
-            continue
-        
-        try:
-            std_w = float(all_odds[0])
-            std_d = float(all_odds[1])
-            std_l = float(all_odds[2])
-            hcp_w = float(all_odds[3])
-            hcp_d = float(all_odds[4])
-            hcp_l = float(all_odds[5])
-        except (ValueError, IndexError):
-            continue
-        
-        # 验证赔率有效性（标准赔率必须 > 1.0）
-        if std_w <= 1.0 or std_d <= 1.0 or std_l <= 1.0:
-            continue
-        
-        # 提取让球数（在 VS 列和赔率列之间）
-        # 竞彩网格式: "0 +1" 或 "0 -2"，第一个0是默认让球，后面是实际让球
-        handicap = ""
-        for i in range(vs_col_idx + 1, min(len(cols), vs_col_idx + 3)):
-            # 找所有 [+-]N 格式的让球数
-            hcp_matches = _re.findall(r'([+-]\d+)', cols[i])
-            if hcp_matches:
-                handicap = hcp_matches[-1]  # 取最后一个（实际让球）
-        
-        # 存储结果
-        key = (_normalize_name(home_cn), _normalize_name(away_cn))
-        results[key] = {
-            "w": std_w, "d": std_d, "l": std_l,
-            "hcp_w": hcp_w, "hcp_d": hcp_d, "hcp_l": hcp_l,
-            "handicap": handicap,
-            "home_cn": home_cn,
-            "away_cn": away_cn,
-        }
-    
-    return results
-
-
-def _parse_sporttery_api_data(raw_data: dict) -> dict:
-    """
-    解析 i.sporttery.cn JSON API 返回的赔率数据
-    数据格式: {match_id: {"h_cn": "西班牙", "a_cn": "阿根廷", "had": {"h": "2.11", ...}, ...}}
-    
-    返回: 同 _parse_sporttery_content 格式
-    """
-    results = {}
-    
-    for match_id, match_data in raw_data.items():
-        if not isinstance(match_data, dict):
-            continue
-        
-        home_cn = match_data.get("h_cn", "").strip()
-        away_cn = match_data.get("a_cn", "").strip()
-        if not home_cn or not away_cn:
-            continue
-        
-        # 胜平负赔率
-        had = match_data.get("had", {})
-        std_w = float(had.get("h", "0"))
-        std_d = float(had.get("d", "0"))
-        std_l = float(had.get("a", "0"))
-        
-        if std_w <= 1.0 or std_d <= 1.0 or std_l <= 1.0:
-            continue
-        
-        # 让球胜平负赔率
-        hhad = match_data.get("hhad", {})
-        hcp_w = float(hhad.get("h", "0")) if hhad else 0
-        hcp_d = float(hhad.get("d", "0")) if hhad else 0
-        hcp_l = float(hhad.get("a", "0")) if hhad else 0
-        
-        handicap = had.get("hgd", hhad.get("hgd", "")) if isinstance(had, dict) else ""
-        
-        key = (_normalize_name(home_cn), _normalize_name(away_cn))
-        results[key] = {
-            "w": std_w, "d": std_d, "l": std_l,
-            "hcp_w": hcp_w, "hcp_d": hcp_d, "hcp_l": hcp_l,
-            "handicap": str(handicap),
-            "home_cn": home_cn,
-            "away_cn": away_cn,
-        }
-    
-    return results
-
-
-async def _fetch_sporttery_odds(sdk) -> dict:
-    """
-    从竞彩网(sporttery.cn)获取胜平负赔率作为备选数据源
-    
-    优先尝试 i.sporttery.cn JSON API（数据结构化），回退到 www.sporttery.cn 页面解析
-    
-    返回: { (home_cn_norm, away_cn_norm): odds_dict }
-    """
-    # 方法1: 尝试 i.sporttery.cn JSON API
-    api_url = "https://i.sporttery.cn/odds_calculator/get_odds?i_format=json&poolcode[]=had&poolcode[]=hhad"
-    try:
-        fetch_result = await sdk.call_tool(
-            "codeact_fetch_web",
-            {"url": api_url},
-            schema_version=TOOL_SCHEMA_VERSIONS["codeact_fetch_web"],
-        )
-        if fetch_result.get("is_success"):
-            content = fetch_result.get("content", "")
-            if content:
-                # JSONP 响应格式: callback({...}); 去掉回调包装
-                try:
-                    # 尝试直接解析
-                    data = json.loads(content)
-                    raw_data = data.get("data", {})
-                    if raw_data:
-                        parsed = _parse_sporttery_api_data(raw_data)
-                        if parsed:
-                            print(f"[OK] 竞彩网 API 赔率: {len(parsed)} 场比赛")
-                            return parsed
-                except json.JSONDecodeError:
-                    # 可能是 JSONP 格式，尝试去掉回调包装
-                    try:
-                        # JSONP: callback({...}) → 取 {...}
-                        json_start = content.index('(')
-                        json_end = content.rindex(')')
-                        inner = content[json_start + 1:json_end]
-                        data = json.loads(inner)
-                        raw_data = data.get("data", {})
-                        if raw_data:
-                            parsed = _parse_sporttery_api_data(raw_data)
-                            if parsed:
-                                print(f"[OK] 竞彩网 API(JSONP) 赔率: {len(parsed)} 场比赛")
-                                return parsed
-                    except (ValueError, json.JSONDecodeError):
-                        pass
-    except Exception as e:
-        print(f"[WARN] 竞彩网 API 获取异常: {e}")
-    
-    # 方法2: 解析 www.sporttery.cn 页面
-    page_url = "https://www.sporttery.cn/jc/jsq/zqspf/"
-    try:
-        fetch_result = await sdk.call_tool(
-            "codeact_fetch_web",
-            {"url": page_url},
-            schema_version=TOOL_SCHEMA_VERSIONS["codeact_fetch_web"],
-        )
-        if fetch_result.get("is_success"):
-            content = fetch_result.get("content", "")
-            if content:
-                parsed = _parse_sporttery_content(content)
-                if parsed:
-                    print(f"[OK] 竞彩网页面赔率: {len(parsed)} 场比赛")
-                    return parsed
-                else:
-                    print(f"[WARN] 竞彩网页面解析无结果 (内容长度: {len(content)})")
-        else:
-            print(f"[WARN] 竞彩网页面获取失败: {fetch_result.get('error', '')}")
-    except Exception as e:
-        print(f"[WARN] 竞彩网页面获取异常: {e}")
-    
-    print("[WARN] 竞彩网赔率获取失败，将使用 Elo 降级")
-    return {}
-
-
-def _match_sporttery_odds(home_cn: str, away_cn: str, sporttery_odds: dict) -> dict:
-    """
-    在竞彩网赔率数据中查找匹配的比赛赔率
-    支持精确匹配和模糊匹配（子串包含）
-    
-    返回: odds_dict 或 None
-    """
-    if not sporttery_odds:
-        return None
-    
-    # 竞彩网常用缩写/别名 → 预测中的标准名称 映射
-    _NAME_ALIASES = {
-        "埃夫斯堡": "埃尔夫斯堡",
-        "哈尔姆斯": "哈尔姆斯塔德",
-        "赫根": "哈根",
-        "厄格里特": "厄尔格里特",
-        "佐加顿斯": "尤尔加登",
-        "坦山猫": "坦佩雷山猫",
-        "国际图尔": "国际图尔库",
-        "天狼星": "西里乌斯",
-        "马尔默": "马尔默",
-    }
-    
-    def _apply_aliases(name: str) -> list:
-        """返回名称的所有可能变体（原名 + 别名映射）"""
-        variants = [name]
-        # 如果名称是别名键，添加映射值
-        if name in _NAME_ALIASES:
-            variants.append(_NAME_ALIASES[name])
-        # 如果名称是别名值，添加映射键
-        for k, v in _NAME_ALIASES.items():
-            if v == name:
-                variants.append(k)
-        return variants
-    
-    # 方法1: 精确标准化名称匹配（含别名变体）
-    home_variants = _apply_aliases(home_cn)
-    away_variants = _apply_aliases(away_cn)
-    
-    for hv in home_variants:
-        for av in away_variants:
-            key = (_normalize_name(hv), _normalize_name(av))
-            if key in sporttery_odds:
-                return sporttery_odds[key]
-            # 主客颠倒匹配
-            key_rev = (_normalize_name(av), _normalize_name(hv))
-            if key_rev in sporttery_odds:
-                odds = sporttery_odds[key_rev]
-                return {
-                    "w": odds["l"], "d": odds["d"], "l": odds["w"],
-                    "hcp_w": odds.get("hcp_l", 0), "hcp_d": odds.get("hcp_d", 0), "hcp_l": odds.get("hcp_w", 0),
-                    "handicap": odds.get("handicap", ""),
-                    "home_cn": odds.get("away_cn", away_cn),
-                    "away_cn": odds.get("home_cn", home_cn),
-                }
-    
-    # 方法2: 模糊匹配（子串包含，含别名变体）
-    for hv in home_variants:
-        for av in away_variants:
-            hv_norm = _normalize_name(hv)
-            av_norm = _normalize_name(av)
-            for (s_home, s_away), odds in sporttery_odds.items():
-                # 检查是否一方包含另一方
-                home_match = (hv_norm in s_home or s_home in hv_norm)
-                away_match = (av_norm in s_away or s_away in av_norm)
-                if home_match and away_match:
-                    return odds
-                # 也尝试交叉匹配
-                home_match_x = (hv_norm in s_away or s_away in hv_norm)
-                away_match_x = (av_norm in s_home or s_home in av_norm)
-                if home_match_x and away_match_x:
-                    return {
-                        "w": odds["l"], "d": odds["d"], "l": odds["w"],
-                        "hcp_w": odds.get("hcp_l", 0), "hcp_d": odds.get("hcp_d", 0), "hcp_l": odds.get("hcp_w", 0),
-                        "handicap": odds.get("handicap", ""),
-                        "home_cn": odds.get("away_cn", away_cn),
-                        "away_cn": odds.get("home_cn", home_cn),
-                    }
-    
-    return None
 
 
 async def verify_predictions(predictions: list, all_matches: list):
@@ -1734,105 +1362,6 @@ async def main():
                     m["away"] = fix["away"]
         print(f"[OK] 赛程: {len(all_matches)} 场比赛")
 
-        # ===== 2.5 补充 schedule.json 中缺失的联赛赛程（从 Odds API 获取） =====
-        # ESPN API 可能不覆盖某些联赛（如 fin.1 芬超），导致 schedule.json 无该联赛数据
-        # 此处从 The Odds API /scores/ 端点获取缺失联赛的赛程并注入
-        schedule_leagues = set(m.get("league", "") for m in all_matches)
-        missing_leagues = [lc for lc in ACTIVE_LEAGUE_CODES
-                           if lc not in schedule_leagues and lc in _ODDS_API_LEAGUE_MAP]
-        if missing_leagues:
-            print(f"[INFO] schedule.json 缺失联赛: {missing_leagues}，尝试从 Odds API 补充...")
-            # 芬超等小联赛球队中文映射
-            _ODDS_TEAM_ZH = {
-                # 芬超
-                "HJK Helsinki": "赫尔辛基", "HJK": "赫尔辛基",
-                "KuPS Kuopio": "古比斯", "KuPS": "古比斯",
-                "FC Inter Turku": "国际图尔库", "FC Inter": "国际图尔库", "Inter Turku": "国际图尔库",
-                "VPS Vaasa": "VPS瓦萨", "VPS": "VPS瓦萨",
-                "AC Oulu": "奥卢",
-                "IF Gnistan": "格尼斯坦", "Gnistan": "格尼斯坦",
-                "TPS Turku": "TPS图尔库", "TPS": "TPS图尔库",
-                "FC Lahti": "拉赫蒂", "Lahti": "拉赫蒂",
-                "Ilves Tampere": "埃尔维斯", "Ilves": "埃尔维斯",
-                "SJK Seinäjoki": "塞那乔其", "SJK": "塞那乔其",
-                "Jaro": "雅罗", "FF Jaro": "雅罗",
-                "IFK Mariehamn": "玛丽港", "Mariehamn": "玛丽港",
-                # 奥超
-                "SK Sturm Graz": "格拉茨风暴", "Sturm Graz": "格拉茨风暴",
-                "Red Bull Salzburg": "萨尔茨堡", "RB Salzburg": "萨尔茨堡",
-                "Rapid Wien": "维也纳快速", "Rapid Vienna": "维也纳快速",
-                "Austria Wien": "维也纳奥地利", "Austria Vienna": "维也纳奥地利",
-                "LASK": "林茨", "Wolfsberger AC": "沃尔夫斯贝格",
-                "Hartberg": "哈特贝格", "TSV Hartberg": "哈特贝格",
-                "WSG Tirol": "蒂罗尔", "Altach": "阿尔塔赫",
-                "SCR Altach": "阿尔塔赫", "Blau-Weiß Linz": "蓝白林茨",
-                "Austria Klagenfurt": "克拉根福",
-            }
-            # 联赛中文信息
-            _LEAGUE_ZH = {
-                "fin.1": ("芬超", "芬超", 3),
-                "aut.1": ("奥甲", "奥甲", 3),
-            }
-            injected_count = 0
-            for lc in missing_leagues:
-                sport_key = _ODDS_API_LEAGUE_MAP.get(lc)
-                if not sport_key:
-                    continue
-                url = f"https://api.the-odds-api.com/v4/sports/{sport_key}/scores/"
-                params = {"apiKey": ODDS_API_KEY, "daysFrom": 3}
-                try:
-                    resp = requests.get(url, params=params, timeout=15)
-                    if resp.status_code != 200:
-                        print(f"[WARN] Odds API scores {lc}: HTTP {resp.status_code}")
-                        continue
-                    events = resp.json()
-                    league_info = _LEAGUE_ZH.get(lc, (lc, lc, 3))
-                    for evt in events:
-                        if evt.get("completed"):
-                            continue
-                        home_en = evt.get("home_team", "")
-                        away_en = evt.get("away_team", "")
-                        raw_date = evt.get("commence_time", "")
-                        # 转换为北京时间
-                        try:
-                            dt = datetime.fromisoformat(raw_date.replace("Z", "+00:00"))
-                            dt_beijing = dt.astimezone(timezone(timedelta(hours=8)))
-                            beijing_date = dt_beijing.strftime("%Y-%m-%dT%H:%M:%S") + "+08:00"
-                            weekdays = ["周一", "周二", "周三", "周四", "周五", "周六", "周日"]
-                            wd = weekdays[dt_beijing.weekday()]
-                            status_str = f"{dt_beijing.month}/{dt_beijing.day} {wd} {dt_beijing.hour:02d}:{dt_beijing.minute:02d}"
-                        except Exception:
-                            beijing_date = raw_date
-                            status_str = raw_date
-                        # 中文名查找
-                        home_cn = _ODDS_TEAM_ZH.get(home_en, home_en)
-                        away_cn = _ODDS_TEAM_ZH.get(away_en, away_en)
-                        match_entry = {
-                            "id": f"oddsapi_{evt.get('id', '')}",
-                            "home": home_cn,
-                            "away": away_cn,
-                            "homeEN": home_en,
-                            "awayEN": away_en,
-                            "date": beijing_date,
-                            "league": lc,
-                            "leagueName": league_info[0],
-                            "leagueShort": league_info[1],
-                            "status": status_str,
-                            "statusClass": "scheduled",
-                            "completed": False,
-                            "homeScore": 0,
-                            "awayScore": 0,
-                            "weight": league_info[2],
-                        }
-                        all_matches.append(match_entry)
-                        injected_count += 1
-                        print(f"[INJECT] {lc} {home_cn} vs {away_cn} | {beijing_date}")
-                except Exception as e:
-                    print(f"[WARN] Odds API scores {lc} 异常: {e}")
-                await asyncio.sleep(0.5)
-            if injected_count:
-                print(f"[OK] Odds API 补充赛程: {injected_count} 场比赛注入")
-
         # ===== 3. 获取历史预测 =====
         print("[INFO] 获取历史预测...")
         predictions_content, predictions_sha = fetch_github_file(
@@ -1899,11 +1428,6 @@ async def main():
 
         # 构建 schedule 英文名映射，用于匹配 The Odds API 队名
         schedule_en_map_for_odds = _build_schedule_en_map(all_matches)
-
-        # ===== 6.6 获取竞彩网赔率（备选数据源 fallback） =====
-        print("[INFO] 获取竞彩网赔率（备选数据源）...")
-        sporttery_odds = await _fetch_sporttery_odds(sdk)
-        print(f"[OK] 竞彩网赔率: {len(sporttery_odds)} 场比赛可用")
 
         # ===== 7. 生成新预测 =====
         new_count = 0
@@ -1985,32 +1509,6 @@ async def main():
                         reverse_tag = f" [反向{rev_dir_label}]"
                     print(f"[KELLY] {_home} vs {_away}: 场景{kelly_data['scenario']} {kelly_data.get('signal', '')}{unique_tag}{reverse_tag}")
 
-            # ===== 竞彩网赔率 fallback =====
-            # 当 schedule.json 无赔率且 The Odds API 无多公司数据时，
-            # 从竞彩网获取胜平负赔率作为备选数据源
-            if not m.get("odds") and not kelly_data:
-                sporttery_match = _match_sporttery_odds(_home, _away, sporttery_odds)
-                if sporttery_match:
-                    # 构建赔率数据（兼容 normalize_odds 的简单格式）
-                    odds_data = {
-                        "source": "竞彩网",
-                        "w": sporttery_match["w"],
-                        "d": sporttery_match["d"],
-                        "l": sporttery_match["l"],
-                    }
-                    # 如果有让球赔率，也添加进来
-                    hcp_w = sporttery_match.get("hcp_w", 0)
-                    hcp_d = sporttery_match.get("hcp_d", 0)
-                    hcp_l = sporttery_match.get("hcp_l", 0)
-                    handicap = sporttery_match.get("handicap", "")
-                    if hcp_w > 1.0 and hcp_d > 1.0 and hcp_l > 1.0 and handicap:
-                        # 将让球赔率存储为竞彩格式（normalize_odds 已支持）
-                        hcp_key = f"odds_{handicap}"  # e.g., "odds_-1" or "odds_+1"
-                        odds_data["odds_0"] = {"胜": sporttery_match["w"], "平": sporttery_match["d"], "负": sporttery_match["l"]}
-                        odds_data[hcp_key] = {"胜": hcp_w, "平": hcp_d, "负": hcp_l}
-                    m["odds"] = odds_data
-                    print(f"[FALLBACK] {_home} vs {_away}: 竞彩网赔率 {sporttery_match['w']:.2f}/{sporttery_match['d']:.2f}/{sporttery_match['l']:.2f}")
-
             # 生成新预测
             pred = predict_match(m, teams, kelly_data=kelly_data)
 
@@ -2055,11 +1553,6 @@ async def main():
                 new_count += 1
                 pred_map[match_id] = record
 
-            # 保存赔率数据到 record（竞彩网 fallback 或已有赔率）
-            if m.get("odds"):
-                pred_map[match_id]["odds"] = m["odds"]
-                pred_map[match_id]["odds_source"] = m["odds"].get("source", "unknown")
-
         # ===== 8. 组装最终预测列表 =====
         # 保留所有已验证的旧预测 + 新的/更新的未验证预测
         final_predictions = []
@@ -2077,11 +1570,6 @@ async def main():
         print(f"[DEBUG] 未验证预测: {len(unverified_preds)} 条 (新增{new_count}+更新{update_count})")
 
         print(f"[INFO] 预测统计: 保留已验证 {keep_count}, 更新 {update_count}, 新增 {new_count}")
-
-        # Debug: 检查有多少预测包含赔率
-        _preds_with_odds = [p for p in final_predictions if p.get("odds")]
-        _preds_with_jc = [p for p in final_predictions if p.get("odds_source") == "竞彩网"]
-        print(f"[DEBUG] final_predictions 中有赔率: {len(_preds_with_odds)} 场, 竞彩网: {len(_preds_with_jc)} 场")
 
         # ===== 9. 推送到 GitHub =====
         output_data = {
