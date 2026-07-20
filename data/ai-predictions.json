@@ -476,7 +476,30 @@
       "matchTime": "7/21 周二 01:00",
       "verified": false,
       "actualResult": null,
-      "hit": null
+      "hit": null,
+      "kelly_source": "500com",
+      "kelly_scraped_at": "2026-07-21T00:38:29+08:00",
+      "kelly_scenario": "D",
+      "kelly_signal": "凯利异常",
+      "kelly_unique_signal": null,
+      "kelly_unique_direction": null,
+      "kelly_reverse_signal": null,
+      "kelly_reverse_direction": null,
+      "ladbrokes_draw_kelly": 0.9051,
+      "pinnacle_kelly": {
+        "胜": 0.8554,
+        "平": 0.9557,
+        "负": 1.0113
+      },
+      "betvictor_kelly": {
+        "胜": 0.9033,
+        "平": 0.9318,
+        "负": 0.9127
+      },
+      "pinnacle_payout": 0.9341,
+      "betvictor_payout": 0.9142,
+      "kelly_min_filter_pass": false,
+      "kelly_note": "凯利异常(K<0.87)，信号仅供参考"
     },
     {
       "prediction": "负+胜",
@@ -500,7 +523,33 @@
       "matchTime": "7/21 周二 01:00",
       "verified": false,
       "actualResult": null,
-      "hit": null
+      "hit": null,
+      "kelly_source": "500com",
+      "kelly_scraped_at": "2026-07-21T00:38:29+08:00",
+      "kelly_scenario": "D",
+      "kelly_signal": "凯利异常",
+      "kelly_unique_signal": "唯独低于返还率·客胜",
+      "kelly_unique_direction": "A",
+      "kelly_reverse_signal": null,
+      "kelly_reverse_direction": null,
+      "ladbrokes_draw_kelly": 0.8896,
+      "pinnacle_kelly": {
+        "胜": 0.993,
+        "平": 0.9746,
+        "负": 0.9031
+      },
+      "betvictor_kelly": {
+        "胜": 0.9301,
+        "平": 0.939,
+        "负": 0.8965
+      },
+      "pinnacle_payout": 0.9286,
+      "betvictor_payout": 0.9094,
+      "kelly_min_filter_pass": false,
+      "kelly_note": "凯利异常(K<0.87)，信号仅供参考",
+      "tags": [
+        "🔮 唯独低于返还率·客胜"
+      ]
     },
     {
       "prediction": "负+胜",
