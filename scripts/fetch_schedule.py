@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """Fetch football schedule from ESPN API -> schedule.json (concurrent)"""
 import json, urllib.request, sys, os, concurrent.futures
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, timezone
 
 LEAGUES = [
     ("eng.1","英超","英超",10),("esp.1","西甲","西甲",9),("ger.1","德甲","德甲",8),
@@ -227,6 +227,69 @@ def main():
                 print(f"Merged {len([m for m in qmatches if m['id'] in seen])} qualifier matches")
         except Exception as e:
             print(f"Warning: failed to merge qualifiers.json: {e}")
+
+    # ---- 从500.com补充ESPN缺失的联赛（芬超等） ----
+    try:
+        today_str = datetime.utcnow().strftime("%Y%m%d")
+        kelly_path = os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))),
+                                   'data', '500com_daily', today_str, 'kelly_data_full.json')
+        if os.path.exists(kelly_path):
+            with open(kelly_path, 'r', encoding='utf-8') as kf:
+                kdata = json.load(kf)
+            # 联赛判断映射（中文队名->联赛）
+            FIN_TEAMS = {'TPS图尔库','埃尔维斯','玛丽港','拉赫蒂','赫尔辛基','古比斯',
+                         '图尔库国际','VPS瓦萨','奥卢','格尼斯坦','塞那乔其','雅罗'}
+            SWE_TEAMS = {'奥尔格里特','尤尔加登','卡尔马','马尔默','AIK','哈马比',
+                         '埃尔夫斯堡','哥德堡','韦斯特拉斯','代格福什','盖斯','哈尔姆斯塔德',
+                         '布鲁马波卡纳','天狼星','瓦斯特拉斯','海肯','米耶尔比','布洛马波卡纳'}
+            # 已知ESPN覆盖的中文名集合（归一化）
+            espn_teams = set()
+            _NORMALIZE = {'奥尔格里特':'奥格里特','奥格里特':'奥格里特',
+                          '尤尔加登':'佐加顿斯','佐加顿斯':'佐加顿斯'}
+            def norm(n): return _NORMALIZE.get(n, n)
+            for m in matches:
+                espn_teams.add(norm(m.get('home','')))
+                espn_teams.add(norm(m.get('away','')))
+            supp = 0
+            for km in kdata.get('matches', []):
+                h, a = km['home'], km['away']
+                nh, na = norm(h), norm(a)
+                if nh in espn_teams and na in espn_teams:
+                    continue
+                # 判断联赛
+                if h in FIN_TEAMS or a in FIN_TEAMS:
+                    lg, ln, ls, w = 'fin.1', '芬超', '芬超', 3
+                elif h in SWE_TEAMS or a in SWE_TEAMS:
+                    lg, ln, ls, w = 'swe.1', '瑞典超', '瑞典', 3
+                else:
+                    continue  # 未知联赛跳过
+                # 解析时间
+                ts = km.get('time', '')
+                try:
+                    md = ts.split(' ')[0]; hm = ts.split(' ')[1]
+                    mon, day = int(md.split('-')[0]), int(md.split('-')[1])
+                    hr, mi = int(hm.split(':')[0]), int(hm.split(':')[1])
+                    dt_bj = datetime(2026, mon, day, hr, mi, tzinfo=timezone(timedelta(hours=8)))
+                    date_str = dt_bj.strftime('%Y-%m-%dT%H:%M:%S+08:00')
+                except:
+                    continue
+                mid = f"{lg}_{h}_{a}_{date_str[:10]}"
+                if mid in seen:
+                    continue
+                seen[mid] = True
+                matches.append({
+                    "id": mid, "home": h, "away": a,
+                    "homeEN": h, "awayEN": a, "date": date_str,
+                    "league": lg, "leagueName": ln, "leagueShort": ls,
+                    "status": "scheduled", "statusClass": "scheduled",
+                    "completed": False, "homeScore": 0, "awayScore": 0,
+                    "weight": w, "source": "500com_supplement"
+                })
+                supp += 1
+            if supp:
+                print(f"Supplemented {supp} matches from 500.com")
+    except Exception as e:
+        print(f"Warning: 500.com supplement failed: {e}")
 
     matches.sort(key=lambda x: (-x.get('weight',0), x.get('date','')))
     out = {"generated_at":datetime.utcnow().isoformat()+"Z","dates":dates,"total_matches":len(matches),"matches":matches}
