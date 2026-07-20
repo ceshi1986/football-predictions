@@ -2528,7 +2528,7 @@ async function _doGenAIRec(){
     var getTime=function(r){var m=(r.matchTime||"").match(/(\d{2}):(\d{2})/);return m?m[1]+m[2]:"0000"};
     var ka=a.date+"_"+getTime(a);
     var kb=b.date+"_"+getTime(b);
-    if(kb!==ka) return kb>ka?1:-1;
+    if(kb!==ka) return ka>kb?1:-1;
     return 0;
   });
   _renderAIRec(displayRecs);
@@ -2877,7 +2877,7 @@ async function _verifyAIRecs(){
       var getTime=function(r){var m=(r.matchTime||"").match(/(\d{2}):(\d{2})/);return m?m[1]+m[2]:"0000"};
       var ka=a.date+"_"+getTime(a);
       var kb=b.date+"_"+getTime(b);
-      if(kb!==ka) return kb>ka?1:-1;
+      if(kb!==ka) return ka>kb?1:-1;
       return 0;
     });
     _renderAIRec(displayRecs);
