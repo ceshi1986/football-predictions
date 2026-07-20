@@ -1889,6 +1889,18 @@ async def main():
                 await asyncio.sleep(0.5)  # API配额保护，间隔0.5秒
         total_odds_events = sum(len(v) for v in odds_api_data.values())
         print(f"[OK] 多公司赔率: {len(odds_api_data)} 个联赛, {total_odds_events} 场比赛")
+        
+        # ===== 6.5.1 从500com_daily加载凯利数据（补充数据源） =====
+        print("[INFO] 从500com_daily加载凯利数据...")
+        kelly_500com_data = _load_kelly_500com_data()
+        if kelly_500com_data:
+            print(f"[OK] 500com凯利数据: {len(kelly_500com_data.get('matches', []))} 场比赛")
+        
+        # ===== 6.5.2 从zgzcw_kelly加载凯利数据（补充数据源） =====
+        print("[INFO] 从zgzcw_kelly加载凯利数据...")
+        kelly_zgzcw_data = _load_kelly_zgzcw_data()
+        if kelly_zgzcw_data:
+            print(f"[OK] zgzcw凯利数据: {len(kelly_zgzcw_data.get('matches', []))} 场比赛")
 
         # 构建比赛匹配索引：(homeEN_norm, awayEN_norm) -> odds_event
         odds_match_index = {}
