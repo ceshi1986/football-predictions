@@ -239,6 +239,8 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;b
 .ai-card-skip{opacity:0.7}
 .ai-skip-tag{color:#ef4444;font-size:11px;font-weight:600;margin-left:4px}
 .ai-kelly-tag{display:inline-block;background:#8b5cf6;color:#fff;font-size:10px;font-weight:700;padding:1px 6px;border-radius:4px;margin-left:4px;vertical-align:middle}
+.ai-bo-tag{display:inline-block;background:#f59e0b;color:#fff;font-size:10px;font-weight:700;padding:1px 6px;border-radius:4px;margin-left:4px;vertical-align:middle;animation:boPulse 1.5s ease-in-out infinite}
+@keyframes boPulse{0%,100%{box-shadow:0 0 0 0 rgba(245,158,11,0)}50%{box-shadow:0 0 8px 2px rgba(245,158,11,0.4)}}
 .ai-card-body-inner{display:flex;align-items:center;gap:10px;min-width:0}.ai-card-body-text{flex:1;min-width:0}.ai-card-result{text-align:center;background:#1a1f35;border:1px solid #2a3055;border-radius:8px;padding:6px 10px;min-width:60px;flex-shrink:0}
 .ai-card-result .result-score{font-size:16px;font-weight:800;color:#fff;letter-spacing:1px}
 .ai-card-result .result-label{font-size:10px;font-weight:700;margin-top:2px}
@@ -2663,13 +2665,14 @@ function _aiJudge(m,hf,df,af){
   // === 凯利指数修正 ===
   var skip=false,skipReason="";
   var kellyLabel="";
+  var kr=null; // 提升到外层，供双选分支使用
   var kellyData=_matchKellyData(m.home,m.away);
   if(kellyData&&kellyData.companies){
     var c365=_getKellyCompany(kellyData.companies,'bet365')||_getKellyCompany(kellyData.companies,'365');
     var cW=_getKellyCompany(kellyData.companies,'韦德');
     if(c365&&cW){
       var baseP={hf:probs[0].r==="胜"?probs[0].p:(probs[1].r==="胜"?probs[1].p:probs[2].p),df:probs[0].r==="平"?probs[0].p:(probs[1].r==="平"?probs[1].p:probs[2].p),af:probs[0].r==="负"?probs[0].p:(probs[1].r==="负"?probs[1].p:probs[2].p)};
-      var kr=_detectKellyScenario(c365,cW,baseP,effConf);
+      kr=_detectKellyScenario(c365,cW,baseP,effConf);
       if(kr.skip){
         skip=true;skipReason=kr.skipReason;
         kellyLabel=kr.label;
@@ -2722,6 +2725,35 @@ function _aiJudge(m,hf,df,af){
     else reason="方向不够明确，双选覆盖";
     reason+=frogNote;
     if(usedOdds)reason+=" · 竞彩网赔率";
+    
+    // === 可博单选判断 ===
+    var boSingle=null;
+    if(kr&&kr.scenarios){
+      var dirMap={'h':'胜','d':'平','a':'负'};
+      // 场景0：共同看好
+      if(kr.scenarios.includes('0')&&kr.pick){
+        boSingle=dirMap[kr.pick];
+      }
+      // 场景1D：两家平Kelly都最低
+      else if(kr.scenarios.includes('1D')){
+        boSingle='平';
+      }
+      // 场景2/2A/2B：检查平Kelly是否<返还率
+      else if(kr.scenarios.includes('2')||kr.scenarios.includes('2A')||kr.scenarios.includes('2B')){
+        var p365=c365.payout;
+        var pW=cW.payout;
+        var k365_d=c365.kelly_d;
+        var kW_d=cW.kelly_d;
+        // 2A：两家平Kelly都<返还率
+        if(k365_d<p365-0.005&&kW_d<pW-0.005){
+          boSingle='平';
+        }
+        // 2B：一家平Kelly<返还率
+        else if(k365_d<p365-0.005||kW_d<pW-0.005){
+          boSingle='平';
+        }
+      }
+    }
   }
   
   return{
@@ -2732,7 +2764,8 @@ function _aiJudge(m,hf,df,af){
     confidence:Math.round(maxProb*100),
     reason:reason,
     doublePick:doublePick,
-    kellyLabel:kellyLabel
+    kellyLabel:kellyLabel,
+    boSingle:boSingle||null
   };
 }
 
@@ -2758,6 +2791,7 @@ function _renderAICard(rec){
   var predClass=rec.type==="single"?"single-pred":"double-pred";
   
   var predText=rec.type==="single"?rec.prediction:rec.prediction+"（双选）";
+  var boTag=rec.boSingle?'<span class="ai-bo-tag">可博'+rec.boSingle+'</span>':'';
   
   var skipTag=rec.skip?'<span class="ai-skip-tag">（不建议投注）</span>':'';
   
@@ -2778,7 +2812,7 @@ function _renderAICard(rec){
   h+='<span class="ai-league">'+rec.league+'</span>';
   h+='<span class="ai-time"> '+rec.matchTime+'</span>';
   h+='</div>';
-  h+='<div class="ai-card-pred '+predClass+'">'+predText+skipTag+'</div>';
+  h+='<div class="ai-card-pred '+predClass+'">'+predText+boTag+skipTag+'</div>';
   h+='<div class="ai-card-reason">'+rec.reason+(rec.skip?' · '+rec.skipReason:'')+'</div>';
   h+='<div class="ai-card-conf">置信度 '+rec.confidence+'%'+(rec.kellyLabel?'<span class="ai-kelly-tag">凯利:'+rec.kellyLabel+'</span>':'')+'</div>';
   h+='</div>'+resultBadge+'</div></div>';
