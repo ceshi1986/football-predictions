@@ -1,5 +1,5 @@
 {
-  "lastUpdated": "2026-07-20T20:22:49.868Z",
+  "lastUpdated": "2026-07-20T20:23:00.670Z",
   "predictions": [
     {
       "matchId": "760642",
@@ -2164,9 +2164,9 @@
       "leagueCode": "swe.1",
       "date": "2026-07-21T01:00:00+08:00",
       "matchTime": "7/21 周二 01:00",
-      "verified": false,
-      "actualResult": null,
-      "hit": null,
+      "verified": true,
+      "actualResult": "平",
+      "hit": false,
       "kelly_source": "500com",
       "kelly_scraped_at": "2026-07-21T00:38:29+08:00",
       "kelly_scenario": "D",
@@ -2189,7 +2189,9 @@
       "pinnacle_payout": 0.9341,
       "betvictor_payout": 0.9142,
       "kelly_min_filter_pass": false,
-      "kelly_note": "凯利异常(K<0.87)，信号仅供参考"
+      "kelly_note": "凯利异常(K<0.87)，信号仅供参考",
+      "homeScore": 2,
+      "awayScore": 2
     },
     {
       "prediction": "负+胜",
@@ -2595,7 +2597,7 @@
   ],
   "stats": {
     "total": 109,
-    "verified": 73,
-    "accuracy": 73
+    "verified": 74,
+    "accuracy": 72
   }
 }
