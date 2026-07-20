@@ -790,6 +790,22 @@ function _matchKellyData(home,away){
   if(!_kellyCache)return null;
   var hn=home.replace(/\s+/g,'').toLowerCase();
   var an=away.replace(/\s+/g,'').toLowerCase();
+  // 模糊匹配函数：计算两个字符串的相似度
+  function _fuzzyMatch(s1,s2){
+    if(s1===s2)return true;
+    if(s1.indexOf(s2)>=0||s2.indexOf(s1)>=0)return true;
+    // 提取中文字符
+    var c1=s1.replace(/[a-zA-Z\s0-9]/g,'');
+    var c2=s2.replace(/[a-zA-Z\s0-9]/g,'');
+    if(!c1||!c2)return false;
+    // 计算共同字符比例
+    var common=0;
+    for(var i=0;i<c2.length;i++){
+      if(c1.indexOf(c2[i])>=0)common++;
+    }
+    var ratio=common/Math.max(c1.length,c2.length);
+    return ratio>=0.7; // 70%相似度认为匹配
+  }
   for(var i=0;i<_kellyCache.length;i++){
     var m=_kellyCache[i];
     var mh=(m.home||'').replace(/\s+/g,'').toLowerCase();
@@ -803,6 +819,11 @@ function _matchKellyData(home,away){
     var hnCN=hn.replace(/[a-zA-Z\s]/g,'');
     var anCN=an.replace(/[a-zA-Z\s]/g,'');
     if(mhShort&&maShort&&hnCN.indexOf(mhShort)>=0&&anCN.indexOf(maShort)>=0)return m;
+    // 模糊匹配（处理名字不一致）
+    if(_fuzzyMatch(hn,mh)&&_fuzzyMatch(an,ma)){
+      console.log('[Kelly Fuzzy Match]',home,'→',m.home,'|',away,'→',m.away);
+      return m;
+    }
   }
   return null;
 }
