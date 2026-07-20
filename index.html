@@ -2325,8 +2325,14 @@ async function _doGenAIRec(){
     rec.away=m.away;
     rec.league=m.leagueShort;
     rec.leagueCode=m.league;
-    rec.date=m.dateISO;
-    rec.matchTime=m.status;
+    rec.date=m.date||m.dateISO||"";
+    var _st=m.status||"";
+    if(_st==="scheduled"||_st==="unknown"||!/[\d:]/.test(_st)){
+      // status没有具体日期时间时，从date字段提取
+      var _d=m.date||m.dateISO||"";
+      if(_d){try{var _dt=new Date(_d);_st=_dt.getMonth()+1+"/"+_dt.getDate()+" "+_dt.toTimeString().slice(0,5)}catch(e){}}
+    }
+    rec.matchTime=_st;
     rec.verified=false;
     rec.actualResult=null;
     rec.hit=null;
