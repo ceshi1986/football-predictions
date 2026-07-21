@@ -1481,6 +1481,130 @@ async def _fetch_odds_api_scores(league_code: str) -> list:
     return []
 
 
+async def _fetch_espn_scores_for_dates(date_strs: list) -> dict:
+    """
+    通过 ESPN 公开 API 获取多场比赛结果（免费，无需API Key）
+    返回: {league_code: [results]}  按联赛码分组
+    每个result: {homeEN, awayEN, homeScore, awayScore, date}
+    """
+    # ESPN 联赛映射（中文联赛名 → ESPN league slug）
+    _ESPN_LEAGUE_MAP = {
+        "swe.1": "swe.1",
+        "nor.1": "nor.1",
+        "bra.1": "bra.1",
+        "fin.1": "fin.1",
+        "den.1": "den.1",
+        "aut.1": "aut.1",
+        "ned.1": "ned.1",
+        "por.1": "por.1",
+        "tur.1": "tur.1",
+        "bel.1": "bel.1",
+        "gre.1": "gre.1",
+        "eng.1": "eng.1",
+        "eng.2": "eng.2",
+        "esp.1": "esp.1",
+        "esp.2": "esp.2",
+        "ger.1": "ger.1",
+        "ger.2": "ger.2",
+        "fra.1": "fra.1",
+        "fra.2": "fra.2",
+        "ita.1": "ita.1",
+        "ita.2": "ita.2",
+    }
+
+    results_by_league = {}
+    all_results = []
+    headers = {"User-Agent": "Mozilla/5.0 (compatible; FootballBot/1.0)"}
+
+    for date_str in date_strs:
+        # date_str 格式: YYYYMMDD → 转为 YYYY-MM-DD for ESPN? 不，ESPN用YYYYMMDD
+        url = f"https://site.api.espn.com/apis/site/v2/sports/soccer/all/scoreboard?dates={date_str}"
+        try:
+            resp = requests.get(url, timeout=15, headers=headers)
+            if resp.status_code != 200:
+                print(f"[WARN] ESPN {date_str} 返回 HTTP {resp.status_code}")
+                continue
+            data = resp.json()
+            events = data.get("events", [])
+            for evt in events:
+                comp = evt.get("competitions", [{}])[0]
+                competitors = comp.get("competitors", [])
+                if len(competitors) < 2:
+                    continue
+                home = [c for c in competitors if c.get("homeAway") == "home"]
+                away = [c for c in competitors if c.get("homeAway") == "away"]
+                if not home or not away:
+                    continue
+                home = home[0]
+                away = away[0]
+                status_type = comp.get("status", {}).get("type", {})
+                status_desc = status_type.get("description", "")
+                # 只取已完赛的
+                if status_desc not in ("Full Time", "FT", "AET", "AET (FT)"):
+                    continue
+                h_name = home.get("team", {}).get("displayName", "")
+                a_name = away.get("team", {}).get("displayName", "")
+                try:
+                    h_score = int(home.get("score", 0))
+                    a_score = int(away.get("score", 0))
+                except (ValueError, TypeError):
+                    continue
+                if not h_name or not a_name:
+                    continue
+                result = {
+                    "homeEN": h_name,
+                    "awayEN": a_name,
+                    "homeScore": h_score,
+                    "awayScore": a_score,
+                    "date": date_str,
+                    "source": "espn",
+                }
+                all_results.append(result)
+                # 也按联赛分组
+                league_name = evt.get("season", {}).get("type", {}).get("name", "")
+                # 尝试映射到 leagueCode
+                for lc, eslug in _ESPN_LEAGUE_MAP.items():
+                    if eslug.lower() in league_name.lower() or _espn_name_match(league_name, lc):
+                        results_by_league.setdefault(lc, []).append(result)
+                        break
+                else:
+                    results_by_league.setdefault("_unmatched", []).append(result)
+
+        except Exception as e:
+            print(f"[WARN] ESPN {date_str} 异常: {e}")
+
+    print(f"[INFO] ESPN 获取到 {len(all_results)} 场已完赛结果")
+    return results_by_league
+
+
+def _espn_name_match(espn_league_name: str, league_code: str) -> bool:
+    """ESPN联赛名与内部联赛码的模糊匹配"""
+    _name_map = {
+        "sweden": "swe", "allsvenskan": "swe",
+        "norway": "nor", "eliteserien": "nor",
+        "brazil": "bra", "serie a": "bra", "serie a brazil": "bra",
+        "finland": "fin", "veikkausliiga": "fin",
+        "denmark": "den", "superliga": "den",
+        "austria": "aut", "bundesliga": "aut",
+        "netherlands": "ned", "eredivisie": "ned",
+        "portugal": "por", "primeira liga": "por",
+        "turkey": "tur", "super lig": "tur",
+        "belgium": "bel", "pro league": "bel",
+        "greece": "gre", "super league": "gre",
+        "england": "eng", "premier league": "eng",
+        "spain": "esp", "la liga": "esp",
+        "germany": "ger", "bundesliga": "ger",
+        "france": "fra", "ligue 1": "fra",
+        "italy": "ita", "serie a": "ita",
+    }
+    name_lower = espn_league_name.lower()
+    code_prefix = league_code.split(".")[0]
+    for key, prefix in _name_map.items():
+        if prefix == code_prefix and key in name_lower:
+            return True
+    return False
+
+
 async def _fetch_odds_api_odds(league_code: str) -> list:
     """
     通过 The Odds API /odds/ 端点获取多公司赔率数据
@@ -1997,12 +2121,15 @@ async def verify_predictions(predictions: list, all_matches: list):
     # 收集需要查询的联赛
     leagues_needed = set()
     has_world_cup = False
+    unmapped_leagues = set()  # 不在 Odds API 映射中的联赛，需要 ESPN 覆盖
     for p in to_verify:
         lc = p.get("leagueCode", "")
         if lc == "fifa.world":
             has_world_cup = True
         elif lc in _ODDS_API_LEAGUE_MAP:
             leagues_needed.add(lc)
+        elif lc:
+            unmapped_leagues.add(lc)
 
     # 获取各来源的比分数据
     results_by_source = {}
@@ -2020,12 +2147,47 @@ async def verify_predictions(predictions: list, all_matches: list):
         if results:
             print(f"[INFO] {lc} 结果: {len(results)} 场")
 
+    # ESPN 备选方案：对于 Odds API 未覆盖或返回为空的联赛，使用 ESPN 免费 API
+    leagues_missing = [lc for lc in leagues_needed if not results_by_source.get(lc)]
+    # 也包含不在 Odds API 映射中的联赛（完全由 ESPN 覆盖）
+    leagues_missing.extend(unmapped_leagues)
+    if leagues_missing:
+        # 收集需要查询的日期范围（前后各1天，覆盖跨时区比赛）
+        dates_needed = set()
+        for p in to_verify:
+            pred_date = p.get("date", "")
+            if pred_date:
+                dates_needed.add(pred_date)
+                # 也加上前后一天（跨时区比赛可能在相邻日期）
+                try:
+                    from datetime import datetime as _dt, timedelta as _td
+                    d = _dt.strptime(pred_date[:8], "%Y%m%d")
+                    dates_needed.add((d - _td(days=1)).strftime("%Y%m%d"))
+                    dates_needed.add((d + _td(days=1)).strftime("%Y%m%d"))
+                except:
+                    pass
+
+        if dates_needed:
+            espn_results = await _fetch_espn_scores_for_dates(sorted(dates_needed))
+            # 合并 ESPN 结果到 results_by_source（只补充缺失的联赛）
+            for lc in leagues_missing:
+                if lc in espn_results:
+                    results_by_source[lc] = espn_results[lc]
+                    print(f"[INFO] {lc} 结果: {len(espn_results[lc])} 场 (来自ESPN)")
+            # 同时收集 _unmatched 到 _unmatched 键，供通配匹配
+            if "_unmatched" in espn_results:
+                results_by_source.setdefault("_espn_unmatched", []).extend(espn_results["_unmatched"])
+                print(f"[INFO] ESPN 未匹配联赛: {len(espn_results['_unmatched'])} 场")
+
     # 逐条验证
     verified_count = 0
     hit_count = 0
     for p in to_verify:
         lc = p.get("leagueCode", "")
         results = results_by_source.get(lc, [])
+        # 如果该联赛没有结果，尝试从 ESPN 未匹配结果中查找
+        if not results:
+            results = results_by_source.get("_espn_unmatched", [])
         if not results:
             continue
 
