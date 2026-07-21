@@ -786,10 +786,12 @@ async function _fetchKellyData(){
   return null;
 }
 
+var _teamAliases={'国际体育':'巴西国际','雷莫':'瑞模贝雷','哈马坎':'汉坎','帕拉纳竞技':'巴拉纳竞技','沙佩科恩斯':'沙佩科'};
+function _normTeam(n){return _teamAliases[n]||n;}
 function _matchKellyData(home,away){
   if(!_kellyCache)return null;
-  var hn=home.replace(/\s+/g,'').toLowerCase();
-  var an=away.replace(/\s+/g,'').toLowerCase();
+  var hn=_normTeam(home.replace(/\s+/g,'')).toLowerCase();
+  var an=_normTeam(away.replace(/\s+/g,'')).toLowerCase();
   // 模糊匹配函数：计算两个字符串的相似度
   function _fuzzyMatch(s1,s2){
     if(s1===s2)return true;
@@ -808,8 +810,8 @@ function _matchKellyData(home,away){
   }
   for(var i=0;i<_kellyCache.length;i++){
     var m=_kellyCache[i];
-    var mh=(m.home||'').replace(/\s+/g,'').toLowerCase();
-    var ma=(m.away||'').replace(/\s+/g,'').toLowerCase();
+    var mh=_normTeam((m.home||'').replace(/\s+/g,'')).toLowerCase();
+    var ma=_normTeam((m.away||'').replace(/\s+/g,'')).toLowerCase();
     if(hn===mh&&an===ma)return m;
     if(hn.indexOf(mh)>=0&&mh.indexOf(hn)>=0&&an.indexOf(ma)>=0&&ma.indexOf(an)>=0)return m;
     // 中文名包含匹配
