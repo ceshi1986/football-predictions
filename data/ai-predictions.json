@@ -1,5 +1,5 @@
 {
-  "lastUpdated": "2026-07-21T06:42:07.479Z",
+  "lastUpdated": "2026-07-21T06:48:51.108Z",
   "predictions": [
     {
       "matchId": "760642",
@@ -1860,18 +1860,18 @@
       "hit": null
     },
     {
-      "prediction": "胜+平",
+      "prediction": "平+胜",
       "type": "double",
-      "skip": false,
-      "skipReason": null,
-      "confidence": 75,
-      "reason": "场景零：共同看好胜平，赔率显示主胜概率最高(63%)，可博胜",
+      "skip": true,
+      "skipReason": "结果太不确定，各方向概率接近",
+      "confidence": 34,
+      "reason": "方向不够明确，双选覆盖",
       "doublePick": [
-        "胜",
-        "平"
+        "平",
+        "胜"
       ],
-      "kellyLabel": "共同看好胜平，主选胜，防平",
-      "boSingle": "胜",
+      "kellyLabel": "共同看好主胜/平局，主选客胜，防主胜，防平局",
+      "boSingle": null,
       "matchId": "401841151",
       "home": "科林蒂安",
       "away": "雷莫",
