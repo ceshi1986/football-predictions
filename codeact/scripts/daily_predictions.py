@@ -1984,10 +1984,15 @@ async def main():
         # ===== 6. 过滤未开赛的比赛（仅竞彩/北单联赛） =====
         today = datetime.now(timezone(timedelta(hours=8)))
         today_str = today.strftime("%Y%m%d")
+        yesterday_str = (today - timedelta(days=1)).strftime("%Y%m%d")
+        tomorrow_str = (today + timedelta(days=1)).strftime("%Y%m%d")
         print(f"[INFO] 今日日期: {today_str}")
 
         upcoming = []
         skipped_leagues = set()
+        # 只预测今天和明天的比赛，不过早预测更远日期
+        allowed_predict_dates = {today_str, tomorrow_str}
+        skipped_future = 0
         for m in all_matches:
             if m.get("statusClass") != "scheduled":
                 continue
@@ -1997,7 +2002,17 @@ async def main():
             if league_code not in ACTIVE_LEAGUE_CODES:
                 skipped_leagues.add(league_code)
                 continue
+            # 日期过滤：只保留今天和明天的比赛
+            match_date_raw = m.get("date", "")
+            if len(match_date_raw) >= 8:
+                match_date_str = match_date_raw[:8].replace("-", "")
+                if match_date_str not in allowed_predict_dates:
+                    skipped_future += 1
+                    continue
             upcoming.append(m)
+        
+        if skipped_future > 0:
+            print(f"[INFO] 跳过远期比赛: {skipped_future} 场（只预测{today_str}~{tomorrow_str}）")
 
         print(f"[INFO] 未开赛比赛: {len(upcoming)} 场（已过滤非竞彩联赛: {skipped_leagues}）")
 
@@ -2222,19 +2237,28 @@ async def main():
                 pred_map[match_id]["odds_source"] = m["odds"].get("source", "unknown")
 
         # ===== 8. 组装最终预测列表 =====
-        # 保留所有已验证的旧预测 + 新的/更新的未验证预测
+        # 只保留昨天、今天、明天的预测（不提前预测太远，不保留太久）
+        allowed_display_dates = {yesterday_str, today_str, tomorrow_str}
         final_predictions = []
 
-        # 先添加已验证的（按日期排序）
+        # 先添加已验证的（按日期排序），只保留3天内
         verified_preds = [p for p in existing_predictions if p.get("verified")]
+        verified_before_filter = len(verified_preds)
+        verified_preds = [p for p in verified_preds if p.get("date", "")[:8].replace("-", "") in allowed_display_dates]
+        filtered_old_verified = verified_before_filter - len(verified_preds)
         verified_preds.sort(key=lambda x: x.get("date", ""))
         final_predictions.extend(verified_preds)
-        print(f"[DEBUG] 已验证旧预测: {len(verified_preds)} 条")
+        print(f"[DEBUG] 已验证旧预测: {len(verified_preds)} 条（清理{filtered_old_verified}条过期）")
 
-        # 再添加未验证的（新的和更新的）
+        # 再添加未验证的（新的和更新的），只保留3天内
         unverified_preds = [p for mid, p in pred_map.items() if not p.get("verified")]
+        unverified_before_filter = len(unverified_preds)
+        unverified_preds = [p for p in unverified_preds if p.get("date", "")[:8].replace("-", "") in allowed_display_dates]
+        filtered_old_unverified = unverified_before_filter - len(unverified_preds)
         unverified_preds.sort(key=lambda x: x.get("date", ""))
         final_predictions.extend(unverified_preds)
+        if filtered_old_unverified > 0:
+            print(f"[DEBUG] 清理过期未验证预测: {filtered_old_unverified} 条")
         print(f"[DEBUG] 未验证预测: {len(unverified_preds)} 条 (新增{new_count}+更新{update_count})")
 
         print(f"[INFO] 预测统计: 保留已验证 {keep_count}, 更新 {update_count}, 新增 {new_count}")
