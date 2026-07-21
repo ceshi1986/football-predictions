@@ -2787,31 +2787,36 @@ function _aiJudge(m,hf,df,af){
     }
     
     // === 双选组合：必须包含boSingle方向 ===
-    var mainPick=probs[0].r;
+    // 获取Kelly已排除的方向
+    var kellyDropped=[];
+    if(kr&&kr.scenarios){
+      var _kbd365=_K_DIRS.filter(function(d){return _kJK(c365['kelly_'+d],c365.payout)==='bad';});
+      var _kbdW=_K_DIRS.filter(function(d){return _kJK(cW['kelly_'+d],cW.payout)==='bad';});
+      kellyDropped=_kbd365.filter(function(d){return _kbdW.indexOf(d)>=0;});
+    }
+    var candidateDirs=probs.map(function(p){return p.r;}).filter(function(r){
+      var dk=r==="胜"?"h":r==="平"?"d":"a";
+      return kellyDropped.indexOf(dk)<0;
+    });
+    var mainPick=candidateDirs.length>0?candidateDirs[0]:probs[0].r;
     var secondPick;
-    if(boSingle&&probs[0].r!==boSingle){
-      // 凯利推荐方向和概率最高不同，双选必须包含凯利方向
-      // 选概率第二高的方向作为搭配
+    if(boSingle&&candidateDirs.indexOf(boSingle)<0){boSingle=null;}
+    if(boSingle&&mainPick!==boSingle){
       secondPick=boSingle;
     }else{
-      // 没有凯利信号，或凯利方向和最高概率方向一致，按原始逻辑
-      if(usedOdds){
-        var nonDraw=(mainPick==="胜")?"负":"胜";
-        secondPick=nonDraw;
-      }else{
-        if(mainPick==="胜"){secondPick="负";}
-        else if(mainPick==="负"){secondPick="胜";}
-        else{secondPick="胜";}
-      }
+      var others=candidateDirs.filter(function(d){return d!==mainPick;});
+      if(others.length>0){secondPick=others[0];}
+      else{secondPick=(mainPick==="胜")?,"负":,"胜";}
     }
-    // 如果有凯利信号但boSingle和mainPick相同，secondPick需要调整
     if(boSingle&&mainPick===boSingle){
-      // 凯利方向已经是最高概率，搭配次高概率（但排除平局如果主是平）
       if(mainPick==="平"){secondPick="胜";}
       else{
-        // 搭配概率第二高的方向
-        var sortedByProb=probs.slice().sort(function(a,b){return b.p-a.p});
-        secondPick=sortedByProb[1].r;
+        var sortedByProb=probs.slice().sort(function(a,b){return b.p-a.p;});
+        for(var si=1;si<sortedByProb.length;si++){
+          var dk2=sortedByProb[si].r==="胜"?"h":sortedByProb[si].r==="平"?"d":"a";
+          if(kellyDropped.indexOf(dk2)<0){secondPick=sortedByProb[si].r;break;}
+        }
+        if(!secondPick)secondPick="平";
       }
     }
     
