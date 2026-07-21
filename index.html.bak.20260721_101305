@@ -886,55 +886,12 @@ function _detectKellyScenario(c365,cW,baseProbs,oddsConf){
     }
     r._finalProbs=_kNormAdj(baseProbs,r.adjustments);return r;
   }
-  // 场景一（提前）：两家同时不看好同一方向 - 优先于场景五
-  var commonBad=b365.filter(function(d){return bW.indexOf(d)>=0});
-  if(commonBad.length>0){
-    var remainDirs=_K_DIRS.filter(function(d){return commonBad.indexOf(d)<0;});
-    var remainFavor365=f365.filter(function(d){return remainDirs.indexOf(d)>=0;});
-    var remainFavorW=fW.filter(function(d){return remainDirs.indexOf(d)>=0;});
-    var remainCommonFavor=remainFavor365.filter(function(d){return remainFavorW.indexOf(d)>=0;});
-    if(remainCommonFavor.length===1){
-      r.scenarios.push('1');r.pick=remainCommonFavor[0];
-      r.adjustments[_K_DK[remainCommonFavor[0]]]+=0.15;
-      r.label='场景一-两家不看好'+commonBad.map(function(d){return _K_DN[d]}).join('/');
-      r.label+='，看好'+_K_DN[remainCommonFavor[0]];
-      // 防覆盖：另一个剩余方向如果有一家看好，加cover
-      var otherRemain=remainDirs.filter(function(d){return d!==remainCommonFavor[0];});
-      if(otherRemain.length===1){
-        var oDir=otherRemain[0];
-        if(f365.indexOf(oDir)>=0||fW.indexOf(oDir)>=0){
-          r.cover=oDir;r.adjustments[_K_DK[oDir]]+=0.05;
-          r.label+='，防'+_K_DN[oDir];
-        }
-      }
-      r._finalProbs=_kNormAdj(baseProbs,r.adjustments);return r;
-    }else if(remainFavor365.length>0&&remainFavorW.length>0){
-      // 排除commonBad后仍然有矛盾（各看好不同方向），但已排除共同不看好的方向
-      r.scenarios.push('1+5');
-      for(var i=0;i<remainDirs.length;i++){
-        if(remainFavor365.indexOf(remainDirs[i])>=0||remainFavorW.indexOf(remainDirs[i])>=0){
-          r.adjustments[_K_DK[remainDirs[i]]]+=0.05;
-        }
-      }
-      r.adjustments.df+=0.03;r.confidence_mod-=10;
-      r.label='场景一-两家不看好'+commonBad.map(function(d){return _K_DN[d]}).join('/')+'('+remainDirs.map(function(d){return _K_DN[d]}).join('/')+'仍有分歧)';
-      r._finalProbs=_kNormAdj(baseProbs,r.adjustments);return r;
-    }
-    // commonBad但没有明确剩余方向
-    if(l365.dir==='d'&&lW.dir==='d'){
-      r.scenarios.push('1D');r.adjustments.df+=0.15;r.label='场景一D-两家平Kelly都最低';
-    }else if(l365.dir==='d'||lW.dir==='d'){
-      r.scenarios.push('1C');r.adjustments.df+=0.08;r.label='场景一C-一家平Kelly最低';
-    }else{
-      r.scenarios.push('1');r.label='场景一-两家不看好'+commonBad.map(function(d){return _K_DN[d]}).join('/');
-    }
-  }
   // 场景三：去平局
   if(dropped.indexOf('d')>=0&&dropped.indexOf('h')<0&&dropped.indexOf('a')<0){
     r.scenarios.push('3');r.adjustments.df=-(baseProbs.df*0.7);
     r.label='场景三-去平局';r._finalProbs=_kNormAdj(baseProbs,r.adjustments);return r;
   }
-  // 场景五：信号矛盾（仅在无共同bad时触发）
+  // 场景五：信号矛盾
   var o365=f365.filter(function(d){return fW.indexOf(d)<0});
   var oW=fW.filter(function(d){return f365.indexOf(d)<0});
   if(o365.length>=1&&oW.length>=1){
@@ -943,6 +900,17 @@ function _detectKellyScenario(c365,cW,baseProbs,oddsConf){
     r.adjustments.df+=0.03;r.confidence_mod-=10;
     r.label='场景五-信号矛盾'+(dropped.length?'('+dropped.map(function(d){return _K_DN[d]}).join(',')+'丢掉)':'');
     r._finalProbs=_kNormAdj(baseProbs,r.adjustments);return r;
+  }
+  // 场景一：两家同时不看好同一方向
+  var commonBad=b365.filter(function(d){return bW.indexOf(d)>=0});
+  if(commonBad.length>0){
+    if(l365.dir==='d'&&lW.dir==='d'){
+      r.scenarios.push('1D');r.adjustments.df+=0.15;r.label='场景一D-两家平Kelly都最低';
+    }else if(l365.dir==='d'||lW.dir==='d'){
+      r.scenarios.push('1C');r.adjustments.df+=0.08;r.label='场景一C-一家平Kelly最低';
+    }else{
+      r.scenarios.push('1');r.label='场景一-两家不看好'+commonBad.map(function(d){return _K_DN[d]}).join('/');
+    }
   }
   // 场景二：各不看好不同方向
   if(b365.length>0&&bW.length>0){
@@ -2769,7 +2737,7 @@ function _aiJudge(m,hf,df,af){
     var boSingle=null;
     if(kr&&kr.scenarios){
       var dirMap={'h':'胜','d':'平','a':'负'};
-      if((kr.scenarios.includes('0')||kr.scenarios.includes('1'))&&kr.pick){
+      if(kr.scenarios.includes('0')&&kr.pick){
         boSingle=dirMap[kr.pick];
       }else if(kr.scenarios.includes('1D')){
         boSingle='平';
