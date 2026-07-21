@@ -2801,23 +2801,16 @@ function _aiJudge(m,hf,df,af){
     var mainPick=candidateDirs.length>0?candidateDirs[0]:probs[0].r;
     var secondPick;
     if(boSingle&&candidateDirs.indexOf(boSingle)<0){boSingle=null;}
-    if(boSingle&&mainPick!==boSingle){
-      secondPick=boSingle;
+    // 可博方向必须是双选的第一位（优先方向）
+    if(boSingle){
+      mainPick=boSingle;
+      var others=candidateDirs.filter(function(d){return d!==boSingle;});
+      if(others.length>0){secondPick=others[0];}
+      else{secondPick=(boSingle==="胜")?"负":"胜";}
     }else{
       var others=candidateDirs.filter(function(d){return d!==mainPick;});
       if(others.length>0){secondPick=others[0];}
       else{secondPick=(mainPick==="胜")?"负":"胜";}
-    }
-    if(boSingle&&mainPick===boSingle){
-      if(mainPick==="平"){secondPick="胜";}
-      else{
-        var sortedByProb=probs.slice().sort(function(a,b){return b.p-a.p;});
-        for(var si=1;si<sortedByProb.length;si++){
-          var dk2=sortedByProb[si].r==="胜"?"h":sortedByProb[si].r==="平"?"d":"a";
-          if(kellyDropped.indexOf(dk2)<0){secondPick=sortedByProb[si].r;break;}
-        }
-        if(!secondPick)secondPick="平";
-      }
     }
     
     prediction=mainPick+"+"+secondPick;
@@ -2868,7 +2861,7 @@ function _renderAICard(rec){
   var predClass=rec.type==="single"?"single-pred":"double-pred";
   
   var predText=rec.type==="single"?rec.prediction:rec.prediction+"（双选）";
-  var boTag=(rec.boSingle&&rec.doublePick&&rec.doublePick.length>0&&rec.boSingle!==rec.doublePick[0])?'<span class="ai-bo-tag">可博'+rec.boSingle+'</span>':'';
+  var boTag=rec.boSingle?'<span class="ai-bo-tag">可博'+rec.boSingle+'</span>':'';
   
   var skipTag=rec.skip?'<span class="ai-skip-tag">（不建议投注）</span>':'';
   
