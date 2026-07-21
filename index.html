@@ -848,7 +848,7 @@ var _K_DIRS=['h','d','a'];
 var _K_DN={h:'主胜',d:'平局',a:'客胜'};
 var _K_DK={h:'hf',d:'df',a:'af'};
 
-function _kJK(k,p){var diff=p-k;if(diff>_K_TOL)return'favor';if(diff>=-_K_TOL)return'ok';return'bad';}
+function _kJK(k,p){return k<=p?'favor':'bad';}
 function _kFavored(c){return _K_DIRS.filter(function(d){return _kJK(c['kelly_'+d],c.payout)==='favor'});}
 function _kBadDirs(c){return _K_DIRS.filter(function(d){return _kJK(c['kelly_'+d],c.payout)==='bad'});}
 function _kIsSafe(c365,cW,d){return _kJK(c365['kelly_'+d],c365.payout)!=='bad'&&_kJK(cW['kelly_'+d],cW.payout)!=='bad';}
@@ -869,19 +869,32 @@ function _detectKellyScenario(c365,cW,baseProbs,oddsConf){
     r.scenarios.push('7_skip');r.skip=true;r.skipReason='凯利离散度>0.10';
     r.label='场景七-离散度过高,建议放弃';return r;
   }
-  // 场景零：共同看好
-  var commonFavor=f365.filter(function(d){return fW.indexOf(d)>=0});
+  // 场景零：共同看好（赔率定主方向，Kelly定补防）
+  // 扩展commonFavor：一家favor+另一家ok也算共同看好
+  var commonFavor=_K_DIRS.filter(function(d){
+    var j365=_kJK(c365['kelly_'+d],c365.payout);
+    var jW=_kJK(cW['kelly_'+d],cW.payout);
+    return j365!=='bad'&&jW!=='bad';
+  });
   if(commonFavor.length>0){
+    // 赔率概率最高的方向作为主选(pick)
+    var dirNames={hf:'h',df:'d',af:'a'};
+    var maxKey='hf',maxVal=baseProbs.hf;
+    for(var k in baseProbs){if(baseProbs[k]>maxVal){maxVal=baseProbs[k];maxKey=k;}}
+    var topDir=dirNames[maxKey];
+    r.scenarios.push('0');
+    r.pick=topDir;
+    r.label='共同看好'+commonFavor.map(function(d){return _K_DN[d]}).join('/')+'，主选'+_K_DN[topDir];
+    // 对commonFavor方向加+0.15调整
     for(var i=0;i<commonFavor.length;i++){
-      var d=commonFavor[i];r.scenarios.push('0');r.adjustments[_K_DK[d]]+=0.15;r.pick=d;
-      r.label='共同看好'+_K_DN[d];
+      r.adjustments[_K_DK[commonFavor[i]]]+=0.15;
     }
-    if(commonFavor.length===1){
-      var mainDir=commonFavor[0];
-      if(mainDir!=='d'){
-        var drawOk=_kIsSafe(c365,cW,'d');
-        var drawFavoredByOne=f365.indexOf('d')>=0||fW.indexOf('d')>=0;
-        if(drawOk||drawFavoredByOne){r.cover='d';r.adjustments.df+=0.05;r.label+='，防平';}
+    // 非主选的commonFavor方向作为补防(cover)，额外+0.05
+    for(var j=0;j<commonFavor.length;j++){
+      if(commonFavor[j]!==topDir){
+        r.cover=commonFavor[j];
+        r.adjustments[_K_DK[commonFavor[j]]]+=0.05;
+        r.label+='，防'+_K_DN[commonFavor[j]];
       }
     }
     r._finalProbs=_kNormAdj(baseProbs,r.adjustments);return r;

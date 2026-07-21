@@ -211,12 +211,9 @@ _500COM_CORE_COMPANIES = {
 # ===== 七场景引擎辅助函数 =====
 
 def _k_judge_kelly(kelly_val: float, payout: float) -> str:
-    """Kelly判断：favor/ok/bad"""
-    diff = payout - kelly_val
-    if diff > _K_TOL:
+    """Kelly判断：Kelly<=payout就是favor，否则bad"""
+    if kelly_val <= payout:
         return 'favor'
-    if diff >= -_K_TOL:
-        return 'ok'
     return 'bad'
 
 
@@ -340,89 +337,31 @@ def calc_kelly_scenario(kelly_companies: dict, base_probs: dict = None, odds_con
         r['signal'] = r['label']
         return r
 
-    # ===== 场景零：共同看好 =====
+        # ===== 场景零：共同看好（赔率定主方向，Kelly定补防） =====
     common_favor = [d for d in f365 if d in fW]
     if common_favor:
+        # 赔率概率最高的方向作为主选(pick)
+        _dir_map = {'hf': 'h', 'df': 'd', 'af': 'a'}
+        top_key = max(base_probs, key=base_probs.get)
+        top_dir = _dir_map.get(top_key, top_key)
+        r['scenarios'].append('0')
+        r['pick'] = top_dir
+        r['label'] = f"共同看好{'/'.join(_K_DN[d] for d in common_favor)}，主选{_K_DN[top_dir]}"
+        # 对common_favor方向加+0.15调整
         for d in common_favor:
-            r['scenarios'].append('0')
             r['adjustments'][_K_DK[d]] += 0.15
-            r['pick'] = d
-            r['label'] = f'共同看好{_K_DN[d]}'
-        if len(common_favor) == 1:
-            main_dir = common_favor[0]
-            # 经验规则：共同看好平局时，如果胜方向非两家共同不看好，用赔率决定pick
-            if main_dir == 'd' and odds:
-                # 先算common_bad，检查胜方向是否被两家同时不看好
-                _cb = [d for d in b365 if d in bW]
-                favored_win_dir = None
-                if 'h' not in _cb:
-                    favored_win_dir = 'h'
-                elif 'a' not in _cb:
-                    favored_win_dir = 'a'
-
-                if favored_win_dir:
-                    win_odds_val = odds.get('w') if favored_win_dir == 'h' else odds.get('l')
-                    draw_odds_val = odds.get('d')
-
-                    if win_odds_val and draw_odds_val:
-                        if favored_win_dir == 'h':
-                            both_win_kelly_lowest = (
-                                c365['kelly_h'] <= c365['kelly_d'] and c365['kelly_h'] <= c365['kelly_a'] and
-                                cw['kelly_h'] <= cw['kelly_d'] and cw['kelly_h'] <= cw['kelly_a']
-                            )
-                            both_draw_kelly_lowest = (
-                                c365['kelly_d'] <= c365['kelly_h'] and c365['kelly_d'] <= c365['kelly_a'] and
-                                cw['kelly_d'] <= cw['kelly_h'] and cw['kelly_d'] <= cw['kelly_a']
-                            )
-                        else:
-                            both_win_kelly_lowest = (
-                                c365['kelly_a'] <= c365['kelly_d'] and c365['kelly_a'] <= c365['kelly_h'] and
-                                cw['kelly_a'] <= cw['kelly_d'] and cw['kelly_a'] <= cw['kelly_h']
-                            )
-                            both_draw_kelly_lowest = (
-                                c365['kelly_d'] <= c365['kelly_h'] and c365['kelly_d'] <= c365['kelly_a'] and
-                                cw['kelly_d'] <= cw['kelly_h'] and cw['kelly_d'] <= cw['kelly_a']
-                            )
-
-                        if win_odds_val <= draw_odds_val:
-                            # 胜赔率≤平赔率 → 赔率指向胜，直接选胜
-                            # 例外：两家该队胜Kelly都最低时 → 胜Kelly信号加强，仍选胜
-                            r['pick'] = favored_win_dir
-                            r['adjustments'][_K_DK[favored_win_dir]] += 0.05
-                            r['cover'] = 'd'
-                            r['label'] = f'共同看好胜平，胜赔≤平赔→{_K_DN[favored_win_dir]}+平（赔率优先）'
-                        else:
-                            if both_win_kelly_lowest:
-                                # 平赔低但该队胜Kelly两家都最低→胜仍优先
-                                r['pick'] = favored_win_dir
-                                r['adjustments'][_K_DK[favored_win_dir]] += 0.05
-                                r['cover'] = 'd'
-                                r['label'] = f'共同看好胜平，虽平赔低但两家胜Kelly都最低→{_K_DN[favored_win_dir]}+平'
-                            else:
-                                # 平赔低且该队胜Kelly不都最低→平概率大于胜，保持pick='d'
-                                r['pick'] = 'd'
-                                r['cover'] = favored_win_dir
-                                r['adjustments'][_K_DK[favored_win_dir]] += 0.05
-                                r['label'] = f'共同看好胜平，平赔<胜赔→平+{_K_DN[favored_win_dir]}'
-                        r['scenario'] = '0'
-                        r['signal'] = r['label']
-                        r['finalProbs'] = _k_norm_adj(base_probs, r['adjustments'])
-                        return r
-
-            # 原有逻辑：共同看好非平时，防平
-            if main_dir != 'd':
-                draw_ok = _k_is_safe(c365, cw, 'd')
-                draw_favored_by_one = ('d' in f365 or 'd' in fW)
-                if draw_ok or draw_favored_by_one:
-                    r['cover'] = 'd'
-                    r['adjustments']['df'] += 0.05
-                    r['label'] += '，防平'
+        # 非主选的common_favor方向作为补防(cover)，额外+0.05
+        for d in common_favor:
+            if d != top_dir:
+                r['cover'] = d
+                r['adjustments'][_K_DK[d]] += 0.05
+                r['label'] += f"，防{_K_DN[d]}"
         r['scenario'] = '0'
         r['signal'] = r['label']
         r['finalProbs'] = _k_norm_adj(base_probs, r['adjustments'])
         return r
 
-    # ===== 场景一（提前检测）：两家同时不看好同一方向 =====
+# ===== 场景一（提前检测）：两家同时不看好同一方向 =====
     common_bad = [d for d in b365 if d in bW]
     if common_bad:
         remain_dirs = [d for d in _K_DIRS if d not in common_bad]
