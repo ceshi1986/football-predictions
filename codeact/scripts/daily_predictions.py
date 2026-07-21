@@ -1677,6 +1677,132 @@ async def verify_predictions(predictions: list, all_matches: list):
     print(f"[OK] 验证完成: {verified_count} 场已验证, 命中 {hit_count} 场")
 
 
+
+# 500.com公司名称 → Odds API bookmaker key 映射
+_500COM_TO_API_KEY = {
+    "Pinnacle": "pinnacle",
+    "韦德": "betvictor",
+    "Ladbrokes": "ladbrokes",
+    "Bet365": "bet365",
+    "威廉希尔": "williamhill",
+    "Interwetten": "interwetten",
+    "Interwetten2": "interwetten2",
+    "澳门": "macau",
+    "皇冠": "crown",
+    "易胜博": "easybets",
+    "Bwin": "bwin",
+    "Coral": "coral",
+    "必发": "betfair",
+    "Unibet": "unibet",
+    "Unibet2": "unibet2",
+    "SkyBet": "skybet",
+    "Dafabet": "dafabet",
+    "Mansion88": "mansion88",
+    "香港马会": "hkjc",
+    "立博": "ladbrokes_cn",
+}
+
+def _load_kelly_500com_data() -> dict:
+    """加载500.com凯利数据（由scrape_500com_kelly_full.py生成）"""
+    today = datetime.now().strftime("%Y%m%d")
+    # 也检查明天的数据（跨天比赛）
+    tomorrow = (datetime.now() + timedelta(days=1)).strftime("%Y%m%d")
+    script_dir = os.path.dirname(os.path.abspath(__file__))
+    base_dir = os.path.dirname(script_dir)  # football-predictions/
+
+    for date_str in [today, tomorrow]:
+        path = os.path.join(base_dir, "data", "500com_daily", date_str, "kelly_data_full.json")
+        if os.path.exists(path):
+            with open(path, "r", encoding="utf-8") as f:
+                data = json.load(f)
+            print(f"[500COM] 加载{date_str}凯利数据: {data.get('total_matches',0)}场比赛, {data.get('total_companies',0)}条公司记录")
+            return data
+    print("[500COM] 未找到今日凯利数据")
+    return {}
+
+def _load_kelly_zgzcw_data() -> dict:
+    """加载中国足彩网凯利数据（当前不可用，zgzcw.com有反爬限制）"""
+    return {}
+
+def _convert_500com_to_bookmaker_odds(companies: dict) -> dict:
+    """将500.com公司数据转换为calc_kelly_scenario期望的格式
+    输入: {"威廉希尔": [{"odds_h": x, "odds_d": y, "odds_a": z, ...}], ...}
+    输出: {"williamhill": {"home": x, "draw": y, "away": z}, ...}
+    """
+    result = {}
+    for company_name, records in companies.items():
+        api_key = _500COM_TO_API_KEY.get(company_name)
+        if not api_key:
+            continue
+        rec = records[0] if isinstance(records, list) else records
+        result[api_key] = {
+            "home": rec["odds_h"],
+            "draw": rec["odds_d"],
+            "away": rec["odds_a"],
+        }
+    return result
+
+def _match_500com_match(home_cn: str, away_cn: str, league: str, kelly_500com: dict) -> dict:
+    """在500com数据中模糊匹配比赛（通过中文名）"""
+    if not kelly_500com:
+        return None
+    matches = kelly_500com.get("matches", [])
+    if not matches:
+        return None
+
+    # 已知队名别名映射（500com中文名 → schedule中文名）
+    _TEAM_ALIAS = {
+        "巴西国际": "国际体育", "沙佩科": "沙佩科恩斯",
+        "巴拉纳竞技": "帕拉纳竞技", "帕尔梅拉斯": "帕尔梅拉斯",
+        "哈马坎": "哈马坎",
+    }
+    def _alias(name: str) -> str:
+        return _TEAM_ALIAS.get(name, name)
+
+    def _name_similarity(a: str, b: str) -> float:
+        """综合名称相似度：别名 + 子串匹配 + 字符集重合度"""
+        if not a or not b:
+            return 0.0
+        a2 = _alias(a)
+        b2 = _alias(b)
+        if a2 == b2:
+            return 1.0
+        # 子串匹配：一个包含另一个
+        if a2 in b2 or b2 in a2:
+            return max(len(a2), len(b2)) / min(len(a2), len(b2)) * 0.5 + 0.3
+        # 字符集重合度
+        set_a = set(a2)
+        set_b = set(b2)
+        common = len(set_a & set_b)
+        total = len(set_a | set_b)
+        return common / total if total > 0 else 0.0
+
+    best_match = None
+    best_score = 0
+
+    for m500 in matches:
+        h500 = m500.get("home", "")
+        a500 = m500.get("away", "")
+        # 主客正序匹配
+        h_sim = _name_similarity(home_cn, h500)
+        a_sim = _name_similarity(away_cn, a500)
+        score_fwd = (h_sim + a_sim) / 2
+        # 主客颠倒
+        h_sim_rev = _name_similarity(home_cn, a500)
+        a_sim_rev = _name_similarity(away_cn, h500)
+        score_rev = (h_sim_rev + a_sim_rev) / 2
+        score = max(score_fwd, score_rev)
+        if score > best_score:
+            best_score = score
+            best_match = m500
+
+    # 阈值：50%相似度
+    if best_score >= 0.5 and best_match:
+        print(f"[500COM] 匹配成功: {home_cn} vs {away_cn} → {best_match['home']} vs {best_match['away']} (相似度{best_score:.0%})")
+        return best_match
+    return None
+
+
 async def main():
     result_mode = sys.argv[1] if len(sys.argv) > 1 else "display_only"
     
@@ -1997,6 +2123,29 @@ async def main():
                         reverse_tag = f" [反向{rev_dir_label}]"
                     print(f"[KELLY] {_home} vs {_away}: 场景{kelly_data['scenario']} {kelly_data.get('signal', '')}{unique_tag}{reverse_tag}")
 
+            # ===== 500.com 凯利数据 fallback =====
+            # 当 Odds API 无数据时，使用500.com抓取的凯利数据
+            if not kelly_data and kelly_500com_data:
+                matched_500com = _match_500com_match(_home, _away, match_league, kelly_500com_data)
+                if matched_500com:
+                    bookmaker_odds = _convert_500com_to_bookmaker_odds(matched_500com.get("companies", {}))
+                    if len(bookmaker_odds) >= 2:
+                        kelly_data = calc_kelly_scenario(
+                            bookmaker_odds,
+                            matched_500com.get("home", _home),
+                            matched_500com.get("away", _away),
+                        )
+                        if kelly_data.get("scenario"):
+                            unique_tag = ""
+                            if kelly_data.get("kellyUniqueDirection") and kelly_data.get("kellyUniqueSignal"):
+                                dir_label = {"H": "主胜", "D": "平局", "A": "客胜"}.get(kelly_data["kellyUniqueDirection"], kelly_data["kellyUniqueDirection"])
+                                unique_tag = f" [唯独{dir_label}]"
+                            reverse_tag = ""
+                            if kelly_data.get("kellyReverseDirection") and kelly_data.get("kellyReverseSignal"):
+                                rev_dir_label = {"H": "排除主胜", "D": "排除平局", "A": "排除客胜"}.get(kelly_data["kellyReverseDirection"], kelly_data["kellyReverseDirection"])
+                                reverse_tag = f" [反向{rev_dir_label}]"
+                            print(f"[KELLY-500COM] {_home} vs {_away}: 场景{kelly_data['scenario']} {kelly_data.get('signal', '')}{unique_tag}{reverse_tag}")
+
             # ===== 竞彩网赔率 fallback =====
             # 当 schedule.json 无赔率且 The Odds API 无多公司数据时，
             # 从竞彩网获取胜平负赔率作为备选数据源
@@ -2284,3 +2433,4 @@ async def main():
 
 
 asyncio.run(main())
+
