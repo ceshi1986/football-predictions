@@ -2732,52 +2732,68 @@ function _aiJudge(m,hf,df,af){
     if(usedOdds)reason+=" · 竞彩网赔率";
   }else{
     type="double";
-    var mainPick=probs[0].r;
-    var upset;
-    if(usedOdds){
-      var oddsMap={"胜":oddsData.h,"平":oddsData.d,"负":oddsData.a};
-      var nonDraw=(mainPick==="胜")?"负":"胜";
-      upset=nonDraw;
-    }else{
-      if(mainPick==="胜"){upset="负";}
-      else if(mainPick==="负"){upset="胜";}
-      else{upset="胜";}
-    }
-    prediction=mainPick+"+"+upset;
-    doublePick=[mainPick,upset];
-    if(effConf>=0.50&&probDiff>=0.10)reason="方向偏"+mainPick+"("+Math.round(effConf*100)+"%)，双选防冷";
-    else reason="方向不够明确，双选覆盖";
-    reason+=frogNote;
-    if(usedOdds)reason+=" · 竞彩网赔率";
     
-    // === 可博单选判断 ===
+    // === 先计算可博单选方向 ===
     var boSingle=null;
     if(kr&&kr.scenarios){
       var dirMap={'h':'胜','d':'平','a':'负'};
-      // 场景0：共同看好
       if(kr.scenarios.includes('0')&&kr.pick){
         boSingle=dirMap[kr.pick];
-      }
-      // 场景1D：两家平Kelly都最低
-      else if(kr.scenarios.includes('1D')){
+      }else if(kr.scenarios.includes('1D')){
         boSingle='平';
-      }
-      // 场景2/2A/2B：检查平Kelly是否<返还率
-      else if(kr.scenarios.includes('2')||kr.scenarios.includes('2A')||kr.scenarios.includes('2B')){
+      }else if(kr.scenarios.includes('2')||kr.scenarios.includes('2A')||kr.scenarios.includes('2B')){
         var p365=c365.payout;
         var pW=cW.payout;
         var k365_d=c365.kelly_d;
         var kW_d=cW.kelly_d;
-        // 2A：两家平Kelly都<返还率
         if(k365_d<p365-0.005&&kW_d<pW-0.005){
           boSingle='平';
-        }
-        // 2B：一家平Kelly<返还率
-        else if(k365_d<p365-0.005||kW_d<pW-0.005){
+        }else if(k365_d<p365-0.005||kW_d<pW-0.005){
           boSingle='平';
         }
       }
     }
+    
+    // === 双选组合：必须包含boSingle方向 ===
+    var mainPick=probs[0].r;
+    var secondPick;
+    if(boSingle&&probs[0].r!==boSingle){
+      // 凯利推荐方向和概率最高不同，双选必须包含凯利方向
+      // 选概率第二高的方向作为搭配
+      secondPick=boSingle;
+    }else{
+      // 没有凯利信号，或凯利方向和最高概率方向一致，按原始逻辑
+      if(usedOdds){
+        var nonDraw=(mainPick==="胜")?"负":"胜";
+        secondPick=nonDraw;
+      }else{
+        if(mainPick==="胜"){secondPick="负";}
+        else if(mainPick==="负"){secondPick="胜";}
+        else{secondPick="胜";}
+      }
+    }
+    // 如果有凯利信号但boSingle和mainPick相同，secondPick需要调整
+    if(boSingle&&mainPick===boSingle){
+      // 凯利方向已经是最高概率，搭配次高概率（但排除平局如果主是平）
+      if(mainPick==="平"){secondPick="胜";}
+      else{
+        // 搭配概率第二高的方向
+        var sortedByProb=probs.slice().sort(function(a,b){return b.p-a.p});
+        secondPick=sortedByProb[1].r;
+      }
+    }
+    
+    prediction=mainPick+"+"+secondPick;
+    doublePick=[mainPick,secondPick];
+    if(boSingle){
+      reason="凯利信号推荐"+boSingle+"("+Math.round(effConf*100)+"%)，双选覆盖";
+    }else if(effConf>=0.50&&probDiff>=0.10){
+      reason="方向偏"+mainPick+"("+Math.round(effConf*100)+"%)，双选防冷";
+    }else{
+      reason="方向不够明确，双选覆盖";
+    }
+    reason+=frogNote;
+    if(usedOdds)reason+=" · 竞彩网赔率";
   }
   
   return{
