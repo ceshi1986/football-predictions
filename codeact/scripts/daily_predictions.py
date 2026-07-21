@@ -2803,6 +2803,19 @@ async def main():
         _preds_with_jc = [p for p in final_predictions if p.get("odds_source") == "竞彩网"]
         print(f"[DEBUG] final_predictions 中有赔率: {len(_preds_with_odds)} 场, 竞彩网: {len(_preds_with_jc)} 场")
 
+        # ===== 8.1 赔率覆盖率监控 =====
+        _no_odds_matches = []
+        for p in final_predictions:
+            if not p.get("hasOdds") and not p.get("verified"):
+                _no_odds_matches.append(f"{p.get('home','')} vs {p.get('away','')}")
+        if _no_odds_matches:
+            print(f"\n[WARNING] 赔率缺失！{len(_no_odds_matches)} 场比赛无赔率数据（将退化为纯Elo模型，预测可靠性大幅降低）:")
+            for m_name in _no_odds_matches:
+                print(f"  ⚠ {m_name}")
+            print(f"[HINT] 可能原因: Odds API配额耗尽 / 500com未抓取到 / 竞彩网无数据。请检查赔率数据源。")
+        else:
+            print(f"[OK] 赔率覆盖率: {len(final_predictions)}/{len(final_predictions)} 场全部有赔率")
+
         # ===== 9. 推送到 GitHub =====
         output_data = {
             "lastUpdated": datetime.now(timezone.utc).strftime("%Y-%m-%dT%H:%M:%S.") + 
@@ -2919,6 +2932,11 @@ async def main():
             f"历史验证: {verified_total} 场 | 命中 {verified_hits} 场 | 命中率 {hit_rate}%\n"
             f"本次新增: {new_count} | 更新: {update_count} | 保留: {keep_count}"
         )
+        # 赔率覆盖率告警
+        _no_odds_count = len(_no_odds_matches)
+        _total_unverified = len([p for p in final_predictions if not p.get("verified")])
+        if _no_odds_count > 0:
+            stats_info += f"\n⚠️ 赔率缺失: {_no_odds_count}/{_total_unverified} 场（降级为纯Elo，可靠性低）"
         print(stats_info)
 
         # ===== 12. 提交结果 =====
@@ -2950,6 +2968,11 @@ async def main():
                     msg_parts.append(f"  ★ {p['home']} vs {p['away']}: {p['prediction']} ({p['confidence']}% {stars_str})")
 
             msg_parts.append(f"\n历史命中率: {hit_rate}% | GitHub更新: {'✅' if push_success else '❌'}")
+            
+            # 赔率缺失告警（写入用户消息）
+            if _no_odds_count > 0:
+                msg_parts.append(f"\n⚠️ {len(_no_odds_matches)} 场无赔率（Elo降级）: {', '.join(_no_odds_matches[:3])}" + ("..." if len(_no_odds_matches) > 3 else ""))
+            
             message = "\n".join(msg_parts)
         else:
             message = f"[主人](at://owner) 今日 ({today_str}) 暂无新的足球预测"
@@ -2967,6 +2990,8 @@ async def main():
                 "verified_total": verified_total,
                 "verified_hits": verified_hits,
                 "hit_rate": hit_rate,
+                "no_odds_count": _no_odds_count,
+                "no_odds_matches": _no_odds_matches if _no_odds_count > 0 else [],
             },
         )
 

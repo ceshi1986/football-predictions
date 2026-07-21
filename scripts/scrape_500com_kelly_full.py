@@ -107,12 +107,105 @@ def parse_ouzhi_page(session, match_id):
     return {'id': f'match_{match_id}', 'league': league, 'home': home, 'away': away,
             'match_time': match_time, 'companies': companies}, None
 
+def extract_odds_from_kelly(kelly_data):
+    """
+    从 kelly_data_full.json 提取赔率，生成 odds_api_odds.json 格式。
+    当 The Odds API 配额耗尽时，用 500com 抓取的公司赔率作为替代数据源。
+    取多家主流公司赔率平均，更稳健。
+    """
+    PRIORITY = ['Bet365', '威廉希尔', '立博', '韦德', '易胜博', 'Pinnacle', 'Bwin', 'Interwetten']
+    LEAGUE_MAP = {
+        '英超': ('eng.1', '英超'), '西甲': ('esp.1', '西甲'), '德甲': ('ger.1', '德甲'),
+        '意甲': ('ita.1', '意甲'), '法甲': ('fra.1', '法甲'), '葡超': ('por.1', '葡超'),
+        '荷甲': ('ned.1', '荷甲'), '瑞典超': ('swe.1', '瑞超'), '瑞超': ('swe.1', '瑞超'),
+        '挪超': ('nor.1', '挪超'), '芬超': ('fin.1', '芬超'), '日职': ('jpn.1', '日职'),
+        '韩K': ('kor.1', '韩K'), '韩K联': ('kor.1', '韩K'), '美职联': ('usa.1', '美职联'),
+        '巴甲': ('bra.1', '巴甲'), '阿甲': ('arg.1', '阿甲'), '墨西联': ('mex.1', '墨超'),
+        '墨超': ('mex.1', '墨超'), '比甲': ('bel.1', '比甲'), '奥甲': ('aut.1', '奥甲'),
+        '土超': ('tur.1', '土超'), '欧冠': ('uefa.champions', '欧冠'), '欧联': ('uefa.europa', '欧联'),
+        '世界杯': ('fifa.world', '世界杯'), '世俱杯': ('fifa.club.world.cup', '世俱杯'),
+        '中超': ('chn.1', '中超'), '澳超': ('aus.1', '澳超'),
+        '澳首超': ('aus.act', '澳首超'), '澳布甲': ('aus.brisbane', '澳布甲'),
+        '日职乙': ('jpn.2', '日职乙'), '韩K2': ('kor.2', '韩K2'),
+        '英冠': ('eng.2', '英冠'), '德乙': ('ger.2', '德乙'), '西乙': ('esp.2', '西乙'),
+        '意乙': ('ita.2', '意乙'), '法乙': ('fra.2', '法乙'),
+    }
+    
+    matches_out = []
+    for m in kelly_data.get('matches', []):
+        companies = m.get('companies', {})
+        if not companies:
+            continue
+        
+        # 收集主流公司赔率取平均
+        odds_list = []
+        for cname in PRIORITY:
+            if cname in companies and companies[cname]:
+                c = companies[cname][0]
+                if c.get('odds_h', 0) > 1 and c.get('odds_d', 0) > 1 and c.get('odds_a', 0) > 1:
+                    odds_list.append((c['odds_h'], c['odds_d'], c['odds_a']))
+        
+        # 如果主流都没有，遍历所有公司
+        if not odds_list:
+            for cname, cdata in companies.items():
+                if cdata and cdata[0].get('odds_h', 0) > 1 and cdata[0].get('odds_d', 0) > 1 and cdata[0].get('odds_a', 0) > 1:
+                    odds_list.append((cdata[0]['odds_h'], cdata[0]['odds_d'], cdata[0]['odds_a']))
+        
+        if not odds_list:
+            continue
+        
+        avg_w = round(sum(o[0] for o in odds_list) / len(odds_list), 2)
+        avg_d = round(sum(o[1] for o in odds_list) / len(odds_list), 2)
+        avg_l = round(sum(o[2] for o in odds_list) / len(odds_list), 2)
+        
+        # 映射联赛
+        league_raw = m.get('league', '')
+        league_code, league_short = 'other', league_raw
+        for keyword, (code, short) in LEAGUE_MAP.items():
+            if keyword in league_raw:
+                league_code, league_short = code, short
+                break
+        
+        # 解析比赛时间
+        match_time_raw = m.get('match_time', '')
+        date_iso = ''
+        try:
+            dt = datetime.strptime(match_time_raw, '%Y-%m-%d %H:%M')
+            date_iso = dt.strftime('%Y-%m-%dT%H:%M:00+08:00')
+        except:
+            date_iso = kelly_data.get('date', '') + 'T00:00:00+08:00'
+        
+        matches_out.append({
+            'home': m['home'], 'away': m['away'],
+            'homeEN': '', 'awayEN': '',
+            'date': date_iso,
+            'league': league_code, 'leagueShort': league_short,
+            'odds': {'w': avg_w, 'd': avg_d, 'l': avg_l},
+            'source': '500com_kelly'
+        })
+    
+    today = datetime.now().strftime('%Y-%m-%dT%H:%M:%S+08:00')
+    output = {
+        'generated_at': today,
+        'source': '500com_kelly_derived',
+        'total_matches': len(matches_out),
+        'matches': matches_out
+    }
+    
+    # 写入 data/odds_api_odds.json
+    out_path = os.path.join(os.path.dirname(OUTPUT_DIR), 'odds_api_odds.json')
+    with open(out_path, 'w', encoding='utf-8') as f:
+        json.dump(output, f, ensure_ascii=False, indent=2)
+    print(f"[赔率提取] 从Kelly数据提取 {len(matches_out)} 场赔率 → {out_path}")
+    return output
+
+
 def scrape_all(extra_ids=None):
     today = datetime.now().strftime('%Y%m%d')
     out = os.path.join(OUTPUT_DIR, today, 'kelly_data_full.json')
     os.makedirs(os.path.dirname(out), exist_ok=True)
     session = requests.Session()
-    print("[1/3] 获取赛事列表...")
+    print("[1/4] 获取赛事列表...")
     ids = get_match_ids(session)
     print(f"  weekfixture: {len(ids)}场")
     if extra_ids:
@@ -122,7 +215,7 @@ def scrape_all(extra_ids=None):
         if added: print(f"  补充额外: {len(added)}场")
     print(f"  总计: {len(ids)}场")
     if not ids: return None
-    print(f"\n[2/3] 抓取凯利数据...")
+    print(f"[2/4] 抓取凯利数据...")
     matches = []
     skipped = 0
     for i, mid in enumerate(ids):
@@ -144,9 +237,17 @@ def scrape_all(extra_ids=None):
     tc = sum(len(m['companies']) for m in matches)
     result = {'date': datetime.now().strftime('%Y-%m-%d'), 'matches': matches,
               'total_matches': len(matches), 'total_companies': tc, 'skipped': skipped}
+    print(f"\n[3/4] 保存数据...")
     with open(out, 'w', encoding='utf-8') as f:
         json.dump(result, f, ensure_ascii=False, indent=2)
-    print(f"\n✅ 完成: {len(matches)}场 {tc}条公司数据 → {out}")
+    print(f"  ✅ {len(matches)}场 {tc}条公司数据 → {out}")
+    
+    print(f"\n[4/4] 提取赔率生成 odds_api_odds.json...")
+    odds_result = extract_odds_from_kelly(result)
+    print(f"  ✅ {odds_result['total_matches']} 场赔率已提取")
+    
+    print(f"\n{'='*40}")
+    print(f"全部完成: {len(matches)}场比赛, {tc}条公司数据, {odds_result['total_matches']}场赔率")
     return result
 
 if __name__ == '__main__':
