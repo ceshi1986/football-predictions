@@ -1,5 +1,5 @@
 {
-  "lastUpdated": "2026-07-21T07:16:15.239Z",
+  "lastUpdated": "2026-07-21T07:49:35.465Z",
   "predictions": [
     {
       "matchId": "760642",
@@ -1768,8 +1768,8 @@
       "type": "double",
       "skip": false,
       "skipReason": "",
-      "confidence": 74,
-      "reason": "方向偏负(64%)，双选防冷",
+      "confidence": 63,
+      "reason": "方向偏负(53%)，双选防冷",
       "doublePick": [
         "负",
         "平"
@@ -1814,16 +1814,16 @@
     {
       "prediction": "胜+负",
       "type": "double",
-      "skip": true,
-      "skipReason": "结果太不确定，各方向概率接近",
-      "confidence": 39,
-      "reason": "方向不够明确，双选覆盖",
+      "skip": false,
+      "skipReason": "",
+      "confidence": 52,
+      "reason": "凯利信号推荐胜(52%)，双选覆盖",
       "doublePick": [
         "胜",
         "负"
       ],
       "kellyLabel": "共同看好主胜，主选主胜",
-      "boSingle": null,
+      "boSingle": "胜",
       "matchId": "401841156",
       "home": "圣保罗",
       "away": "帕拉纳竞技",
@@ -1833,11 +1833,7 @@
       "matchTime": "7/23 周四 08:30",
       "verified": false,
       "actualResult": null,
-      "hit": null,
-      "kellyPick": "主胜",
-      "kellyCover": null,
-      "kellyScenario": 3,
-      "pick": "主胜"
+      "hit": null
     },
     {
       "prediction": "胜",
@@ -1845,10 +1841,10 @@
       "skip": false,
       "skipReason": "",
       "confidence": 62,
-      "reason": "赔率看好主队(61%)",
+      "reason": "赔率看好主队(62%)",
       "doublePick": null,
       "kellyLabel": "共同看好主胜，主选主胜",
-      "boSingle": "主胜",
+      "boSingle": null,
       "matchId": "401879458",
       "home": "博塔弗戈",
       "away": "维多利亚",
@@ -1861,18 +1857,18 @@
       "hit": null
     },
     {
-      "prediction": "平+胜",
+      "prediction": "胜+平",
       "type": "double",
-      "skip": true,
-      "skipReason": "结果太不确定，各方向概率接近",
-      "confidence": 34,
-      "reason": "方向不够明确，双选覆盖",
+      "skip": false,
+      "skipReason": "",
+      "confidence": 52,
+      "reason": "凯利信号推荐胜(52%)，双选覆盖",
       "doublePick": [
-        "平",
-        "胜"
+        "胜",
+        "平"
       ],
       "kellyLabel": "共同看好主胜/平局，主选主胜，防平局",
-      "boSingle": "可博胜",
+      "boSingle": "胜",
       "matchId": "401841151",
       "home": "科林蒂安",
       "away": "雷莫",
@@ -1882,11 +1878,7 @@
       "matchTime": "7/24 周五 06:30",
       "verified": false,
       "actualResult": null,
-      "hit": null,
-      "kellyPick": "主胜",
-      "kellyCover": "平局",
-      "kellyScenario": 1,
-      "pick": "胜+平（双选）"
+      "hit": null
     },
     {
       "prediction": "负+平",
@@ -2226,14 +2218,14 @@
       "type": "double",
       "skip": false,
       "skipReason": "",
-      "confidence": 47,
-      "reason": "方向不够明确，双选覆盖",
+      "confidence": 78,
+      "reason": "凯利信号推荐胜(78%)，双选覆盖",
       "doublePick": [
         "胜",
         "平"
       ],
       "kellyLabel": "共同看好主胜，主选主胜",
-      "boSingle": null,
+      "boSingle": "胜",
       "matchId": "401873902",
       "home": "博德闪耀",
       "away": "哈马坎",
@@ -2243,22 +2235,21 @@
       "matchTime": "7/23 周四 01:00",
       "verified": false,
       "actualResult": null,
-      "hit": null,
-      "kellyPick": "主胜",
-      "kellyCover": null,
-      "kellyScenario": 1,
-      "pick": "主胜"
+      "hit": null
     },
     {
-      "prediction": "负",
+      "prediction": "负+胜",
       "type": "double",
-      "skip": false,
-      "skipReason": "",
-      "confidence": 47,
-      "reason": "方向不够明确，双选覆盖",
-      "doublePick": null,
+      "skip": true,
+      "skipReason": "结果太不确定，各方向概率接近",
+      "confidence": 42,
+      "reason": "凯利信号推荐负(42%)，双选覆盖",
+      "doublePick": [
+        "负",
+        "胜"
+      ],
       "kellyLabel": "共同看好主胜，主选客胜，防主胜",
-      "boSingle": null,
+      "boSingle": "负",
       "matchId": "401843362",
       "home": "利勒斯特罗姆",
       "away": "维京",
