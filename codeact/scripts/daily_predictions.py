@@ -267,7 +267,7 @@ def _k_norm_adj(base: dict, adj: dict) -> dict:
     return {'hf': hf / t, 'df': df / t, 'af': af / t}
 
 
-def calc_kelly_scenario(kelly_companies: dict, base_probs: dict = None, odds_conf: float = None) -> dict:
+def calc_kelly_scenario(kelly_companies: dict, base_probs: dict = None, odds_conf: float = None, odds: dict = None) -> dict:
     """
     凯利七场景检测引擎 v5（替换旧版ABCD四场景）
 
@@ -283,6 +283,7 @@ def calc_kelly_scenario(kelly_companies: dict, base_probs: dict = None, odds_con
     }
     base_probs: {"hf": float, "df": float, "af": float} 基础概率（来自赔率隐含或Elo）
     odds_conf: float 赔率置信度（用于场景六的条件分支）
+    odds: {"w": float, "d": float, "l": float} 实际赔率（用于胜vs平赔率比较）
 
     Returns: 包含 scenarios, label, adjustments, confidence_mod, skip, pick, cover, finalProbs 等字段
     """
@@ -406,6 +407,73 @@ def calc_kelly_scenario(kelly_companies: dict, base_probs: dict = None, odds_con
             return r
 
         # commonBad但没有明确剩余共同看好方向
+        # 经验规则：在被看好不败的队内部，比较胜vs平的赔率
+        # - 胜赔率 < 平赔率 → 胜概率略大于平
+        # - 平赔率 < 胜赔率 → 除非该队胜Kelly也最低，否则平概率略大于胜
+        # 找到被看好不败的队（不在common_bad中的方向）
+        favored_team_dirs = [d for d in remain_dirs if d in f365 or d in fW]
+        if favored_team_dirs and 'd' not in common_bad and odds:
+            # 有球队被看好（胜或平Kelly低于赔付率），且平没被排除
+            favored_dir = favored_team_dirs[0]  # 'h'或'a'
+            # 用实际赔率比较
+            if favored_dir == 'h':
+                win_odds_val = odds.get('w')
+                draw_odds_val = odds.get('d')
+            else:
+                win_odds_val = odds.get('l')
+                draw_odds_val = odds.get('d')
+
+            if win_odds_val and draw_odds_val:
+                # 找两家Kelly值最低的方向
+                lowest_kelly_dir = min(_K_DIRS, key=lambda d: min(c365[d], cw[d]))
+
+                if win_odds_val <= draw_odds_val:
+                    # 胜赔率低于或等于平赔率 → 通常胜概率略大于平
+                    # 例外：两家公司平Kelly都最低 → 平概率可能反超
+                    if c365['d'] <= c365['h'] and c365['d'] <= c365['a'] and \
+                       cw['d'] <= cw['h'] and cw['d'] <= cw['a']:
+                        # 两家平Kelly都最低 → 平概率反超
+                        r['scenarios'].append('1')
+                        r['pick'] = 'd'
+                        r['cover'] = favored_dir
+                        r['adjustments']['df'] += 0.10
+                        r['adjustments'][_K_DK[favored_dir]] += 0.05
+                        r['label'] = f'场景一-平+{_K_DN[favored_dir]}（胜赔低但两家平Kelly都最低）'
+                    else:
+                        r['scenarios'].append('1')
+                        r['pick'] = favored_dir
+                        r['cover'] = 'd'
+                        r['adjustments'][_K_DK[favored_dir]] += 0.10
+                        r['adjustments']['df'] += 0.05
+                        r['label'] = f'场景一-赔率优先{_K_DN[favored_dir]}+平（看好不败，胜赔≤平赔）'
+                    r['scenario'] = '1'
+                    r['signal'] = r['label']
+                    r['finalProbs'] = _k_norm_adj(base_probs, r['adjustments'])
+                    return r
+                else:
+                    # 平赔率低于胜赔率
+                    # 除非客胜Kelly两家都最低 → 否则平概率大于客胜
+                    if lowest_kelly_dir == favored_dir:
+                        # 客胜Kelly最低 → 客胜概率仍略大于平
+                        r['scenarios'].append('1')
+                        r['pick'] = favored_dir
+                        r['cover'] = 'd'
+                        r['adjustments'][_K_DK[favored_dir]] += 0.10
+                        r['adjustments']['df'] += 0.05
+                        r['label'] = f'场景一-{_K_DN[favored_dir]}Kelly最低+平（虽平赔低但Kelly支持胜）'
+                    else:
+                        # 客胜Kelly不是最低 → 平概率略大于客胜
+                        r['scenarios'].append('1')
+                        r['pick'] = 'd'
+                        r['cover'] = favored_dir
+                        r['adjustments']['df'] += 0.10
+                        r['adjustments'][_K_DK[favored_dir]] += 0.05
+                        r['label'] = f'场景一-平+{_K_DN[favored_dir]}（平赔低且Kelly不支持胜）'
+                    r['scenario'] = '1'
+                    r['signal'] = r['label']
+                    r['finalProbs'] = _k_norm_adj(base_probs, r['adjustments'])
+                    return r
+
         if l365['dir'] == 'd' and lW['dir'] == 'd':
             r['scenarios'].append('1D')
             r['adjustments']['df'] += 0.15
@@ -848,12 +916,17 @@ def predict_match(match: dict, teams: dict, kelly_data: dict = None) -> dict:
 
             if both_bad or (both_above and kelly_opposite):
                 contradiction = True
-                skip = True
                 if both_bad:
                     skip_reason = f"赔率与凯利信号矛盾（赔率看好{odds_favorite_dir}但凯利明确不看好）"
                 else:
                     skip_reason = f"赔率与凯利方向冲突（赔率看好{odds_favorite_dir}但凯利指向{kelly_pick_cn}）"
-                stars = max(1, stars - 2)
+                # 如果Kelly选择与赔率偏好方向一致（赔率优先路径），只降星不跳过
+                if kelly_pick == dir_en:
+                    skip_reason += "（已按赔率优先处理）"
+                    stars = max(1, stars - 1)
+                else:
+                    skip = True
+                    stars = max(1, stars - 2)
 
     # 构建场景相关reason后缀
     if kelly_scenario and kelly_signal and '凯利场景' not in reason:
@@ -2351,7 +2424,7 @@ async def main():
                     else:
                         _ep = calc_elo_probs(get_team_strength(teams, _home), get_team_strength(teams, _away))
                         _base_p = {'hf': _ep['胜'], 'df': _ep['平'], 'af': _ep['负']}
-                    kelly_data = calc_kelly_scenario(_odds_kelly, _base_p)
+                    kelly_data = calc_kelly_scenario(_odds_kelly, _base_p, odds={'w': _w2, 'd': _d2, 'l': _l2} if _w2 and _d2 and _l2 else None)
                 if kelly_data and kelly_data.get("scenario"):
                     disp_tag = f" 离散度{round(kelly_data.get('dispersion',0),3)}" if kelly_data.get('dispersion') else ""
                     skip_tag_k = " [SKIP]" if kelly_data.get('skip') else ""
@@ -2373,7 +2446,7 @@ async def main():
                         else:
                             _ep3 = calc_elo_probs(get_team_strength(teams, _home), get_team_strength(teams, _away))
                             _base_p3 = {'hf': _ep3['胜'], 'df': _ep3['平'], 'af': _ep3['负']}
-                        kelly_data = calc_kelly_scenario(_kelly_companies, _base_p3)
+                        kelly_data = calc_kelly_scenario(_kelly_companies, _base_p3, odds={'w': _w3, 'd': _d3, 'l': _l3} if _w3 and _d3 and _l3 else None)
                         if kelly_data and kelly_data.get("scenario"):
                             disp_tag = f" 离散度{round(kelly_data.get('dispersion',0),3)}" if kelly_data.get('dispersion') else ""
                             skip_tag_k = " [SKIP]" if kelly_data.get('skip') else ""
