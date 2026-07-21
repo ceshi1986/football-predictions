@@ -796,8 +796,8 @@ def predict_match(match: dict, teams: dict, kelly_data: dict = None) -> dict:
         kelly_cover = kelly_data.get('cover')
         kelly_dispersion = kelly_data.get('dispersion')
 
-        # 场景给出 pick+cover → 覆盖单双选
-        if kelly_pick and kelly_cover:
+        # 场景给出 pick+cover → 覆盖单双选（pick==cover时降为单选，避免"胜+胜"）
+        if kelly_pick and kelly_cover and kelly_pick != kelly_cover:
             pick_cn = _DIR_EN_TO_CN.get(kelly_pick, kelly_pick)
             cover_cn = _DIR_EN_TO_CN.get(kelly_cover, kelly_cover)
             pred_type = 'double'
@@ -806,7 +806,7 @@ def predict_match(match: dict, teams: dict, kelly_data: dict = None) -> dict:
             reason = f'凯利场景{kelly_scenario}: {_K_DN.get(kelly_pick,"")}/{_K_DN.get(kelly_cover,"")} · {kelly_signal}'
             if has_odds:
                 reason += f' · {odds_source}赔率'
-        elif kelly_pick and not kelly_cover:
+        elif kelly_pick and (not kelly_cover or kelly_pick == kelly_cover):
             pick_cn = _DIR_EN_TO_CN.get(kelly_pick, kelly_pick)
             # 场景给出单选方向，如果概率优势足够，强化为单选
             if pred_type == 'double' and max_prob >= 0.45:

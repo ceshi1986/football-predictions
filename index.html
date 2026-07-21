@@ -2868,7 +2868,7 @@ function _renderAICard(rec){
   var predClass=rec.type==="single"?"single-pred":"double-pred";
   
   var predText=rec.type==="single"?rec.prediction:rec.prediction+"（双选）";
-  var boTag=rec.boSingle?'<span class="ai-bo-tag">可博'+rec.boSingle+'</span>':'';
+  var boTag=(rec.boSingle&&rec.doublePick&&rec.doublePick.length>0&&rec.boSingle!==rec.doublePick[0])?'<span class="ai-bo-tag">可博'+rec.boSingle+'</span>':'';
   
   var skipTag=rec.skip?'<span class="ai-skip-tag">（不建议投注）</span>':'';
   
