@@ -817,9 +817,49 @@ def predict_match(match: dict, teams: dict, kelly_data: dict = None) -> dict:
                 if has_odds:
                     reason += f' · {odds_source}赔率'
 
+    # ===== 矛盾检测：赔率方向与凯利信号冲突 → 不推荐投注 =====
+    contradiction = False
+    if has_odds and kelly_data and kelly_data.get('bet365_kelly') and kelly_data.get('weide_kelly'):
+        # 赔率隐含的最强方向（概率最高的）
+        odds_favorite_dir = sorted_probs[0][0]
+        odds_favorite_prob = sorted_probs[0][1]
+        dir_en = _DIR_CN_TO_EN.get(odds_favorite_dir, '')
+
+        if dir_en and odds_favorite_prob >= 0.45:
+            c365_kelly = kelly_data['bet365_kelly']
+            cw_kelly = kelly_data['weide_kelly']
+            c365_payout = kelly_data.get('bet365_payout', 0.93)
+            cw_payout = kelly_data.get('weide_payout', 0.93)
+
+            # 条件1：赔率看好的方向，两家Kelly都明确不看好（Kelly > payout + TOL）
+            c365_bad = c365_kelly.get(dir_en, 1.0) > c365_payout + _K_TOL
+            cw_bad = cw_kelly.get(dir_en, 1.0) > cw_payout + _K_TOL
+            both_bad = c365_bad and cw_bad
+
+            # 条件2：赔率看好某方向，但凯利场景pick是完全不同的方向
+            kelly_pick_cn = _DIR_EN_TO_CN.get(kelly_pick, '') if kelly_pick else ''
+            kelly_opposite = (kelly_pick and kelly_pick != dir_en and
+                              odds_favorite_prob >= 0.50)
+
+            # 条件3：赔率看好的方向，两家Kelly值都高于返还率（即使只高一点点）
+            c365_above = c365_kelly.get(dir_en, 1.0) > c365_payout
+            cw_above = cw_kelly.get(dir_en, 1.0) > cw_payout
+            both_above = c365_above and cw_above
+
+            if both_bad or (both_above and kelly_opposite):
+                contradiction = True
+                skip = True
+                if both_bad:
+                    skip_reason = f"赔率与凯利信号矛盾（赔率看好{odds_favorite_dir}但凯利明确不看好）"
+                else:
+                    skip_reason = f"赔率与凯利方向冲突（赔率看好{odds_favorite_dir}但凯利指向{kelly_pick_cn}）"
+                stars = max(1, stars - 2)
+
     # 构建场景相关reason后缀
     if kelly_scenario and kelly_signal and '凯利场景' not in reason:
         reason += f' · [凯利{kelly_scenario}]{kelly_signal}'
+    if contradiction:
+        reason += ' · ⚠️赔率与凯利矛盾'
 
     return {
         "prediction": prediction,
@@ -839,6 +879,7 @@ def predict_match(match: dict, teams: dict, kelly_data: dict = None) -> dict:
         "kellyPick": kelly_pick,
         "kellyCover": kelly_cover,
         "kellyDispersion": kelly_dispersion,
+        "contradiction": contradiction,
     }
 
 
