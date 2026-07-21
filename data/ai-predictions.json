@@ -1822,7 +1822,7 @@
         "胜",
         "负"
       ],
-      "kellyLabel": "共同看好主胜，主选客胜，防主胜",
+      "kellyLabel": "共同看好主胜，主选主胜",
       "boSingle": null,
       "matchId": "401841156",
       "home": "圣保罗",
@@ -1833,21 +1833,22 @@
       "matchTime": "7/23 周四 08:30",
       "verified": false,
       "actualResult": null,
-      "hit": null
+      "hit": null,
+      "kellyPick": "主胜",
+      "kellyCover": null,
+      "kellyScenario": 3,
+      "pick": "主胜"
     },
     {
-      "prediction": "胜+负",
-      "type": "double",
+      "prediction": "胜",
+      "type": "single",
       "skip": false,
       "skipReason": "",
-      "confidence": 50,
-      "reason": "方向不够明确，双选覆盖",
-      "doublePick": [
-        "胜",
-        "负"
-      ],
-      "kellyLabel": "共同看好主胜，主选客胜，防主胜",
-      "boSingle": null,
+      "confidence": 62,
+      "reason": "赔率看好主队(61%)",
+      "doublePick": null,
+      "kellyLabel": "共同看好主胜，主选主胜",
+      "boSingle": "主胜",
       "matchId": "401879458",
       "home": "博塔弗戈",
       "away": "维多利亚",
@@ -1870,8 +1871,8 @@
         "平",
         "胜"
       ],
-      "kellyLabel": "共同看好主胜/平局，主选客胜，防主胜，防平局",
-      "boSingle": null,
+      "kellyLabel": "共同看好主胜/平局，主选主胜，防平局",
+      "boSingle": "可博胜",
       "matchId": "401841151",
       "home": "科林蒂安",
       "away": "雷莫",
@@ -1881,7 +1882,11 @@
       "matchTime": "7/24 周五 06:30",
       "verified": false,
       "actualResult": null,
-      "hit": null
+      "hit": null,
+      "kellyPick": "主胜",
+      "kellyCover": "平局",
+      "kellyScenario": 1,
+      "pick": "胜+平（双选）"
     },
     {
       "prediction": "负+平",
@@ -2227,7 +2232,7 @@
         "胜",
         "平"
       ],
-      "kellyLabel": "共同看好主胜，主选客胜，防主胜",
+      "kellyLabel": "共同看好主胜，主选主胜",
       "boSingle": null,
       "matchId": "401873902",
       "home": "博德闪耀",
@@ -2238,21 +2243,22 @@
       "matchTime": "7/23 周四 01:00",
       "verified": false,
       "actualResult": null,
-      "hit": null
+      "hit": null,
+      "kellyPick": "主胜",
+      "kellyCover": null,
+      "kellyScenario": 1,
+      "pick": "主胜"
     },
     {
-      "prediction": "负+胜",
+      "prediction": "负",
       "type": "double",
-      "skip": true,
-      "skipReason": "结果太不确定，各方向概率接近",
-      "confidence": 42,
-      "reason": "凯利信号推荐负(42%)，双选覆盖",
-      "doublePick": [
-        "负",
-        "胜"
-      ],
+      "skip": false,
+      "skipReason": "",
+      "confidence": 47,
+      "reason": "方向不够明确，双选覆盖",
+      "doublePick": null,
       "kellyLabel": "共同看好主胜，主选客胜，防主胜",
-      "boSingle": "负",
+      "boSingle": null,
       "matchId": "401843362",
       "home": "利勒斯特罗姆",
       "away": "维京",

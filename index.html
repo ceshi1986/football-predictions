@@ -2725,10 +2725,24 @@ function _aiJudge(m,hf,df,af){
     }
     effConf=probs[0].p+(frogNote&&frogNote.indexOf("↔")<0?0.05:(frogNote?-0.03:0));
   }else{
-    probs=[{r:"胜",p:hf},{r:"平",p:df},{r:"负",p:af}];
-    probs.sort(function(a,b){return b.p-a.p});
-    effConf=probs[0].p;
-    minOdds=1/probs[0].p;
+    // 后备：尝试从Kelly数据获取赔率（Odds API不可用时）
+    var _kd=_matchKellyData(m.home,m.away);
+    var _kc=_kd&&_kd.companies?(_getKellyCompany(_kd.companies,'bet365')||_getKellyCompany(_kd.companies,'365')):null;
+    if(_kc&&_kc.odds_h>1&&_kc.odds_d>1&&_kc.odds_a>1){
+      var _ow=_kc.odds_h,_od=_kc.odds_d,_ol=_kc.odds_a;
+      var _tot=1/_ow+1/_od+1/_ol;var _R=1/_tot;
+      var _pw=_R/_ow,_pd=_R/_od,_pl=_R/_ol;
+      var fp2={胜:0.8*_pw+0.2*hf,平:0.8*_pd+0.2*df,负:0.8*_pl+0.2*af};
+      probs=[{r:"胜",p:fp2.胜},{r:"平",p:fp2.平},{r:"负",p:fp2.负}];
+      probs.sort(function(a,b){return b.p-a.p});
+      minOdds=Math.min(_ow,_od,_ol);
+      effConf=probs[0].p;
+    }else{
+      probs=[{r:"胜",p:hf},{r:"平",p:df},{r:"负",p:af}];
+      probs.sort(function(a,b){return b.p-a.p});
+      effConf=probs[0].p;
+      minOdds=1/probs[0].p;
+    }
   }
   
   // === 凯利指数修正 ===
