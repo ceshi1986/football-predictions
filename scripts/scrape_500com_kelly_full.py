@@ -42,21 +42,24 @@ def parse_company_row(tr, cid):
     if len(tds) < 5:
         return None
     td2_nums = re.findall(r'[\d.]+', tds[2].get_text())
-    if len(td2_nums) < 3:
+    if len(td2_nums) < 6:
         return None
-    odds_h, odds_d, odds_a = float(td2_nums[0]), float(td2_nums[1]), float(td2_nums[2])
+    # HTML列顺序：前3个=初盘，后3个=即时；我们需要即时（最新）数据
+    odds_h, odds_d, odds_a = float(td2_nums[3]), float(td2_nums[4]), float(td2_nums[5])
     td4_text = tds[4].get_text()
     parts = td4_text.split('%')
     if len(parts) < 3:
         return None
     try:
-        payout = float(parts[0].strip()) / 100.0
+        # parts[0]=初盘返还率, parts[1]=即时返还率
+        payout = float(parts[1].strip()) / 100.0
     except:
         return None
     kelly_nums = re.findall(r'[\d.]+', parts[2])
     if len(kelly_nums) < 6:
         return None
-    kelly_h, kelly_d, kelly_a = float(kelly_nums[0]), float(kelly_nums[1]), float(kelly_nums[2])
+    # kelly前3个=初盘，后3个=即时；我们需要即时（最新）数据
+    kelly_h, kelly_d, kelly_a = float(kelly_nums[3]), float(kelly_nums[4]), float(kelly_nums[5])
     if not (0.3 < kelly_h < 2.0 and 0.3 < kelly_d < 2.0 and 0.3 < kelly_a < 2.0):
         return None
     if not (0.80 < payout < 1.0):
