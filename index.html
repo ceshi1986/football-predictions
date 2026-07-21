@@ -2854,7 +2854,7 @@ function _renderAICard(rec){
   h+='</div>';
   h+='<div class="ai-card-pred '+predClass+'">'+predText+boTag+skipTag+'</div>';
   h+='<div class="ai-card-reason">'+rec.reason+(rec.skip?' · '+rec.skipReason:'')+'</div>';
-  h+='<div class="ai-card-conf">置信度 '+rec.confidence+'%'+(rec.kellyLabel?'<span class="ai-kelly-tag">凯利:'+rec.kellyLabel+'</span>':'')+'</div>';
+  h+='<div class="ai-card-conf">置信度 '+rec.confidence+'%'+(rec.kellyLabel&&!rec.boSingle?'<span class="ai-kelly-tag">凯利:'+rec.kellyLabel+'</span>':'')+'</div>';
   h+='</div>'+resultBadge+'</div></div>';
   h+='<span class="ai-card-arrow">›</span>';
   h+='</div>';
