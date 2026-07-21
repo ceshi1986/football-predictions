@@ -7,7 +7,7 @@ import json, os, re, time, requests
 from bs4 import BeautifulSoup
 from datetime import datetime
 
-OUTPUT_DIR = "/app/data/所有对话/主对话/football-predictions/data/500com_daily"
+OUTPUT_DIR = "/app/data/所有对话/主对话/fp-repo/data/500com_daily"
 HEADERS = {
     'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
     'Accept-Language': 'zh-CN,zh;q=0.9,en;q=0.8',
@@ -59,7 +59,7 @@ def parse_company_row(tr, cid):
     if len(kelly_nums) < 6:
         return None
     # kelly前3个=初盘，后3个=即时；我们需要即时（最新）数据
-    kelly_h, kelly_d, kelly_a = float(kelly_nums[3]), float(kelly_nums[4]), float(kelly_nums[5])
+    kelly_h, kelly_d, kelly_a = float(kelly_nums[-3]), float(kelly_nums[-2]), float(kelly_nums[-1])
     if not (0.3 < kelly_h < 2.0 and 0.3 < kelly_d < 2.0 and 0.3 < kelly_a < 2.0):
         return None
     if not (0.80 < payout < 1.0):
