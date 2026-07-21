@@ -424,14 +424,30 @@ def calc_kelly_scenario(kelly_companies: dict, base_probs: dict = None, odds_con
                 draw_odds_val = odds.get('d')
 
             if win_odds_val and draw_odds_val:
-                # 找两家Kelly值最低的方向
-                lowest_kelly_dir = min(_K_DIRS, key=lambda d: min(c365[d], cw[d]))
+                # 判断两家公司是否都对该队胜Kelly最低（各自三方向中最低）
+                if favored_dir == 'h':
+                    both_favored_win_kelly_lowest = (
+                        c365['h'] <= c365['d'] and c365['h'] <= c365['a'] and
+                        cw['h'] <= cw['d'] and cw['h'] <= cw['a']
+                    )
+                    both_draw_kelly_lowest = (
+                        c365['d'] <= c365['h'] and c365['d'] <= c365['a'] and
+                        cw['d'] <= cw['h'] and cw['d'] <= cw['a']
+                    )
+                else:
+                    both_favored_win_kelly_lowest = (
+                        c365['a'] <= c365['d'] and c365['a'] <= c365['h'] and
+                        cw['a'] <= cw['d'] and cw['a'] <= cw['h']
+                    )
+                    both_draw_kelly_lowest = (
+                        c365['d'] <= c365['h'] and c365['d'] <= c365['a'] and
+                        cw['d'] <= cw['h'] and cw['d'] <= cw['a']
+                    )
 
                 if win_odds_val <= draw_odds_val:
                     # 胜赔率低于或等于平赔率 → 通常胜概率略大于平
                     # 例外：两家公司平Kelly都最低 → 平概率可能反超
-                    if c365['d'] <= c365['h'] and c365['d'] <= c365['a'] and \
-                       cw['d'] <= cw['h'] and cw['d'] <= cw['a']:
+                    if both_draw_kelly_lowest:
                         # 两家平Kelly都最低 → 平概率反超
                         r['scenarios'].append('1')
                         r['pick'] = 'd'
@@ -452,23 +468,23 @@ def calc_kelly_scenario(kelly_companies: dict, base_probs: dict = None, odds_con
                     return r
                 else:
                     # 平赔率低于胜赔率
-                    # 除非客胜Kelly两家都最低 → 否则平概率大于客胜
-                    if lowest_kelly_dir == favored_dir:
-                        # 客胜Kelly最低 → 客胜概率仍略大于平
+                    # 除非两家公司该队胜Kelly都最低 → 否则平概率大于胜
+                    if both_favored_win_kelly_lowest:
+                        # 两家该队胜Kelly都最低 → 胜概率仍略大于平
                         r['scenarios'].append('1')
                         r['pick'] = favored_dir
                         r['cover'] = 'd'
                         r['adjustments'][_K_DK[favored_dir]] += 0.10
                         r['adjustments']['df'] += 0.05
-                        r['label'] = f'场景一-{_K_DN[favored_dir]}Kelly最低+平（虽平赔低但Kelly支持胜）'
+                        r['label'] = f'场景一-{_K_DN[favored_dir]}Kelly最低+平（虽平赔低但两家胜Kelly都最低）'
                     else:
-                        # 客胜Kelly不是最低 → 平概率略大于客胜
+                        # 该队胜Kelly不是两家都最低 → 平概率略大于胜
                         r['scenarios'].append('1')
                         r['pick'] = 'd'
                         r['cover'] = favored_dir
                         r['adjustments']['df'] += 0.10
                         r['adjustments'][_K_DK[favored_dir]] += 0.05
-                        r['label'] = f'场景一-平+{_K_DN[favored_dir]}（平赔低且Kelly不支持胜）'
+                        r['label'] = f'场景一-平+{_K_DN[favored_dir]}（平赔低且该队胜Kelly不都最低）'
                     r['scenario'] = '1'
                     r['signal'] = r['label']
                     r['finalProbs'] = _k_norm_adj(base_probs, r['adjustments'])
