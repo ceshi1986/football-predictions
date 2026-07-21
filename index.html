@@ -2508,7 +2508,7 @@ async function _doGenAIRec(){
   for(var i=0;i<upcoming.length;i++){
     var m=upcoming[i];
     
-    if(storedMap[m.id]&&!storedMap[m.id].needUpdate){
+    if(storedMap[m.id]&&!storedMap[m.id].needUpdate&&!_kellyCache){
       recs.push(storedMap[m.id]);
       continue;
     }
