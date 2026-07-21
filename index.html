@@ -941,7 +941,7 @@ function _detectKellyScenario(c365,cW,baseProbs,oddsConf){
     r.scenarios.push('5');
     for(var i=0;i<safe.length;i++){r.adjustments[_K_DK[safe[i]]]+=0.05;}
     r.adjustments.df+=0.03;r.confidence_mod-=10;
-    r.label='场景五-信号矛盾'+(dropped.length?'('+dropped.map(function(d){return _K_DN[d]}).join(',')+'丢掉)':'');
+    r.label='场景五-信号矛盾'+(dropped.length?'('+dropped.map(function(d){return _K_DN[d]}).join(',')+'不看好)':'');
     r._finalProbs=_kNormAdj(baseProbs,r.adjustments);return r;
   }
   // 场景二：各不看好不同方向
@@ -2806,7 +2806,7 @@ function _aiJudge(m,hf,df,af){
     }else{
       var others=candidateDirs.filter(function(d){return d!==mainPick;});
       if(others.length>0){secondPick=others[0];}
-      else{secondPick=(mainPick==="胜")?,"负":,"胜";}
+      else{secondPick=(mainPick==="胜")?"负":"胜";}
     }
     if(boSingle&&mainPick===boSingle){
       if(mainPick==="平"){secondPick="胜";}
