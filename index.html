@@ -2814,6 +2814,24 @@ function _aiJudge(m,hf,df,af){
     var mainPick=candidateDirs.length>0?candidateDirs[0]:probs[0].r;
     var secondPick;
     if(boSingle&&candidateDirs.indexOf(boSingle)<0){boSingle=null;}
+    // 保护：当剩余方向中有"一家Kelly最低、另一家不看好"的严重矛盾时，取消可博
+    if(boSingle&&kr&&kr.scenarios){
+      var boDir=boSingle==="胜"?"h":boSingle==="平"?"d":"a";
+      var nonBoDirs=_K_DIRS.filter(function(d){return d!==boDir;});
+      for(var _bi=0;_bi<nonBoDirs.length;_bi++){
+        var nd=nonBoDirs[_bi];
+        var k365_nd=c365['kelly_'+nd],kW_nd=cW['kelly_'+nd];
+        var p365_nd=c365.payout,pW_nd=cW.payout;
+        // 一家最低且favor，另一家bad
+        var low365=(l365.dir===nd&&k365_nd<=p365_nd);
+        var badW=(kW_nd>pW_nd);
+        var lowW=(lW.dir===nd&&kW_nd<=pW_nd);
+        var bad365=(k365_nd>p365_nd);
+        if((low365&&badW)||(lowW&&bad365)){
+          boSingle=null;break;
+        }
+      }
+    }
     // 可博方向必须是双选的第一位（优先方向）
     if(boSingle){
       mainPick=boSingle;
