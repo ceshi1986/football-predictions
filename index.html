@@ -1642,12 +1642,18 @@ function _renderSchedule(matches){
   // 按日期分组（跳过dateISO无效的比赛，过滤掉当天之前的比赛）
   var groups={};
   var groupOrder=[];
-  var todayDK=_dateKey(new Date());
+  // 3天窗口：前一日+当日+次日
+  var today=new Date();today.setHours(0,0,0,0);
+  var yesterday=new Date(today);yesterday.setDate(yesterday.getDate()-1);
+  var tomorrow=new Date(today);tomorrow.setDate(tomorrow.getDate()+1);
+  var startDK=_dateKey(yesterday);
+  var endDK=_dateKey(tomorrow);
   for(var i=0;i<matches.length;i++){
     var m=matches[i];
     var dk=m.dateISO||"";
     if(!dk) continue;
-    if(dk<todayDK) continue;
+    if(dk<startDK) continue;
+    if(dk>endDK) continue;
     if(!groups[dk]){
       groups[dk]=[];
       groupOrder.push(dk);
