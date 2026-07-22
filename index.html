@@ -1901,8 +1901,9 @@ if(_allMatches&&_allMatches.length>0){
     }
   }
 }
-var _judgeMatch=_matchObj||{home:h,away:a,odds:null};
-if(!_judgeMatch.odds&&hasRealOdds){_judgeMatch.odds={w:ow,d:od,l:ol};}
+// 优先用_matchObj自带odds（和赛程卡片同源：schedule.json竞彩赔率），确保两入口一致
+// 找不到_matchObj时才回退到_realOddsCache的赔率
+var _judgeMatch=_matchObj||{home:h,away:a,odds:(hasRealOdds?{w:ow,d:od,l:ol}:null)};
 var _jr=_aiJudge(_judgeMatch,hf,df,af);
 
 var r=_jr.prediction;
