@@ -1892,19 +1892,39 @@ if(!hasRealOdds){
   hf=elo_hf;df=elo_df;af=elo_af;
 }
 var t=hf+df+af;hf/=t;df/=t;af/=t;
-var r="胜",cl="#4ade80",p=Math.round(hf*100);
-if(df>=hf&&df>=af){r="平";cl="#9ca3af";p=Math.round(df*100)}
-else if(af>hf){r="负";cl="#60a5fa";p=Math.round(af*100)}
+// === 统一使用_aiJudge（Elo+凯利融合策略v3）===
+var _matchObj=null;
+if(_allMatches&&_allMatches.length>0){
+  for(var _mi=0;_mi<_allMatches.length;_mi++){
+    var _mm=_allMatches[_mi];
+    if((_mm.home===h&&_mm.away===a)||(_mm.home===a&&_mm.away===h)){_matchObj=_mm;break}
+  }
+  if(!_matchObj){
+    for(var _mi=0;_mi<_allMatches.length;_mi++){
+      var _mm=_allMatches[_mi];
+      var _hm=_mm.home.indexOf(h)>=0||h.indexOf(_mm.home)>=0||_mm.homeEN.toLowerCase().indexOf(h.toLowerCase())>=0||h.toLowerCase().indexOf(_mm.homeEN.toLowerCase())>=0;
+      var _am=_mm.away.indexOf(a)>=0||a.indexOf(_mm.away)>=0||_mm.awayEN.toLowerCase().indexOf(a.toLowerCase())>=0||a.toLowerCase().indexOf(_mm.awayEN.toLowerCase())>=0;
+      if(_hm&&_am){_matchObj=_mm;break}
+    }
+  }
+}
+var _judgeMatch=_matchObj||{home:h,away:a,odds:null};
+if(!_judgeMatch.odds&&hasRealOdds){_judgeMatch.odds={w:ow,d:od,l:ol};}
+var _jr=_aiJudge(_judgeMatch,hf,df,af);
+
+var r=_jr.prediction;
+var cl=r.indexOf("胜")>=0?"#4ade80":(r.indexOf("平")>=0?"#9ca3af":"#60a5fa");
+var p=_jr.confidence;
 var mx=Math.max(hf,df,af),mn=Math.min(hf,df,af),sp=mx-mn;
-var c=1;
-if(sp>0.08)c=2;if(sp>0.15)c=3;if(sp>0.25)c=4;if(sp>0.35)c=5;
+var c=Math.max(1,Math.min(5,Math.round(sp/0.07)));
 var hh=_simH(hw,aw);
 var hB=false;
-if(hh.f&&hh.d){if((r==="胜"&&hh.d==="h")||(r==="负"&&hh.d==="a")){hB=true;if(c<5)c++}}
+if(hh.f&&hh.d){var _mainDir=r.indexOf("胜")>=0?"h":(r.indexOf("负")>=0?"a":"d");if(hh.d===_mainDir){hB=true;if(c<5)c++}}
 var md=document.getElementById("md").value||new Date().toISOString().split("T")[0];
-_saveP(h,a,r,hh,md);
-_savePend(h,a,r,md,_gl(h));
-_showAV(h,a,r,md);
+var _savePred=r.indexOf("+")>=0?r.split("+")[0].trim():r;
+_saveP(h,a,_savePred,hh,md);
+_savePend(h,a,_savePred,md,_gl(h));
+_showAV(h,a,_savePred,md);
 document.getElementById("lm").className="lm";
 document.getElementById("rs").style.display="block";
 document.getElementById("pr").textContent=r;
@@ -1913,69 +1933,35 @@ document.getElementById("ph").textContent=Math.round(hf*100)+"%";
 document.getElementById("pd").textContent=Math.round(df*100)+"%";
 document.getElementById("pa").textContent=Math.round(af*100)+"%";
 var sh="";for(var i=1;i<=5;i++)sh+='<span class="s'+(i<=c?" on":"")+'">★</span>';
+if(_jr.type==="double")sh+='<span style="font-size:10px;color:#f59e0b;margin-left:4px">双选</span>';
 document.getElementById("st").innerHTML=sh;
-var ct=Math.round((0.4+sp*0.6+hB*0.08)*100);
-document.getElementById("cf").textContent="置信度 "+ct+"%";
-var an="综合"+p+"%倾向"+(r==="胜"?"主胜":r==="平"?"平局":"客胜");
+var ct=_jr.confidence;
+document.getElementById("cf").textContent="置信度 "+ct+"%"+(_jr.type==="double"?" (双选)":"");
+var kellyNote=_jr.kellyLabel?(" · "+_jr.kellyLabel):"";
+var an=_jr.reason+kellyNote;
 if(hB)an+=" · 盘口信号一致↑";
 document.getElementById("an").textContent=an;
-// 投注建议逻辑
+// 投注建议
 var ba=document.getElementById("ba");
 var bac=document.getElementById("bac");
 var adviceHtml="";
-// === 和赛程卡片_aiJudge统一的概率排序+判断逻辑 ===
-var probs=[{r:"胜",p:hf},{r:"平",p:df},{r:"负",p:af}];
-probs.sort(function(a,b){return b.p-a.p});
-var maxProb=probs[0].p;
-var probDiff=probs[0].p-probs[1].p;
-var minOdds=hasRealOdds?Math.min(ow,od,ol):Math.max(1.30,1/maxProb);
-var isRealOdds=hasRealOdds;
-var oddsSource=isRealOdds?'竞彩数据':'模型估算';
-var isExtremeFav=minOdds<=1.25;
-var isStrongFav=minOdds>1.25&&minOdds<=1.7;
-var isMediumFav=minOdds>1.7&&minOdds<=2.2;
-var isUncertain=minOdds>2.2;
-if(isExtremeFav){
+if(_jr.skip){
   adviceHtml='<div class="ba-skip">⚠️ 建议放弃投注</div>';
-  adviceHtml+='<div>赔率过低（约'+minOdds.toFixed(2)+(isRealOdds?' 竞彩':' 估算')+'），虽然胜率高达'+Math.round(maxProb*100)+'%，但此类比赛平局概率异常偏高（约15-20%），投注价值极低。</div>';
-  adviceHtml+='<div class="ba-detail">数据支撑：回测中赔率≤1.2的比赛，平局率是正常比赛的2倍以上</div>';
-}else if(isStrongFav&&probDiff>0.35){
+  adviceHtml+='<div>'+_jr.skipReason+'</div>';
+}else if(_jr.type==="single"){
   adviceHtml='<div class="ba-recommend">✅ 值得单选</div>';
-  adviceHtml+='<div>强队优势明显（赔率约'+minOdds.toFixed(2)+'），模型置信度高（'+Math.round(probDiff*100)+'%差距），命中率约83-87%。</div>';
-  adviceHtml+='<div class="ba-detail">数据支撑：澳门凯利指数<返还率信号命中率83.3%，赔率≤1.7+凯利信号87%</div>';
-}else if(isStrongFav||isMediumFav){
-  adviceHtml='<div class="ba-warn">🛡️ 建议双选防冷</div>';
-  adviceHtml+='<div>优势不够绝对（赔率约'+minOdds.toFixed(2)+'），建议覆盖第二选项防冷门。';
-  if(df>hf&&df>af){
-    adviceHtml+='平局概率较高（'+Math.round(df*100)+'%），建议选'+r+'+平局。</div>';
-  }else{
-    adviceHtml+='建议选'+r+'+次优选项。</div>';
-  }
-  adviceHtml+='<div class="ba-detail">数据支撑：此类比赛冷门率约25-30%，双选可显著提升命中率</div>';
+  adviceHtml+='<div>'+_jr.reason+'</div>';
 }else{
-  adviceHtml='<div class="ba-skip">⚠️ 建议放弃投注</div>';
-  adviceHtml+='<div>比赛结果不确定性高（赔率约'+minOdds.toFixed(2)+'），任何结果都有可能，投注风险过大。</div>';
-  adviceHtml+='<div class="ba-detail">数据支撑：赔率>2.2的比赛，预测准确率降至60%以下</div>';
+  adviceHtml='<div class="ba-warn">🛡️ 建议双选防冷</div>';
+  adviceHtml+='<div>'+_jr.reason+'</div>';
+  if(_jr.boSingle){
+    adviceHtml+='<div class="ba-detail">凯利信号推荐'+_jr.boSingle+'，双选覆盖</div>';
+  }
 }
-bac.innerHTML=adviceHtml;
-ba.style.display="block";
-// === 双选时更新预测方向显示（排除平局，和后端AI预测统一）===
-var isDouble=false, spk="", spp=0;
-if(!(maxProb>=0.60&&probDiff>=0.20&&minOdds>=1.40)){
-  isDouble=true;
-  if(r==="胜"){spk="负";spp=Math.round(af*100)}
-  else if(r==="平"){if(hf>=af){spk="胜";spp=Math.round(hf*100)}else{spk="负";spp=Math.round(af*100)}}
-  else{spk="胜";spp=Math.round(hf*100)}
-  var sn={"胜":"主胜","平":"平局","负":"客胜"};
-  document.getElementById("pr").textContent=r+" + "+spk;
-  document.getElementById("an").textContent="综合"+p+"%倾向"+sn[r]+"，双选防"+sn[spk]+"("+spp+"%)";
-  var stEl=document.getElementById("st");
-  stEl.innerHTML+='<span style="font-size:10px;color:#f59e0b;margin-left:4px">双选</span>';
-  document.getElementById("cf").textContent="置信度 "+ct+"% + 双选"+spp+"%";
-}
-// 风险提示
 var riskNote='<div style="margin-top:8px;padding-top:8px;border-top:1px solid #2a3f55;font-size:10px;color:#666;line-height:1.3">⚠️ 以上建议仅供娱乐参考，不构成投注建议。请理性对待，量力而行。</div>';
-bac.innerHTML+=riskNote;
+bac.innerHTML=adviceHtml+riskNote;
+ba.style.display="block";
+// 让球方向
 if(hh.f&&hh.d){
 document.getElementById("hd2").className="hd2 show";
 var dn=hh.d==="h"?h+"让"+hh.l+"球":a+"让"+hh.l+"球";
