@@ -1880,17 +1880,10 @@ if(ro&&ro.odds){
   var ol=ro.odds.l||ro.odds.odds_0?.负||0;
   if(ow&&od&&ol&&ow>1&&od>1&&ol>1){
     hasRealOdds=true;
-    // === 80%赔率隐含+20%Elo混合（和赛程卡片_aiJudge一致）===
-    var total=1/ow+1/od+1/ol;
-    var R=1/total;
-    hf=0.8*(R/ow)+0.2*elo_hf;
-    df=0.8*(R/od)+0.2*elo_df;
-    af=0.8*(R/ol)+0.2*elo_af;
   }
 }
-if(!hasRealOdds){
-  hf=elo_hf;df=elo_df;af=elo_af;
-}
+// 只传纯Elo概率给_aiJudge，让_aiJudge内部统一做80%赔率+20%Elo混合（与赛程卡片一致）
+hf=elo_hf;df=elo_df;af=elo_af;
 var t=hf+df+af;hf/=t;df/=t;af/=t;
 // === 统一使用_aiJudge（Elo+凯利融合策略v3）===
 var _matchObj=null;
