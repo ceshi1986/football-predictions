@@ -2739,8 +2739,9 @@ function _aiJudge(m,hf,df,af){
   if(kellyData&&kellyData.companies){
     var c365=_getKellyCompany(kellyData.companies,'bet365')||_getKellyCompany(kellyData.companies,'365');
     var cW=_getKellyCompany(kellyData.companies,'韦德');
-    var l365=_kLowest(c365),lW=_kLowest(cW);
+    var l365,lW;
     if(c365&&cW){
+      l365=_kLowest(c365);lW=_kLowest(cW);
       var baseP={hf:probs[0].r==="胜"?probs[0].p:(probs[1].r==="胜"?probs[1].p:probs[2].p),df:probs[0].r==="平"?probs[0].p:(probs[1].r==="平"?probs[1].p:probs[2].p),af:probs[0].r==="负"?probs[0].p:(probs[1].r==="负"?probs[1].p:probs[2].p)};
       kr=_detectKellyScenario(c365,cW,baseP,effConf);
       if(kr.skip){
