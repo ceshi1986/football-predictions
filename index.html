@@ -2816,7 +2816,13 @@ function _aiJudge(m,hf,df,af){
     var mainPick=candidateDirs.length>0?candidateDirs[0]:probs[0].r;
     var secondPick;
     if(boSingle&&candidateDirs.indexOf(boSingle)<0){boSingle=null;}
-    // 保护：当剩余方向中有"一家Kelly最低、另一家不看好"的严重矛盾时，取消可博
+    // 保护1：可博方向本身两家必须都favor，否则取消可博
+    if(boSingle&&c365&&cW){
+      var boDir1=boSingle==="胜"?"h":boSingle==="平"?"d":"a";
+      var bo365=c365['kelly_'+boDir1],boW=cW['kelly_'+boDir1];
+      if(bo365>c365.payout||boW>cW.payout){boSingle=null;}
+    }
+    // 保护2：当剩余方向中有"一家Kelly最低+另一家不看好"的严重矛盾时，取消可博
     if(boSingle&&kr&&kr.scenarios){
       var boDir=boSingle==="胜"?"h":boSingle==="平"?"d":"a";
       var nonBoDirs=_K_DIRS.filter(function(d){return d!==boDir;});
