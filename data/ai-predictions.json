@@ -1,5 +1,5 @@
 {
-  "lastUpdated": "2026-07-23T04:12:44.688Z",
+  "lastUpdated": "2026-07-23T09:46:27.604626Z",
   "predictions": [
     {
       "prediction": "负+胜",
@@ -1836,14 +1836,17 @@
       "hit": null
     },
     {
-      "prediction": "胜",
-      "type": "single",
+      "prediction": "平+胜",
+      "type": "double",
       "skip": false,
       "skipReason": "",
-      "confidence": 62,
-      "reason": "赔率看好主队(62%)",
-      "doublePick": null,
-      "kellyLabel": "共同看好主胜，主选主胜",
+      "confidence": 42,
+      "reason": "场景E待验证：365→胜+平，韦德→胜+负。立博否定平，365负Kelly>1否定负",
+      "doublePick": [
+        "平",
+        "胜"
+      ],
+      "kellyLabel": "场景E：两家favor胜但第二信号分歧",
       "boSingle": null,
       "matchId": "401879458",
       "home": "博塔弗戈",
@@ -1857,17 +1860,14 @@
       "hit": null
     },
     {
-      "prediction": "胜+平",
-      "type": "double",
+      "prediction": "胜",
+      "type": "single",
       "skip": false,
       "skipReason": "",
-      "confidence": 52,
-      "reason": "凯利信号推荐胜(52%)，双选覆盖",
-      "doublePick": [
-        "胜",
-        "平"
-      ],
-      "kellyLabel": "共同看好主胜/平局，主选主胜，防平局",
+      "confidence": 62,
+      "reason": "两家favor胜+平→规则C触发，立博平(0.97)>>payout否定平→规则C反向→博单选主胜",
+      "doublePick": null,
+      "kellyLabel": "博单选主胜（规则C反向：立博否定平局）",
       "boSingle": "胜",
       "matchId": "401841151",
       "home": "科林蒂安",
@@ -2257,11 +2257,9 @@
       "leagueCode": "nor.1",
       "date": "2026-07-23T01:00:00+08:00",
       "matchTime": "7/23 周四 01:00",
-      "verified": true,
-      "actualResult": "负",
-      "hit": true,
-      "homeScore": 1,
-      "awayScore": 2
+      "verified": false,
+      "actualResult": null,
+      "hit": null
     },
     {
       "prediction": "负+平",
@@ -2565,11 +2563,128 @@
       "verified": false,
       "actualResult": null,
       "hit": null
+    },
+    {
+      "matchId": "4556485",
+      "home": "哈马比",
+      "away": "安德莱赫特",
+      "league": "欧联",
+      "leagueCode": "uel.qual",
+      "date": "2026-07-24T01:00:00+08:00",
+      "matchTime": "7/24 周五 01:00",
+      "prediction": "胜+平",
+      "type": "double",
+      "confidence": 38,
+      "skip": false,
+      "skipReason": "",
+      "reason": "场景D待验证：三方循环分歧，365→胜+负/韦德→胜+平/立博→平+负，三选项皆可能",
+      "doublePick": [
+        "胜",
+        "平"
+      ],
+      "kellyLabel": "场景D：三方循环分歧（待验证）",
+      "boSingle": null,
+      "verified": false,
+      "actualResult": null,
+      "hit": null
+    },
+    {
+      "matchId": "4556487",
+      "home": "圣加仑",
+      "away": "本菲卡",
+      "league": "欧联",
+      "leagueCode": "uel.qual",
+      "date": "2026-07-24T02:00:00+08:00",
+      "matchTime": "7/24 周五 02:00",
+      "prediction": "负",
+      "type": "single",
+      "confidence": 55,
+      "skip": false,
+      "skipReason": "",
+      "reason": "365 K=0.82极低+韦德都favor客胜，立博也一致",
+      "doublePick": null,
+      "kellyLabel": "共同看好客胜",
+      "boSingle": null,
+      "verified": false,
+      "actualResult": null,
+      "hit": null
+    },
+    {
+      "matchId": "4556483",
+      "home": "贝西克塔斯",
+      "away": "中日德兰",
+      "league": "欧联",
+      "leagueCode": "uel.qual",
+      "date": "2026-07-24T02:00:00+08:00",
+      "matchTime": "7/24 周五 02:00",
+      "prediction": "平+胜",
+      "type": "double",
+      "confidence": 48,
+      "skip": false,
+      "skipReason": "",
+      "reason": "365 favor平(0.86)+韦德 favor胜(0.93)，平赔3.2<胜赔4.0→可博平",
+      "doublePick": [
+        "平",
+        "胜"
+      ],
+      "kellyLabel": "可博平",
+      "boSingle": "平",
+      "verified": false,
+      "actualResult": null,
+      "hit": null
+    },
+    {
+      "matchId": "4589354",
+      "home": "特温特",
+      "away": "费伦茨瓦罗斯",
+      "league": "欧联",
+      "leagueCode": "uel.qual",
+      "date": "2026-07-24T02:00:00+08:00",
+      "matchTime": "7/24 周五 02:00",
+      "prediction": "胜+平",
+      "type": "double",
+      "confidence": 60,
+      "skip": false,
+      "skipReason": "",
+      "reason": "两家favor胜+韦德平(0.93)≤payout(0.94)→规则C防平。立博平(0.93)三方向最低→加分确认",
+      "doublePick": [
+        "胜",
+        "平"
+      ],
+      "kellyLabel": "防平（规则C+立博平最低确认）",
+      "boSingle": "平",
+      "verified": false,
+      "actualResult": null,
+      "hit": null
+    },
+    {
+      "matchId": "4589356",
+      "home": "斯海杜克",
+      "away": "帕佛斯FC",
+      "league": "欧联",
+      "leagueCode": "uel.qual",
+      "date": "2026-07-24T03:00:00+08:00",
+      "matchTime": "7/24 周五 03:00",
+      "prediction": "平+胜",
+      "type": "double",
+      "confidence": 50,
+      "skip": false,
+      "skipReason": "",
+      "reason": "两家都favor胜+平（场景①），平赔3.1<胜赔2.05→平排前",
+      "doublePick": [
+        "平",
+        "胜"
+      ],
+      "kellyLabel": "共同看好胜+平",
+      "boSingle": null,
+      "verified": false,
+      "actualResult": null,
+      "hit": null
     }
   ],
   "stats": {
     "total": 110,
-    "verified": 75,
+    "verified": 74,
     "accuracy": 73
   }
 }
