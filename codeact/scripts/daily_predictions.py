@@ -204,6 +204,7 @@ _DIR_CN_TO_HD = {'h': '主胜', 'd': '平局', 'a': '客胜'}
 _500COM_CORE_COMPANIES = {
     "Bet365": "bet365",
     "韦德": "weide",
+    "立博": "ladbrokes",
 }
 
 
@@ -264,6 +265,77 @@ def _k_norm_adj(base: dict, adj: dict) -> dict:
     return {'hf': hf / t, 'df': df / t, 'af': af / t}
 
 
+def _apply_kebo(r: dict, kelly_companies: dict, odds: dict = None) -> None:
+    """
+    可博单选/博平检测（在七场景逻辑之后追加，不改变现有场景结果）
+
+    规则A - 可博单选胜/负（需同时满足3个条件）：
+      1. Bet365和韦德同时favor该队胜（或客胜）
+      2. 两家各自只有这一个方向是favor
+      3. 该队胜的赔率最低（比平赔率和另一队胜赔率都低）
+
+    规则B - 可博平（需同时满足3个条件）：
+      1. Bet365和韦德的平Kelly都是各自最低值且低于赔付率
+      2. 立博配合：立博的平Kelly也是最低值且低于赔付率
+      3. 立博数据必须存在才触发
+    """
+    if r.get('skip'):
+        return
+
+    c365 = kelly_companies.get('bet365')
+    cw = kelly_companies.get('weide')
+    if not c365 or not cw:
+        return
+
+    f365 = _k_favored(c365)
+    fW = _k_favored(cw)
+
+    # ===== 规则A: 可博单选胜/负 =====
+    for win_dir, odds_key in [('h', 'w'), ('a', 'l')]:
+        # 条件1: Bet365和韦德同时favor该方向
+        if win_dir not in f365 or win_dir not in fW:
+            continue
+        # 条件2: 两家各自只有这一个方向是favor
+        if len(f365) != 1 or len(fW) != 1:
+            continue
+        # 条件3: 该队胜的赔率最低（比平赔率和另一队胜赔率都低）
+        if not odds:
+            continue
+        win_odds_val = odds.get(odds_key)
+        draw_odds_val = odds.get('d')
+        other_odds_key = 'l' if odds_key == 'w' else 'w'
+        other_odds_val = odds.get(other_odds_key)
+        if not win_odds_val or not draw_odds_val or not other_odds_val:
+            continue
+        if win_odds_val < draw_odds_val and win_odds_val < other_odds_val:
+            kebo_type = '博单选胜' if win_dir == 'h' else '博单选负'
+            r['keBo'] = True
+            r['keBoType'] = kebo_type
+            r['label'] = r.get('label', '') + f' [可{kebo_type}]'
+            return
+
+    # ===== 规则B: 可博平 =====
+    clb = kelly_companies.get('ladbrokes')
+    if not clb:
+        return
+    l365 = _k_lowest(c365)
+    lW = _k_lowest(cw)
+    lLb = _k_lowest(clb)
+    # 条件1: Bet365和韦德的平Kelly都是各自最低值且低于赔付率
+    if l365['dir'] != 'd' or lW['dir'] != 'd':
+        return
+    if c365['kelly_d'] > c365['payout'] or cw['kelly_d'] > cw['payout']:
+        return
+    # 条件2: 立博的平Kelly也是最低值且低于赔付率
+    if lLb['dir'] != 'd':
+        return
+    if clb['kelly_d'] > clb['payout']:
+        return
+    r['keBo'] = True
+    r['keBoType'] = '博平'
+    r['label'] = r.get('label', '') + ' [可博平]'
+
+
 def calc_kelly_scenario(kelly_companies: dict, base_probs: dict = None, odds_conf: float = None, odds: dict = None) -> dict:
     """
     凯利七场景检测引擎 v5（替换旧版ABCD四场景）
@@ -291,6 +363,7 @@ def calc_kelly_scenario(kelly_companies: dict, base_probs: dict = None, odds_con
         'bet365_kelly': None, 'weide_kelly': None,
         'bet365_payout': None, 'weide_payout': None,
         'dispersion': 0, 'scenario': None, 'signal': None,
+        'keBo': None, 'keBoType': None,
     }
 
     c365 = kelly_companies.get('bet365')
@@ -313,6 +386,7 @@ def calc_kelly_scenario(kelly_companies: dict, base_probs: dict = None, odds_con
         'bet365_payout': round(c365.get('payout', 0), 4),
         'weide_payout': round(cw.get('payout', 0), 4),
         'dispersion': 0, 'scenario': None, 'signal': None,
+        'keBo': None, 'keBoType': None,
     }
 
     f365 = _k_favored(c365)
@@ -335,6 +409,7 @@ def calc_kelly_scenario(kelly_companies: dict, base_probs: dict = None, odds_con
         r['label'] = '场景七-离散度过高,建议放弃'
         r['scenario'] = '7'
         r['signal'] = r['label']
+        _apply_kebo(r, kelly_companies, odds)
         return r
 
         # ===== 场景零：共同看好（赔率定主方向，Kelly定补防） =====
@@ -359,6 +434,7 @@ def calc_kelly_scenario(kelly_companies: dict, base_probs: dict = None, odds_con
         r['scenario'] = '0'
         r['signal'] = r['label']
         r['finalProbs'] = _k_norm_adj(base_probs, r['adjustments'])
+        _apply_kebo(r, kelly_companies, odds)
         return r
 
 # ===== 场景一（提前检测）：两家同时不看好同一方向 =====
@@ -437,6 +513,7 @@ def calc_kelly_scenario(kelly_companies: dict, base_probs: dict = None, odds_con
                         r['scenario'] = '1'
                         r['signal'] = r['label']
                         r['finalProbs'] = _k_norm_adj(base_probs, r['adjustments'])
+                        _apply_kebo(r, kelly_companies, odds)
                         return r
 
             # 默认：共同看好的方向作为pick
@@ -456,6 +533,7 @@ def calc_kelly_scenario(kelly_companies: dict, base_probs: dict = None, odds_con
             r['scenario'] = '1'
             r['signal'] = r['label']
             r['finalProbs'] = _k_norm_adj(base_probs, r['adjustments'])
+            _apply_kebo(r, kelly_companies, odds)
             return r
 
         elif remain_favor_365 and remain_favor_w:
@@ -472,6 +550,7 @@ def calc_kelly_scenario(kelly_companies: dict, base_probs: dict = None, odds_con
             r['scenario'] = '1'
             r['signal'] = r['label']
             r['finalProbs'] = _k_norm_adj(base_probs, r['adjustments'])
+            _apply_kebo(r, kelly_companies, odds)
             return r
 
         # commonBad但没有明确剩余共同看好方向
@@ -533,6 +612,7 @@ def calc_kelly_scenario(kelly_companies: dict, base_probs: dict = None, odds_con
                     r['scenario'] = '1'
                     r['signal'] = r['label']
                     r['finalProbs'] = _k_norm_adj(base_probs, r['adjustments'])
+                    _apply_kebo(r, kelly_companies, odds)
                     return r
                 else:
                     # 平赔率低于胜赔率
@@ -556,6 +636,7 @@ def calc_kelly_scenario(kelly_companies: dict, base_probs: dict = None, odds_con
                     r['scenario'] = '1'
                     r['signal'] = r['label']
                     r['finalProbs'] = _k_norm_adj(base_probs, r['adjustments'])
+                    _apply_kebo(r, kelly_companies, odds)
                     return r
 
         if l365['dir'] == 'd' and lW['dir'] == 'd':
@@ -574,6 +655,7 @@ def calc_kelly_scenario(kelly_companies: dict, base_probs: dict = None, odds_con
             r['scenario'] = '1'
         r['signal'] = r['label']
         r['finalProbs'] = _k_norm_adj(base_probs, r['adjustments'])
+        _apply_kebo(r, kelly_companies, odds)
         return r
 
     # ===== 场景三：去平局（仅当平局被dropped且主客都没被drop时） =====
@@ -584,6 +666,7 @@ def calc_kelly_scenario(kelly_companies: dict, base_probs: dict = None, odds_con
         r['scenario'] = '3'
         r['signal'] = r['label']
         r['finalProbs'] = _k_norm_adj(base_probs, r['adjustments'])
+        _apply_kebo(r, kelly_companies, odds)
         return r
 
     # ===== 场景五：信号矛盾（无共同bad时触发） =====
@@ -602,6 +685,7 @@ def calc_kelly_scenario(kelly_companies: dict, base_probs: dict = None, odds_con
         r['scenario'] = '5'
         r['signal'] = r['label']
         r['finalProbs'] = _k_norm_adj(base_probs, r['adjustments'])
+        _apply_kebo(r, kelly_companies, odds)
         return r
 
     # ===== 场景二：各不看好不同方向 =====
@@ -616,6 +700,7 @@ def calc_kelly_scenario(kelly_companies: dict, base_probs: dict = None, odds_con
             r['scenario'] = '2'
             r['signal'] = r['label']
             r['finalProbs'] = _k_norm_adj(base_probs, r['adjustments'])
+            _apply_kebo(r, kelly_companies, odds)
             return r
 
     # ===== 场景六：两家都不看好某队+平Kelly最低 =====
@@ -637,6 +722,7 @@ def calc_kelly_scenario(kelly_companies: dict, base_probs: dict = None, odds_con
         r['scenario'] = '6'
         r['signal'] = r['label']
         r['finalProbs'] = _k_norm_adj(base_probs, r['adjustments'])
+        _apply_kebo(r, kelly_companies, odds)
         return r
 
     # 兜底：如果有场景标签但没返回
@@ -644,6 +730,7 @@ def calc_kelly_scenario(kelly_companies: dict, base_probs: dict = None, odds_con
         r['signal'] = r['label']
         r['finalProbs'] = _k_norm_adj(base_probs, r['adjustments'])
 
+    _apply_kebo(r, kelly_companies, odds)
     return r
 
 
@@ -718,7 +805,7 @@ def _compute_kelly_from_odds_api(bookmaker_odds: dict) -> dict:
 
     # Step 2: 为bet365和betvictor计算Kelly
     result = {}
-    api_to_core = {'bet365': 'bet365', 'betvictor': 'weide'}
+    api_to_core = {'bet365': 'bet365', 'betvictor': 'weide', 'ladbrokes_uk': 'ladbrokes'}
     for api_key, core_key in api_to_core.items():
         odds = bookmaker_odds.get(api_key)
         if not odds:
@@ -1037,6 +1124,8 @@ def predict_match(match: dict, teams: dict, kelly_data: dict = None) -> dict:
         "kellyCover": kelly_cover,
         "kellyDispersion": kelly_dispersion,
         "contradiction": contradiction,
+        "keBo": kelly_data.get('keBo') if kelly_data else None,
+        "keBoType": kelly_data.get('keBoType') if kelly_data else None,
     }
 
 
@@ -2752,6 +2841,8 @@ async def main():
                 "kellyPick": pred.get("kellyPick"),
                 "kellyCover": pred.get("kellyCover"),
                 "kellyDispersion": pred.get("kellyDispersion"),
+                "keBo": pred.get("keBo"),
+                "keBoType": pred.get("keBoType"),
                 "verified": False,
                 "actualResult": None,
                 "hit": None,
