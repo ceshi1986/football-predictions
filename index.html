@@ -2739,6 +2739,7 @@ function _aiJudge(m,hf,df,af){
   if(kellyData&&kellyData.companies){
     var c365=_getKellyCompany(kellyData.companies,'bet365')||_getKellyCompany(kellyData.companies,'365');
     var cW=_getKellyCompany(kellyData.companies,'韦德');
+    var cLB=_getKellyCompany(kellyData.companies,'立博');
     var l365,lW;
     if(c365&&cW){
       l365=_kLowest(c365);lW=_kLowest(cW);
@@ -2829,7 +2830,7 @@ function _aiJudge(m,hf,df,af){
     
     // === 新可博场景②：博平 ===
     // 条件：①365和韦德的平Kelly都是各自最低值且低于各自赔付率
-    //       ②立博配合（赔率也调低或Kelly最低且低于赔付率）→ 加强信号（当前前端无立博数据，暂为预留）
+    //       ②立博配合：立博的平Kelly也是最低值且低于赔付率
     if(c365&&cW&&!boSingle){
       // 两家平Kelly都是各自最低值
       var bothDrawLowest365=(c365.kelly_d<=c365.kelly_h&&c365.kelly_d<=c365.kelly_a);
@@ -2837,7 +2838,12 @@ function _aiJudge(m,hf,df,af){
       // 两家平Kelly都低于各自赔付率
       var bothDrawFavor365=(c365.kelly_d<=c365.payout);
       var bothDrawFavorW=(cW.kelly_d<=cW.payout);
-      if(bothDrawLowest365&&bothDrawLowestW&&bothDrawFavor365&&bothDrawFavorW){
+      // 立博配合：平Kelly是立博最低值且低于赔付率
+      var lbCooperate=false;
+      if(cLB){
+        lbCooperate=(cLB.kelly_d<=cLB.kelly_h&&cLB.kelly_d<=cLB.kelly_a&&cLB.kelly_d<=cLB.payout);
+      }
+      if(bothDrawLowest365&&bothDrawLowestW&&bothDrawFavor365&&bothDrawFavorW&&lbCooperate){
         boSingle='平';
       }
     }
