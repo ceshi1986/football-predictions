@@ -2801,6 +2801,47 @@ function _aiJudge(m,hf,df,af){
       }
     }
     
+    // === 新可博场景①：博单选某队胜 ===
+    // 条件：①365和韦德同时看好某队胜（该方向两家都favor）
+    //       ②只有该队胜的Kelly低于赔付率（两家各自只有这一个方向是favor）
+    //       ③该队胜的赔率最低（赔率隐含概率最高）
+    if(c365&&cW&&usedOdds){
+      var p365v=c365.payout, pWv=cW.payout;
+      // 检查主胜方向
+      var h365Fav=c365.kelly_h<=p365v, hWFav=cW.kelly_h<=pWv;
+      var d365Fav=c365.kelly_d<=p365v, dWFav=cW.kelly_d<=pWv;
+      var a365Fav=c365.kelly_a<=p365v, aWFav=cW.kelly_a<=pWv;
+      // 主胜：两家都favor，且只有主胜是favor
+      if(h365Fav&&hWFav&&!d365Fav&&!dWFav&&!a365Fav&&!aWFav){
+        // 检查赔率：主胜赔率是否最低
+        if(w<=d&&w<=l){
+          boSingle='胜';
+        }
+      }
+      // 客胜：两家都favor，且只有客胜是favor
+      if(a365Fav&&aWFav&&!d365Fav&&!dWFav&&!h365Fav&&!hWFav){
+        // 检查赔率：客胜赔率是否最低
+        if(l<=d&&l<=w){
+          boSingle='负';
+        }
+      }
+    }
+    
+    // === 新可博场景②：博平 ===
+    // 条件：①365和韦德的平Kelly都是各自最低值且低于各自赔付率
+    //       ②立博配合（赔率也调低或Kelly最低且低于赔付率）→ 加强信号（当前前端无立博数据，暂为预留）
+    if(c365&&cW&&!boSingle){
+      // 两家平Kelly都是各自最低值
+      var bothDrawLowest365=(c365.kelly_d<=c365.kelly_h&&c365.kelly_d<=c365.kelly_a);
+      var bothDrawLowestW=(cW.kelly_d<=cW.kelly_h&&cW.kelly_d<=cW.kelly_a);
+      // 两家平Kelly都低于各自赔付率
+      var bothDrawFavor365=(c365.kelly_d<=c365.payout);
+      var bothDrawFavorW=(cW.kelly_d<=cW.payout);
+      if(bothDrawLowest365&&bothDrawLowestW&&bothDrawFavor365&&bothDrawFavorW){
+        boSingle='平';
+      }
+    }
+    
     // === 双选组合：必须包含boSingle方向 ===
     // 获取Kelly已排除的方向
     var kellyDropped=[];
