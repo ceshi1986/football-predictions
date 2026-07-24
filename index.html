@@ -2962,7 +2962,7 @@ function _aiJudge(m,hf,df,af){
     // 条件：①365和韦德同时看好某队胜（该方向两家都favor）
     //       ②只有该队胜的Kelly低于赔付率（两家各自只有这一个方向是favor）
     //       ③该队胜的赔率最低（赔率隐含概率最高）
-    if(c365&&cW&&usedOdds){
+    if(c365&&cW&&usedOdds&&!boSingle){
       var p365v=c365.payout, pWv=cW.payout;
       // 检查主胜方向
       var h365Fav=c365.kelly_h<=p365v, hWFav=cW.kelly_h<=pWv;
