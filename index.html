@@ -2050,6 +2050,7 @@ if(_rqSP&&_rqSP.w>1&&_rqSP.d>1&&_rqSP.l>1){
 }
 var sh="";for(var i=1;i<=5;i++)sh+='<span class="s'+(i<=c?" on":"")+'">★</span>';
 if(_jr.type==="double")sh+='<span style="font-size:10px;color:#f59e0b;margin-left:4px">双选</span>';
+if(_jr.noDraw)sh+='<span style="font-size:10px;color:#ef4444;margin-left:4px">🔥非平</span>';
 document.getElementById("st").innerHTML=sh;
 var ct=_jr.confidence;
 document.getElementById("cf").textContent="置信度 "+ct+"%"+(_jr.type==="double"?" (双选)":"");
@@ -2072,6 +2073,9 @@ if(_jr.skip){
   adviceHtml+='<div>'+_jr.reason+'</div>';
   if(_jr.boSingle){
     adviceHtml+='<div class="ba-detail">凯利信号推荐'+_jr.boSingle+'，双选覆盖</div>';
+  }
+  if(_jr.noDraw){
+    adviceHtml+='<div class="ba-detail" style="color:#ef4444">🔥 V4.2非平信号：365+韦德平局Kelly均>返还率，排除平局</div>';
   }
 }
 var riskNote='<div style="margin-top:8px;padding-top:8px;border-top:1px solid #2a3f55;font-size:10px;color:#666;line-height:1.3">⚠️ 以上建议仅供娱乐参考，不构成投注建议。请理性对待，量力而行。</div>';
@@ -2815,7 +2819,8 @@ function _renderUpcoming(){
       var predClass=rec.type==="single"?"single":"double";
       var predText=rec.type==="single"?rec.prediction:rec.prediction+"（双选）";
       var skipTag=rec.skip?'<span class="upcoming-skip">（不建议投注）</span>':'';
-      h+='<span class="upcoming-pick '+predClass+'">🎯 '+predText+skipTag+'</span>';
+      var noDrawTag=rec.noDraw?'<span style="font-size:10px;color:#ef4444;margin-left:4px">🔥非平</span>':'';
+      h+='<span class="upcoming-pick '+predClass+'">🎯 '+predText+noDrawTag+skipTag+'</span>';
       h+='<span class="upcoming-info">置信度'+rec.confidence+'%</span>';
     }else{
       h+='<span class="upcoming-pick" style="color:#6b7280">预测生成中...</span>';
@@ -3116,6 +3121,21 @@ function _aiJudge(m,hf,df,af){
       }
     }
     
+    // === V4.2 非平模块 ===
+    // 当Bet365和韦德(BetVictor)两家公司的kelly_d(平局Kelly)都>payout(返还率)时，
+    // 说明两家都不看好平局，此时将预测的第二选项从"平局"改为另一个非平方向
+    var noDraw=false;
+    if(type==="double"&&c365&&cW&&secondPick==='平'){
+      if(c365.kelly_d>c365.payout&&cW.kelly_d>cW.payout){
+        noDraw=true;
+        // 将secondPick从'平'改为另一个非平方向
+        secondPick=(mainPick==='胜')?'负':'胜';
+        prediction=mainPick+"+"+secondPick;
+        doublePick=[mainPick,secondPick];
+        kellyLabel=(kellyLabel?kellyLabel+' · ':'')+'V4.2非平(365+韦德平Kelly均>payout)';
+      }
+    }
+    
     prediction=mainPick+"+"+secondPick;
     doublePick=[mainPick,secondPick];
     if(boSingle){
@@ -3138,7 +3158,8 @@ function _aiJudge(m,hf,df,af){
     reason:reason,
     doublePick:doublePick,
     kellyLabel:kellyLabel,
-    boSingle:boSingle||null
+    boSingle:boSingle||null,
+    noDraw:noDraw||false
   };
 }
 
@@ -3165,6 +3186,7 @@ function _renderAICard(rec){
   
   var predText=rec.type==="single"?rec.prediction:rec.prediction+"（双选）";
   var boTag=rec.boSingle?'<span class="ai-bo-tag">可博'+rec.boSingle+'</span>':'';
+  var noDrawTag=rec.noDraw?'<span class="ai-bo-tag" style="background:linear-gradient(135deg,#ef4444,#dc2626);color:#fff">🔥非平</span>':'';
   
   var skipTag=rec.skip?'<span class="ai-skip-tag">（不建议投注）</span>':'';
   
@@ -3185,7 +3207,7 @@ function _renderAICard(rec){
   h+='<span class="ai-league">'+rec.league+'</span>';
   h+='<span class="ai-time"> '+rec.matchTime+'</span>';
   h+='</div>';
-  h+='<div class="ai-card-pred '+predClass+'">'+predText+boTag+skipTag+'</div>';
+  h+='<div class="ai-card-pred '+predClass+'">'+predText+boTag+noDrawTag+skipTag+'</div>';
   h+='<div class="ai-card-reason">'+rec.reason+(rec.skip?' · '+rec.skipReason:'')+'</div>';
   h+='<div class="ai-card-conf">置信度 '+rec.confidence+'%'+(rec.kellyLabel&&!rec.boSingle?'<span class="ai-kelly-tag">凯利:'+rec.kellyLabel+'</span>':'')+'</div>';
   h+='</div>'+resultBadge+'</div></div>';
