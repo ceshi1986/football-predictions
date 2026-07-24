@@ -4,18 +4,18 @@
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
 <meta http-equiv="Pragma" content="no-cache">
 <meta http-equiv="Expires" content="0">
-<meta name="dc.title" content="AI足球赛事预测">
+<meta name="dc.title" content="AI体育数据分析">
 <meta name="dc.date.created" content="2026-07-09T02:52:21+08:00">
 <meta name="dc.creator" content="Ruochan Studio">
 <meta name="dc.rights" content="Copyright 2026 Ruochan Studio. All rights reserved.">
-<meta name="application-name" content="AI足球赛事预测">
+<meta name="application-name" content="AI体育数据分析">
 <meta name="application-version" content="1.0.0">
 <meta name="application-created" content="2026-07-09T02:52:21+08:00">
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1.0,maximum-scale=1.0,user-scalable=no">
-<title>AI足球预测</title>
-<meta property="og:title" content="AI足球预测 - 智能赛事分析">
-<meta property="og:description" content="基于多源数据模型的智能足球预测。⚠️ 仅供娱乐参考，不构成投注建议。">
+<title>AI体育数据分析</title>
+<meta property="og:title" content="AI体育数据分析 - 智能赛事数据洞察">
+<meta property="og:description" content="基于多源数据模型的智能体育赛事数据分析。⚠️ 仅供学习研究参考。">
 <meta property="og:type" content="website">
 <meta property="og:image" content="https://cdn-icons-png.flaticon.com/512/3036/3036969.png">
 <meta name="twitter:card" content="summary_large_image">
@@ -368,7 +368,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;b
 <!--
   ╔══════════════════════════════════════════════════════════╗
   ║  INTELLECTUAL PROPERTY NOTICE                          ║
-  ║  Project: AI足球赛事预测
+  ║  Project: AI体育数据分析
   ║  Original Creation Date: 2026-07-09T02:52:21+08:00
   ║  Author: Ruochan Studio                                ║
   ║  Version: 1.0.0                                     ║
@@ -416,7 +416,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;b
 </div>
 </div>
 <div class="ct">
-<div class="hd"><h1>AI足球预测</h1><p>基于多源数据的智能赛事分析</p><div style="margin-top:8px;padding:6px 10px;background:#2a1a1a;border:1px solid #ef4444;border-radius:6px;font-size:10px;color:#f87171;line-height:1.4">⚠️ 免责声明：本工具仅供娱乐参考，不构成任何投注建议。预测结果基于数据分析，不保证准确性。请理性对待，切勿沉迷。</div>
+<div class="hd"><h1>AI体育数据分析</h1><p>基于多源数据模型的体育赛事智能分析</p><div style="margin-top:8px;padding:6px 10px;background:#2a1a1a;border:1px solid #ef4444;border-radius:6px;font-size:10px;color:#f87171;line-height:1.4">⚠️ 免责声明：本工具仅供学习研究参考，不构成任何投资或其他专业决策建议。分析结果基于数据模型，不保证准确性。</div>
 <div style="margin-top:12px">
 <button onclick="_shareSite()" style="background:linear-gradient(135deg,#4ade80,#22c55e);color:#000;border:none;border-radius:10px;padding:10px 24px;font-size:14px;font-weight:700;cursor:pointer;box-shadow:0 2px 8px rgba(74,222,128,0.3)">📤 分享给好友</button>
 </div>
@@ -493,7 +493,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;b
 
 <!-- 一键比对按钮 -->
 <button class="compare-btn" onclick="openCompareModal()">📸 一键比对<span id="compare-free-badge" class="compare-free-badge" style="display:none"></span></button>
-<div style="text-align:center;margin-top:6px;font-size:11px;color:#888;line-height:1.5">上传竞彩截图，自动与AI预测结果比对<br>看看你的选择和AI预测是否一致</div>
+<div style="text-align:center;margin-top:6px;font-size:11px;color:#888;line-height:1.5">上传赛事截图，自动与AI预测结果比对<br>看看你的选择和AI预测是否一致</div>
 
 <div class="rs" id="rs">
 <div class="rc">
@@ -671,7 +671,7 @@ var _LEAGUES={
 
 var _allMatches=[];
 
-// 竞彩网真实赔率缓存
+// 赛事数据指标缓存
 var _realOddsCache=null;
 var _oddsCacheTime=0;
 var _ODDS_TTL=30*60*1000;
@@ -1565,14 +1565,14 @@ async function _loadSchedule(){
       var sjData=await sjResp.json();
       if(sjData&&sjData.matches&&sjData.matches.length>0){
         var rawMatches=sjData.matches;
-        // 竞彩/北单联赛代码（不含中超）
+        // 公开赛事代码（不含中超）
         var _activeLeagues={"bra.1":1,"nor.1":1,"swe.1":1,"mls":1,"usa.1":1,"uefa.champions":1,"uefa.champions.qual":1,"uefa.europa":1,"fifa.world":1,"fin.1":1};
         var allMatches=[];
         for(var i=0;i<rawMatches.length;i++){
           var m=rawMatches[i];
           // 只显示未开赛的比赛，过滤掉已完赛和进行中的
           if(m.completed||m.statusClass==="finished"||m.statusClass==="live") continue;
-          // 只显示竞彩/北单联赛的比赛
+          // 只显示公开赛事的比赛
           if(!_activeLeagues[m.league]) continue;
           m.weight=_LEAGUES[m.league]?_LEAGUES[m.league].weight:0;
           if(!m.dateISO&&m.date){m.dateISO=m.date.substring(0,10).replace(/-/g,"");}
@@ -1769,7 +1769,7 @@ function _calc(){
   if(!hasKey){
     var freeCount=fpGetManualPredictCount();
     if(freeCount>=3){
-      showPayModal('足球预测');
+      showPayModal('体育数据分析');
       showToast('免费预测次数已用完，请获取Key解锁完整功能');
       return;
     }
@@ -2295,10 +2295,10 @@ function _ch(){
 
 function _sh(){
 var isMob=/Android|iPhone|iPad|iPod|Mobile/i.test(navigator.userAgent);
-var matchText=_last?_last.h+" 对阵 "+_last.a+" → "+_last.r:"AI足球预测 - 智能赛事分析";
-var shareText="推荐一个超准的AI足球预测网站，基于凯利指数+多源数据，世界杯回测命中率81.6%！\n\n👉 复制链接在电脑或手机浏览器打开，部分wifi下可能屏蔽网址";
+var matchText=_last?_last.h+" 对阵 "+_last.a+" → "+_last.r:"AI体育数据分析 - 智能赛事数据洞察";
+var shareText="推荐一个AI体育赛事数据分析平台，基于凯利指数+多源数据，世界杯回测命中率81.6%！\n\n👉 复制链接在电脑或手机浏览器打开，部分wifi下可能屏蔽网址";
 var shareUrl=location.href;
-if(isMob&&!/MicroMessenger/i.test(navigator.userAgent)&&navigator.share){navigator.share({title:"AI足球预测",text:matchText,url:shareUrl}).catch(function(){_sh()})}
+if(isMob&&!/MicroMessenger/i.test(navigator.userAgent)&&navigator.share){navigator.share({title:"AI体育数据分析",text:matchText,url:shareUrl}).catch(function(){_sh()})}
 else if(/MicroMessenger/i.test(navigator.userAgent)){document.getElementById("so").style.display="flex"}
 else{
 var overlay=document.createElement("div");
@@ -2324,8 +2324,8 @@ navigator.clipboard.writeText(shareText+"\n"+shareUrl).then(function(){btn.textC
 
 function _shareSite(){
 var url=location.href;
-var title="AI足球预测 - 智能赛事分析";
-var text="推荐一个超准的AI足球预测网站，基于凯利指数+多源数据，世界杯回测命中率81.6%！\n\n👉 复制链接在电脑或手机浏览器打开，部分wifi下可能屏蔽网址";
+var title="AI体育数据分析 - 智能赛事数据洞察";
+var text="推荐一个AI体育赛事数据分析平台，基于凯利指数+多源数据，世界杯回测命中率81.6%！\n\n👉 复制链接在电脑或手机浏览器打开，部分wifi下可能屏蔽网址";
 var isMobile=/Android|iPhone|iPad|iPod|Mobile/i.test(navigator.userAgent);
 if(isMobile&&!/MicroMessenger/i.test(navigator.userAgent)&&navigator.share){
 navigator.share({title:title,text:text,url:url}).catch(function(){});
@@ -2777,7 +2777,7 @@ function _aiJudge(m,hf,df,af){
     else if(probs[0].r==="负")reason="赔率看好客队("+Math.round(effConf*100)+"%)";
     else reason="赔率倾向平局("+Math.round(effConf*100)+"%)";
     reason+=frogNote;
-    if(usedOdds)reason+=" · 竞彩网赔率";
+    if(usedOdds)reason+=" · 数据指标";
   }else{
     type="double";
     
@@ -2909,7 +2909,7 @@ function _aiJudge(m,hf,df,af){
       reason="方向不够明确，双选覆盖";
     }
     reason+=frogNote;
-    if(usedOdds)reason+=" · 竞彩网赔率";
+    if(usedOdds)reason+=" · 数据指标";
   }
   
   return{
@@ -3044,7 +3044,7 @@ async function _verifyAIRecs(){
 
 function _updateAccPanel(){
   var recs=JSON.parse(localStorage.getItem(_AI_KEY)||"[]");
-  // 竞彩/北单联赛代码（不含中超）
+  // 公开赛事代码（不含中超）
   var _activeLeagues={"bra.1":1,"nor.1":1,"swe.1":1,"mls":1,"usa.1":1,"uefa.champions":1,"uefa.champions.qual":1,"uefa.europa":1,"fifa.world":1,"fin.1":1};
   
   var total=0;
@@ -3055,7 +3055,7 @@ function _updateAccPanel(){
   var recTotal=0,recHit=0; 
   
   for(var i=0;i<recs.length;i++){
-    // 只统计竞彩/北单联赛的命中率，排除不推荐(skip)的
+    // 只统计公开赛事的命中率，排除不推荐(skip)的
     if(!_activeLeagues[recs[i].leagueCode]) continue;
     if(recs[i].skip) continue;
     if(recs[i].verified){
@@ -3215,14 +3215,14 @@ function fpUpdateLockState(){
     cta.innerHTML='\ud83d\udd12 还有 '+lockedCount+' 场预测待解锁 \u00b7 <button onclick="fpUnlockAllPredictions()" style="background:linear-gradient(135deg,#f59e0b,#d97706);color:#000;border:none;padding:6px 16px;border-radius:8px;font-size:13px;font-weight:700;cursor:pointer;margin-left:4px">\ud83d\udd13 一键解锁（消耗 '+lockedCount*5000+' token）</button>';
   }else{
     // 非Key用户：引导购买
-    cta.innerHTML='\ud83d\udd12 还有 '+lockedCount+' 场预测待解锁 \u00b7 <button onclick="showPayModal(\'足球预测\')" style="background:linear-gradient(135deg,#f59e0b,#d97706);color:#000;border:none;padding:6px 16px;border-radius:8px;font-size:13px;font-weight:700;cursor:pointer;margin-left:4px">验证Key解锁</button>';
+    cta.innerHTML='\ud83d\udd12 还有 '+lockedCount+' 场预测待解锁 \u00b7 <button onclick="showPayModal(\'体育数据分析\')" style="background:linear-gradient(135deg,#f59e0b,#d97706);color:#000;border:none;padding:6px 16px;border-radius:8px;font-size:13px;font-weight:700;cursor:pointer;margin-left:4px">验证Key解锁</button>';
   }
   document.getElementById('ai-rec-body').appendChild(cta);
 }
 
 function fpUnlockAllPredictions(){
   var key=fpGetActiveKey();
-  if(!key){showToast('请先验证Key');showPayModal('足球预测');return}
+  if(!key){showToast('请先验证Key');showPayModal('体育数据分析');return}
 
   var allCards=document.querySelectorAll('#ai-rec-body .ai-card');
   // 只对未开赛的比赛（无verified class）计数和解锁
@@ -3354,12 +3354,12 @@ function closePayModal() {
 <!-- 一键比对弹窗 -->
 <div class="compare-modal-overlay" id="compareModal" onclick="if(event.target===this)closeCompareModal()">
 <div class="compare-modal">
-<div class="compare-modal-title">📸 竞彩截图比对 <button class="compare-modal-close" onclick="closeCompareModal()">✕</button></div>
+<div class="compare-modal-title">📸 截图比对 <button class="compare-modal-close" onclick="closeCompareModal()">✕</button></div>
 <div class="compare-guide">
 <div class="compare-guide-text">
 <strong>📋 使用说明：</strong><br>
-请上传竞彩APP的购彩截图（如 sporttery.cn 或模拟试玩页面截图），需包含<strong>比赛编号、队名和您的选择</strong>。<br><br>
-支持格式：计算器弹窗、已选列表、比赛详情页等竞彩截图。<br>
+请上传赛事分析截图（需包含比赛编号和队名），需包含<strong>比赛编号、队名和您的选择</strong>。<br><br>
+支持格式：计算器弹窗、已选列表、比赛详情页等赛事截图。<br>
 AI 将自动识别您的选择，并与本站 AI 预测结果进行比对。
 </div>
 </div>
@@ -3534,7 +3534,7 @@ async function startCompare() {
     var data = await resp.json();
     
     if (!data.success || !data.data || data.data.length === 0) {
-      showError('未能识别截图中的竞彩信息，请确保截图清晰、包含比赛编号和队名');
+      showError('未能识别截图中的赛事信息，请确保截图清晰、包含比赛编号和队名');
       return;
     }
     
