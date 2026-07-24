@@ -3057,6 +3057,54 @@ function _aiJudge(m,hf,df,af){
       var others=candidateDirs.filter(function(d){return d!==mainPick;});
       if(others.length>0){secondPick=others[0];}
       else{secondPick=(mainPick==="胜")?"负":"胜";}
+      // === 规则C：防平判断 ===
+      // 前提：365和韦德都favor某队胜，至少一家平Kelly≤payout → secondPick选平
+      if(c365&&cW&&!boSingle){
+        var _rcP365=c365.payout, _rcPW=cW.payout;
+        var _rcBothHome=(c365.kelly_h<=_rcP365)&&(cW.kelly_h<=_rcPW);
+        var _rcBothAway=(c365.kelly_a<=_rcP365)&&(cW.kelly_a<=_rcPW);
+        if(_rcBothHome||_rcBothAway){
+          var _rcDraw365=(c365.kelly_d<=_rcP365);
+          var _rcDrawW=(cW.kelly_d<=_rcPW);
+          if(_rcDraw365||_rcDrawW){
+            // 规则C-反向：立博平Kelly>payout → 不防平，升级为boSingle
+            var _rcReverse=false;
+            if(cLB&&cLB.kelly_d>cLB.payout){
+              _rcReverse=true;
+            }
+            if(_rcReverse){
+              // 取消防平，博单选胜
+              boSingle=_rcBothHome?'胜':'负';
+              mainPick=boSingle;
+              var _rcOthers=candidateDirs.filter(function(d){return d!==boSingle;});
+              secondPick=_rcOthers.length>0?_rcOthers[0]:((boSingle==='胜')?'负':'胜');
+            }else{
+              // 正常防平：secondPick设为平
+              secondPick='平';
+            }
+          }
+        }
+      }
+      // === 规则D：2v1平局防范 ===
+      // 2家看好平局 vs 1家看好某队胜 → secondPick选平
+      if(!boSingle&&secondPick!=='平'&&c365&&cW){
+        var _rdCompanies=[c365,cW];
+        if(cLB){_rdCompanies.push(cLB);}
+        var _rdDrawFav=0,_rdHomeFav=0,_rdAwayFav=0;
+        for(var _rdI=0;_rdI<_rdCompanies.length;_rdI++){
+          var _rdCo=_rdCompanies[_rdI];
+          if(_rdCo.kelly_d<=_rdCo.payout){_rdDrawFav++;}
+          if(_rdCo.kelly_h<=_rdCo.payout){_rdHomeFav++;}
+          if(_rdCo.kelly_a<=_rdCo.payout){_rdAwayFav++;}
+        }
+        if(_rdDrawFav>=2){
+          if(_rdHomeFav===1&&_rdAwayFav===0){
+            secondPick='平';
+          }else if(_rdAwayFav===1&&_rdHomeFav===0){
+            secondPick='平';
+          }
+        }
+      }
       // Kelly override: 当场景0的共同看好方向不在双选中时，替换进来
       if(kr&&kr.scenarios&&kr.scenarios.indexOf('0')>=0&&kr.cover){
         var _cfPickCN=kr.pick?({'h':'胜','d':'平','a':'负'}[kr.pick]):null;
