@@ -514,6 +514,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;b
 <div class="pi"><div class="pn">让球主胜</div><div class="pv" id="rqh" style="color:#4ade80"></div></div>
 <div class="pi"><div class="pn">让球平局</div><div class="pv" id="rqd" style="color:#9ca3af"></div></div>
 <div class="pi"><div class="pn">让球客胜</div><div class="pv" id="rqa" style="color:#60a5fa"></div></div>
+<div style="font-size:9px;color:#666;text-align:center;margin-top:4px;line-height:1.2">* 赔率直接换算，非本站预测</div>
 </div>
 <div class="cd" id="an"></div>
 <div class="buy-advice" id="ba" style="display:none">
@@ -757,10 +758,60 @@ function _matchRealOdds(home,away,list){
 var _kellyCache=null;
 var _kellyCacheDate="";
 
+function _convertZgzcwKelly(data){
+  if(!data||!data.matches)return null;
+  var result=[];
+  var matches=data.matches;
+  var keys=Object.keys(matches);
+  for(var i=0;i<keys.length;i++){
+    var m=matches[keys[i]];
+    var teams=(m.match_name||'').split(' vs ');
+    if(teams.length!==2)continue;
+    var companies={};
+    var ck=Object.keys(m.companies||{});
+    var nameMap={'weide':'韦德','bet365':'Bet365','libo':'立博'};
+    for(var j=0;j<ck.length;j++){
+      var c=m.companies[ck[j]];
+      var displayName=nameMap[ck[j]]||c.name||ck[j];
+      companies[displayName]=[{
+        odds_h:c.latest_odds[0],
+        odds_d:c.latest_odds[1],
+        odds_a:c.latest_odds[2],
+        payout:c.payout,
+        kelly_h:c.kelly[0],
+        kelly_d:c.kelly[1],
+        kelly_a:c.kelly[2]
+      }];
+    }
+    result.push({
+      id:m.jingcai_id||keys[i],
+      home:teams[0],away:teams[1],
+      league:m.league||'',
+      time:m.match_time||'',
+      companies:companies
+    });
+  }
+  return result;
+}
 async function _fetchKellyData(){
   var now=new Date();
   var dk=now.getFullYear()+String(now.getMonth()+1).padStart(2,'0')+String(now.getDate()).padStart(2,'0');
   if(_kellyCache&&_kellyCacheDate===dk)return _kellyCache;
+  try{
+    var r0=await fetch('data/500com_daily/'+dk+'/zgzcw_kelly_data.json?t='+Date.now(),{cache:'no-cache'});
+    if(r0.ok){
+      var d0=await r0.json();
+      if(d0&&d0.matches){
+        if(Array.isArray(d0.matches)){_kellyCache=d0.matches;}
+        else{_kellyCache=_convertZgzcwKelly(d0);}
+        if(_kellyCache&&_kellyCache.length>0){
+          _kellyCacheDate=dk;
+          console.log('Kelly data loaded(zgzcw): '+_kellyCache.length+' matches, date='+dk);
+          return _kellyCache;
+        }
+      }
+    }
+  }catch(e0){console.log('zgzcw Kelly fetch failed:',e0.message);}
   try{
     var r=await fetch('data/500com_daily/'+dk+'/kelly_data_full.json?t='+Date.now(),{cache:'no-cache'});
     if(r.ok){
@@ -777,6 +828,21 @@ async function _fetchKellyData(){
   var y=new Date(now.getTime()-86400000);
   var yk=y.getFullYear()+String(y.getMonth()+1).padStart(2,'0')+String(y.getDate()).padStart(2,'0');
   if(yk!==dk){
+    try{
+      var rz=await fetch('data/500com_daily/'+yk+'/zgzcw_kelly_data.json?t='+Date.now(),{cache:'no-cache'});
+      if(rz.ok){
+        var dz=await rz.json();
+        if(dz&&dz.matches){
+          if(Array.isArray(dz.matches)){_kellyCache=dz.matches;}
+          else{_kellyCache=_convertZgzcwKelly(dz);}
+          if(_kellyCache&&_kellyCache.length>0){
+            _kellyCacheDate=yk;
+            console.log('Kelly data loaded(zgzcw prev day): '+_kellyCache.length+' matches, date='+yk);
+            return _kellyCache;
+          }
+        }
+      }
+    }catch(ez){console.log('zgzcw Kelly prev day fetch failed:',ez.message);}
     try{
       var r2=await fetch('data/500com_daily/'+yk+'/kelly_data_full.json?t='+Date.now(),{cache:'no-cache'});
       if(r2.ok){
@@ -2944,6 +3010,7 @@ function _aiJudge(m,hf,df,af){
     // 保护2：当剩余方向中有"一家Kelly最低+另一家不看好"的严重矛盾时，取消可博
     if(boSingle&&kr&&kr.scenarios){
       var boDir=boSingle==="胜"?"h":boSingle==="平"?"d":"a";
+      if(kr.pick===boDir){/* scenario already chose this, skip protection */}else{
       var nonBoDirs=_K_DIRS.filter(function(d){return d!==boDir;});
       for(var _bi=0;_bi<nonBoDirs.length;_bi++){
         var nd=nonBoDirs[_bi];
@@ -2957,6 +3024,7 @@ function _aiJudge(m,hf,df,af){
         if((low365&&badW)||(lowW&&bad365)){
           boSingle=null;break;
         }
+      }
       }
     }
     // 可博方向必须是双选的第一位（优先方向）
