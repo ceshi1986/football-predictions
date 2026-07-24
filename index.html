@@ -2660,7 +2660,13 @@ async function _doGenAIRec(){
   await _fetchKellyData();
   var el=document.getElementById("ai-rec-body");
   
-  var upcoming=_allMatches.filter(function(m){return m.statusClass==="scheduled"});
+  var upcoming=_allMatches.filter(function(m){
+    if(m.statusClass!=="scheduled") return false;
+    // 30分钟截止：距开赛不足30分钟的比赛不再更新预测（锁定上次结果）
+    var mt=new Date(m.date);var now=new Date();
+    var diffMin=(mt-now)/(60*1000);
+    return diffMin>30;
+  });
   
   var recs=[];
   var stored=JSON.parse(localStorage.getItem(_AI_KEY)||"[]");
