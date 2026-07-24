@@ -1,5 +1,5 @@
 {
-  "lastUpdated": "2026-07-24T10:42:08.550Z",
+  "lastUpdated": "2026-07-24T11:09:59.151Z",
   "predictions": [
     {
       "prediction": "负+胜",
@@ -1964,13 +1964,13 @@
       "type": "double",
       "skip": true,
       "skipReason": "结果太不确定，各方向概率接近",
-      "confidence": 41,
+      "confidence": 35,
       "reason": "方向不够明确，双选覆盖 · 竞彩网赔率",
       "doublePick": [
         "负",
         "胜"
       ],
-      "kellyLabel": "共同看好主胜，主选客胜，防主胜",
+      "kellyLabel": "共同看好主胜/平局，主选客胜，防主胜，防平局",
       "boSingle": null,
       "matchId": "7eb2565f5",
       "home": "雅罗",
@@ -1984,18 +1984,18 @@
       "hit": null
     },
     {
-      "prediction": "平+负",
+      "prediction": "负+平",
       "type": "double",
-      "skip": false,
-      "skipReason": "",
-      "confidence": 45,
-      "reason": "凯利信号推荐平(45%)，双选覆盖 · 竞彩网赔率",
+      "skip": true,
+      "skipReason": "结果太不确定，各方向概率接近",
+      "confidence": 38,
+      "reason": "凯利信号推荐负(38%)，双选覆盖 · 竞彩网赔率",
       "doublePick": [
-        "平",
-        "负"
+        "负",
+        "平"
       ],
-      "kellyLabel": "共同看好平局，赔率方向主胜被两家Kelly否定→改选平局，防平局",
-      "boSingle": "平",
+      "kellyLabel": "共同看好平局/客胜，赔率方向主胜被两家Kelly否定→改选客胜，防平局，防客胜",
+      "boSingle": "负",
       "matchId": "2fce5231a",
       "home": "瓦斯特拉",
       "away": "奥尔格里",
