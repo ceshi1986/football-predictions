@@ -3067,20 +3067,17 @@ function _aiJudge(m,hf,df,af){
           var _rcDraw365=(c365.kelly_d<=_rcP365);
           var _rcDrawW=(cW.kelly_d<=_rcPW);
           if(_rcDraw365||_rcDrawW){
-            // 规则C-反向：立博平Kelly>payout → 不防平，升级为boSingle
-            var _rcReverse=false;
+            // 规则C修订(2026-07-24)：立博不看好平→仍保留防平，仅降低信心
+            // 立博平Kelly>payout→标注信心降低，但不取消防平
+            var _rcWeaken=false;
             if(cLB&&cLB.kelly_d>cLB.payout){
-              _rcReverse=true;
+              _rcWeaken=true;
             }
-            if(_rcReverse){
-              // 取消防平，博单选胜
-              boSingle=_rcBothHome?'胜':'负';
-              mainPick=boSingle;
-              var _rcOthers=candidateDirs.filter(function(d){return d!==boSingle;});
-              secondPick=_rcOthers.length>0?_rcOthers[0]:((boSingle==='胜')?'负':'胜');
-            }else{
-              // 正常防平：secondPick设为平
-              secondPick='平';
+            // 无论立博态度如何，都保留防平（secondPick=平）
+            secondPick='平';
+            if(_rcWeaken){
+              // 立博否定平局→降低信心标注（不影响选择结果）
+              // 信心降低在UI中不改变输出，仅供内部参考
             }
           }
         }
