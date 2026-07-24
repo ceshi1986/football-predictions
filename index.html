@@ -958,7 +958,19 @@ function _detectKellyScenario(c365,cW,baseProbs,oddsConf){
     var topDir=dirNames[maxKey];
     r.scenarios.push('0');
     r.pick=topDir;
-    r.label='共同看好'+commonFavor.map(function(d){return _K_DN[d]}).join('/')+'，主选'+_K_DN[topDir];
+    // Check if topDir is bad by both Kelly
+    var topDirBad=(c365['kelly_'+topDir]>c365.payout)&&(cW['kelly_'+topDir]>cW.payout);
+    if(topDirBad&&commonFavor.length>0){
+      // Top odds direction is disliked by both - switch pick to commonFavor
+      var bestCF=commonFavor[0];
+      for(var ci=0;ci<commonFavor.length;ci++){
+        if(baseProbs[_K_DK[commonFavor[ci]]]>baseProbs[_K_DK[bestCF]])bestCF=commonFavor[ci];
+      }
+      r.pick=bestCF;
+      r.label='共同看好'+commonFavor.map(function(d){return _K_DN[d]}).join('/')+'，赔率方向'+_K_DN[topDir]+'被两家Kelly否定→改选'+_K_DN[bestCF];
+    }else{
+      r.label='共同看好'+commonFavor.map(function(d){return _K_DN[d]}).join('/')+'，主选'+_K_DN[topDir];
+    }
     // 对commonFavor方向加+0.15调整
     for(var i=0;i<commonFavor.length;i++){
       r.adjustments[_K_DK[commonFavor[i]]]+=0.15;
@@ -3037,6 +3049,18 @@ function _aiJudge(m,hf,df,af){
       var others=candidateDirs.filter(function(d){return d!==mainPick;});
       if(others.length>0){secondPick=others[0];}
       else{secondPick=(mainPick==="胜")?"负":"胜";}
+      // Kelly override: 当场景0的共同看好方向不在双选中时，替换进来
+      if(kr&&kr.scenarios&&kr.scenarios.indexOf('0')>=0&&kr.cover){
+        var _cfPickCN=kr.pick?({'h':'胜','d':'平','a':'负'}[kr.pick]):null;
+        var _cfCoverCN={'h':'胜','d':'平','a':'负'}[kr.cover];
+        var _cfDirs=[_cfPickCN,_cfCoverCN].filter(Boolean);
+        var _inSel=_cfDirs.indexOf(mainPick)>=0||_cfDirs.indexOf(secondPick)>=0;
+        if(!_inSel){
+          mainPick=_cfCoverCN;
+          var _rest=candidateDirs.filter(function(d){return d!==mainPick;});
+          secondPick=_rest.length>0?_rest[0]:null;
+        }
+      }
     }
     
     prediction=mainPick+"+"+secondPick;
