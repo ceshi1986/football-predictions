@@ -2347,8 +2347,63 @@ def _load_kelly_500com_data() -> dict:
     return {}
 
 def _load_kelly_zgzcw_data() -> dict:
-    """加载中国足彩网凯利数据（当前不可用，zgzcw.com有反爬限制）"""
+    """加载中国足彩网凯利数据（从zgzcw_kelly_data.json）"""
+    today = datetime.now().strftime("%Y%m%d")
+    tomorrow = (datetime.now() + timedelta(days=1)).strftime("%Y%m%d")
+    yesterday = (datetime.now() - timedelta(days=1)).strftime("%Y%m%d")
+    script_dir = os.path.dirname(os.path.abspath(__file__))
+    base_dir = os.path.dirname(script_dir)  # football-predictions/
+
+    # 检查昨天、今天、明天的数据
+    all_data = {}
+    for date_str in [yesterday, today, tomorrow]:
+        path = os.path.join(base_dir, "data", "500com_daily", date_str, "zgzcw_kelly_data.json")
+        if os.path.exists(path):
+            try:
+                with open(path, "r", encoding="utf-8") as f:
+                    data = json.load(f)
+                matches = data.get("matches", {})
+                if isinstance(matches, dict):
+                    for mid, mdata in matches.items():
+                        all_data[mid] = mdata
+                    print(f"[ZGZCW] 加载{date_str}凯利数据: {len(matches)}场比赛")
+            except Exception as e:
+                print(f"[ZGZCW] 加载{date_str}数据异常: {e}")
+
+    if all_data:
+        return {"matches": all_data}
+    print("[ZGZCW] 未找到zgzcw凯利数据")
     return {}
+
+
+def _extract_kelly_companies_zgzcw(companies: dict) -> dict:
+    """从zgzcw公司数据中提取Bet365和韦德的Kelly数据
+    输入: {"weide": {"kelly": [h,d,a], "payout": p, ...}, "bet365": {...}, ...}
+    输出: {"bet365": {"kelly_h": x, "kelly_d": y, "kelly_a": z, "payout": p}, "weide": {...}}
+    """
+    result = {}
+    # zgzcw公司key映射到引擎key
+    _ZGZCW_KEY_MAP = {
+        "bet365": "bet365",
+        "weide": "weide",
+        "libo": "ladbrokes",  # 立博
+    }
+    for zgzcw_key, engine_key in _ZGZCW_KEY_MAP.items():
+        rec = companies.get(zgzcw_key)
+        if not rec:
+            continue
+        kelly_arr = rec.get("kelly", [])
+        payout = rec.get("payout", 0)
+        if len(kelly_arr) >= 3 and payout > 0:
+            result[engine_key] = {
+                "kelly_h": float(kelly_arr[0]) / 100.0 if kelly_arr[0] > 1 else float(kelly_arr[0]),
+                "kelly_d": float(kelly_arr[1]) / 100.0 if kelly_arr[1] > 1 else float(kelly_arr[1]),
+                "kelly_a": float(kelly_arr[2]) / 100.0 if kelly_arr[2] > 1 else float(kelly_arr[2]),
+                "payout": float(payout),
+            }
+        # 如果kelly值看起来是百分比形式(>1)，需要除以100
+        # 否则已经是小数形式
+    return result
 
 def _convert_500com_to_bookmaker_odds(companies: dict) -> dict:
     """将500.com公司数据转换为calc_kelly_scenario期望的格式
@@ -2631,7 +2686,11 @@ async def main():
             # 日期过滤：只保留今天和明天的比赛
             match_date_raw = m.get("date", "")
             if len(match_date_raw) >= 8:
-                match_date_str = match_date_raw[:8].replace("-", "")
+                # 支持 YYYYMMDD 和 YYYY-MM-DDTHH:MM 格式
+                if "-" in match_date_raw:
+                    match_date_str = match_date_raw[:10].replace("-", "")
+                else:
+                    match_date_str = match_date_raw[:8]
                 if match_date_str not in allowed_predict_dates:
                     skipped_future += 1
                     continue
@@ -2667,7 +2726,8 @@ async def main():
         print("[INFO] 从zgzcw_kelly加载凯利数据...")
         kelly_zgzcw_data = _load_kelly_zgzcw_data()
         if kelly_zgzcw_data:
-            print(f"[OK] zgzcw凯利数据: {len(kelly_zgzcw_data.get('matches', []))} 场比赛")
+            _zgzcw_matches = kelly_zgzcw_data.get('matches', {})
+            print(f"[OK] zgzcw凯利数据: {len(_zgzcw_matches)} 场比赛")
 
         # 构建比赛匹配索引：(homeEN_norm, awayEN_norm) -> odds_event
         odds_match_index = {}
@@ -2787,6 +2847,54 @@ async def main():
                             skip_tag_k = " [SKIP]" if kelly_data.get('skip') else ""
                             print(f"[KELLY-500COM] {_home} vs {_away}: 场景{kelly_data['scenario']} {kelly_data.get('signal', '')}{disp_tag}{skip_tag_k}")
 
+            # ===== zgzcw 凯利数据 fallback =====
+            # 当 Odds API 和500com都无数据时，使用zgzcw抓取的凯利数据
+            if not kelly_data and kelly_zgzcw_data:
+                zgzcw_matches = kelly_zgzcw_data.get("matches", {})
+                # 优先按match_id精确匹配
+                matched_zgzcw = zgzcw_matches.get(match_id)
+                if not matched_zgzcw:
+                    # 模糊匹配：按队名
+                    for mid_z, mz in zgzcw_matches.items():
+                        mz_name = mz.get("match_name", "")
+                        mz_parts = mz_name.split(" vs ")
+                        if len(mz_parts) == 2:
+                            mz_home, mz_away = mz_parts[0].strip(), mz_parts[1].strip()
+                            # 简单匹配：队名包含关系
+                            if (_home in mz_home or mz_home in _home) and (_away in mz_away or mz_away in _away):
+                                matched_zgzcw = mz
+                                break
+                            if (_home in mz_away or mz_away in _home) and (_away in mz_home or mz_home in _away):
+                                matched_zgzcw = mz
+                                break
+                if matched_zgzcw:
+                    _kelly_companies_z = _extract_kelly_companies_zgzcw(matched_zgzcw.get("companies", {}))
+                    if _kelly_companies_z.get('bet365') and _kelly_companies_z.get('weide'):
+                        # 计算基础概率
+                        _w4, _d4, _l4, _, _ = normalize_odds(m.get("odds", {}))
+                        if _w4 and _d4 and _l4:
+                            _bp4 = calc_kelly_probs(_w4, _d4, _l4)
+                            _base_p4 = {'hf': _bp4['胜'], 'df': _bp4['平'], 'af': _bp4['负']}
+                        else:
+                            # 尝试从zgzcw赔率计算
+                            _z_b365 = matched_zgzcw.get("companies", {}).get("bet365", {})
+                            _z_latest = _z_b365.get("latest_odds", [])
+                            if len(_z_latest) >= 3 and all(x > 1 for x in _z_latest):
+                                _w4, _d4, _l4 = _z_latest[0], _z_latest[1], _z_latest[2]
+                                _bp4 = calc_kelly_probs(_w4, _d4, _l4)
+                                _base_p4 = {'hf': _bp4['胜'], 'df': _bp4['平'], 'af': _bp4['负']}
+                                # 同时把赔率写入match，用于后续预测
+                                if not m.get("odds"):
+                                    m["odds"] = {"source": "zgzcw", "w": _w4, "d": _d4, "l": _l4}
+                            else:
+                                _ep4 = calc_elo_probs(get_team_strength(teams, _home), get_team_strength(teams, _away))
+                                _base_p4 = {'hf': _ep4['胜'], 'df': _ep4['平'], 'af': _ep4['负']}
+                        kelly_data = calc_kelly_scenario(_kelly_companies_z, _base_p4, odds={'w': _w4, 'd': _d4, 'l': _l4} if _w4 and _d4 and _l4 else None)
+                        if kelly_data and kelly_data.get("scenario"):
+                            disp_tag = f" 离散度{round(kelly_data.get('dispersion',0),3)}" if kelly_data.get('dispersion') else ""
+                            skip_tag_k = " [SKIP]" if kelly_data.get('skip') else ""
+                            print(f"[KELLY-ZGZCW] {_home} vs {_away}: 场景{kelly_data['scenario']} {kelly_data.get('signal', '')}{disp_tag}{skip_tag_k}")
+
             # ===== 竞彩网赔率 fallback =====
             # 当 schedule.json 无赔率且 The Odds API 无多公司数据时，
             # 从竞彩网获取胜平负赔率作为备选数据源
@@ -2870,7 +2978,7 @@ async def main():
         # 先添加已验证的（按日期排序），只保留3天内
         verified_preds = [p for p in existing_predictions if p.get("verified")]
         verified_before_filter = len(verified_preds)
-        verified_preds = [p for p in verified_preds if p.get("date", "")[:8].replace("-", "") in allowed_display_dates]
+        verified_preds = [p for p in verified_preds if (_d:=p.get("date", ""), _d[:10].replace("-","") if "-" in _d else _d[:8])[1] in allowed_display_dates]
         filtered_old_verified = verified_before_filter - len(verified_preds)
         verified_preds.sort(key=lambda x: x.get("date", ""))
         final_predictions.extend(verified_preds)
@@ -2879,7 +2987,7 @@ async def main():
         # 再添加未验证的（新的和更新的），只保留3天内
         unverified_preds = [p for mid, p in pred_map.items() if not p.get("verified")]
         unverified_before_filter = len(unverified_preds)
-        unverified_preds = [p for p in unverified_preds if p.get("date", "")[:8].replace("-", "") in allowed_display_dates]
+        unverified_preds = [p for p in unverified_preds if (_d:=p.get("date", ""), _d[:10].replace("-","") if "-" in _d else _d[:8])[1] in allowed_display_dates]
         filtered_old_unverified = unverified_before_filter - len(unverified_preds)
         unverified_preds.sort(key=lambda x: x.get("date", ""))
         final_predictions.extend(unverified_preds)
