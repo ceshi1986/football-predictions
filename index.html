@@ -1958,7 +1958,7 @@ if(_regSP&&_regSP.w>1&&_regSP.d>1&&_regSP.l>1){
 var rqSec=document.getElementById("rq-section");
 if(_rqSP&&_rqSP.w>1&&_rqSP.d>1&&_rqSP.l>1){
   rqSec.style.display="block";
-  var _hLabel=_rqHandicap?"(让"+Math.abs(_rqHandicap)+"球)":"";
+  var _hLabel=_rqHandicap?(_rqHandicap<0?"(让"+Math.abs(_rqHandicap)+"球)":"(受让"+Math.abs(_rqHandicap)+"球)"):"";
   document.getElementById("rq-title").textContent="让球胜平负"+_hLabel;
   var _qw=_rqSP.w,_qd=_rqSP.d,_ql=_rqSP.l;
   var _qt=1/_qw+1/_qd+1/_ql;var _qR=1/_qt;
@@ -2000,7 +2000,7 @@ ba.style.display="block";
 // 让球方向
 if(hh.f&&hh.d){
 document.getElementById("hd2").className="hd2 show";
-var dn=hh.d==="h"?h+"让"+hh.l+"球":a+"让"+hh.l+"球";
+var dn=hh.d==="h"?h+"让"+hh.l+"球 vs "+a+"受让"+hh.l+"球":h+"受让"+hh.l+"球 vs "+a+"让"+hh.l+"球";
 document.getElementById("dl").textContent="让球方向："+dn+"（辅助参考）";
 document.getElementById("tr").textContent="盘口变化："+hh.t;
 }else{document.getElementById("hd2").className="hd2"}
