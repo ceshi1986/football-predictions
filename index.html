@@ -3277,6 +3277,7 @@ async function _verifyAIRecs(){
     });
     _renderAIRec(displayRecs);
     _renderUpcoming();
+    _updateYesterdayBanner();
   }
 }
 
@@ -3370,6 +3371,7 @@ function _updateAccPanel(){
     trendEl.textContent="→ 持平（前段"+prevRate+"%）";
     trendEl.className="v flat";
   }
+  _updateYesterdayBanner();
 }
 
 
@@ -3377,6 +3379,7 @@ setTimeout(async function(){
   await _ensureServerSync();
   _genAIRec();
   _updateAccPanel();
+  _updateYesterdayBanner();
   _renderUpcoming();
   if(typeof fpUpdateLockState==="function")fpUpdateLockState();
   // 延时再次检查Key状态，给FC API验证留足时间
@@ -3511,35 +3514,50 @@ function fpUnlockAllPredictions(){
   showToast('🎉 已解锁全部预测，扣除 '+unlockCost+' token');
 }
 
-// 昨日命中率>80%醒目展示
-(function(){
+// 昨日战绩动态更新函数
+function _updateYesterdayBanner(){
   var recs=[];
   try{recs=JSON.parse(localStorage.getItem('ai_recommendations')||'[]')}catch(e){}
   if(!recs.length)return;
-  var verified=recs.filter(function(r){return r.verified});
-  if(!verified.length)return;
-  var dateMap={};
-  for(var i=0;i<verified.length;i++){
-    var d=verified[i].date;
-    if(!dateMap[d])dateMap[d]=[];
-    dateMap[d].push(verified[i]);
-  }
-  var dates=Object.keys(dateMap).sort().reverse();
-  if(!dates.length)return;
-  var latestDate=dates[0];
-  var latestRecs=dateMap[latestDate];
-  var hits=0;
-  for(var i=0;i<latestRecs.length;i++){if(latestRecs[i].hit)hits++}
-  var rate=Math.round(hits/latestRecs.length*100);
-  if(rate>=80){
-    var banner=document.getElementById('fp-yesterday-banner');
-    var rateEl=document.getElementById('fp-yesterday-rate');
-    if(banner&&rateEl){
-      rateEl.textContent=rate+'% ('+hits+'/'+latestRecs.length+')';
-      banner.style.display='block';
+  // 获取昨天日期
+  var now=new Date();
+  var yd=new Date(now.getTime()-86400000);
+  var yStr=yd.getFullYear()+'-'+String(yd.getMonth()+1).padStart(2,'0')+'-'+String(yd.getDate()).padStart(2,'0');
+  // 筛选昨天已验证的比赛
+  var yesterdayVerified=recs.filter(function(r){
+    return r.verified && r.date && r.date.indexOf(yStr)===0;
+  });
+  var banner=document.getElementById('fp-yesterday-banner');
+  var rateEl=document.getElementById('fp-yesterday-rate');
+  if(!banner||!rateEl)return;
+  if(yesterdayVerified.length===0){
+    // 昨天没有已验证的比赛，尝试用最近一天的已验证数据
+    var allVerified=recs.filter(function(r){return r.verified});
+    if(!allVerified.length){banner.style.display='none';return;}
+    var dateMap={};
+    for(var i=0;i<allVerified.length;i++){
+      var d=allVerified[i].date;
+      var dKey=d.substring(0,10);
+      if(!dateMap[dKey])dateMap[dKey]=[];
+      dateMap[dKey].push(allVerified[i]);
     }
+    var dates=Object.keys(dateMap).sort().reverse();
+    if(!dates.length){banner.style.display='none';return;}
+    var latestDate=dates[0];
+    var latestRecs=dateMap[latestDate];
+    var hits=0;
+    for(var i=0;i<latestRecs.length;i++){if(latestRecs[i].hit)hits++}
+    var rate=Math.round(hits/latestRecs.length*100);
+    rateEl.textContent=rate+'% ('+hits+'/'+latestRecs.length+')';
+    banner.style.display='block';
+    return;
   }
-})();
+  var hits=0;
+  for(var i=0;i<yesterdayVerified.length;i++){if(yesterdayVerified[i].hit)hits++}
+  var rate=Math.round(hits/yesterdayVerified.length*100);
+  rateEl.textContent=rate+'% ('+hits+'/'+yesterdayVerified.length+')';
+  banner.style.display='block';
+}
 
 (function fpInitKey(){var savedKey=localStorage.getItem('fp_paid_key');if(savedKey){fpKeyState.key=savedKey;fpKeyState.remaining=parseInt(localStorage.getItem('fp_paid_remaining')||'0');fpKeyState.valid=fpKeyState.remaining>0;if(fpKeyState.valid)fpShowLoggedInUI();else{var input=document.getElementById('fp-key-input');if(input)input.value=savedKey}}if(typeof fpUpdateLockState==='function')setTimeout(function(){fpUpdateLockState()},1000);fpUpdateFreeCountHint()})();
 
