@@ -1660,7 +1660,7 @@ async function _loadSchedule(){
       if(sjData&&sjData.matches&&sjData.matches.length>0){
         var rawMatches=sjData.matches;
         // 竞彩/北单联赛代码（不含中超）
-        var _activeLeagues={"bra.1":1,"nor.1":1,"swe.1":1,"mls":1,"usa.1":1,"uefa.champions":1,"uefa.champions.qual":1,"uefa.europa":1,"fifa.world":1,"fin.1":1};
+        var _activeLeagues={"bra.1":1,"nor.1":1,"swe.1":1,"mls":1,"usa.1":1,"uefa.champions":1,"uefa.champions.qual":1,"uefa.europa":1,"fifa.world":1,"fin.1":1,"nor.2":1,"fin.2":1,"den.1":1,"den.2":1,"pol.1":1,"rou.1":1,"sui.1":1,"sui.2":1,"isl.1":1,"irl.1":1,"kor.2":1,"bra.2":1,"other":1,"eng.1":1,"esp.1":1,"ger.1":1,"ita.1":1,"fra.1":1,"ned.1":1,"bel.1":1,"por.1":1,"tur.1":1,"aut.1":1,"jpn.1":1,"kor.1":1,"arg.1":1};
         var allMatches=[];
         for(var i=0;i<rawMatches.length;i++){
           var m=rawMatches[i];
@@ -2741,7 +2741,8 @@ async function _doGenAIRec(){
   var yesterday=_dateKey(new Date(Date.now()-86400000));
   var displayRecs=recs.filter(function(r){
     if(!r.verified) return true;
-    return r.date===today||r.date===yesterday;
+    var recDate=r.date.substring(0,10).replace(/-/g,'');
+    return recDate===today||recDate===yesterday;
   });
   displayRecs.sort(function(a,b){
     var getTime=function(r){var m=(r.matchTime||"").match(/(\d{2}):(\d{2})/);return m?m[1]+m[2]:"0000"};
@@ -3233,7 +3234,8 @@ async function _verifyAIRecs(){
   for(var i=0;i<recs.length;i++){
     var rec=recs[i];
     if(rec.verified) continue;
-    if(rec.date>today) continue; 
+    var recDate=rec.date.substring(0,10).replace(/-/g,'');
+    if(recDate>today) continue; 
     
     try{
       var score=await _getScore(rec.home,rec.away,rec.leagueCode||_gl(rec.home),rec.date);
@@ -3266,7 +3268,8 @@ async function _verifyAIRecs(){
     var yesterday=_dateKey(new Date(Date.now()-86400000));
     var displayRecs=recs.filter(function(r){
       if(!r.verified) return true;
-      return r.date===today||r.date===yesterday;
+      var recDate=r.date.substring(0,10).replace(/-/g,'');
+      return recDate===today||recDate===yesterday;
     });
     displayRecs.sort(function(a,b){
       var getTime=function(r){var m=(r.matchTime||"").match(/(\d{2}):(\d{2})/);return m?m[1]+m[2]:"0000"};
@@ -3285,7 +3288,7 @@ async function _verifyAIRecs(){
 function _updateAccPanel(){
   var recs=JSON.parse(localStorage.getItem(_AI_KEY)||"[]");
   // 竞彩/北单联赛代码（不含中超）
-  var _activeLeagues={"bra.1":1,"nor.1":1,"swe.1":1,"mls":1,"usa.1":1,"uefa.champions":1,"uefa.champions.qual":1,"uefa.europa":1,"fifa.world":1,"fin.1":1};
+  var _activeLeagues={"bra.1":1,"nor.1":1,"swe.1":1,"mls":1,"usa.1":1,"uefa.champions":1,"uefa.champions.qual":1,"uefa.europa":1,"fifa.world":1,"fin.1":1,"nor.2":1,"fin.2":1,"den.1":1,"den.2":1,"pol.1":1,"rou.1":1,"sui.1":1,"sui.2":1,"isl.1":1,"irl.1":1,"kor.2":1,"bra.2":1,"other":1,"eng.1":1,"esp.1":1,"ger.1":1,"ita.1":1,"fra.1":1,"ned.1":1,"bel.1":1,"por.1":1,"tur.1":1,"aut.1":1,"jpn.1":1,"kor.1":1,"arg.1":1};
   
   var total=0;
   for(var i=0;i<recs.length;i++){if(!recs[i].skip&&_activeLeagues[recs[i].leagueCode])total++}
