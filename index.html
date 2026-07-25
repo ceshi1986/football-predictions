@@ -226,6 +226,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;b
 .ai-tag.single{background:#0f2818;color:#4ade80;border:1px solid #1a4a2a}
 .ai-tag.double{background:#0f1828;color:#60a5fa;border:1px solid #1a2a4a}
 .ai-tag.skip{background:#1a1a1a;color:#6b7280;border:1px solid #2a2a2a}
+.ai-tag.pending{background:#2a1f0a;color:#f59e0b;border:1px solid #4a3a1a}
 .ai-card-body{flex:1;min-width:0}
 .ai-card-teams{font-size:14px;font-weight:700;color:#e0e0e0;line-height:1.5;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .ai-card-teams .vs{color:#6b7280;font-weight:400;margin:0 4px}
@@ -236,10 +237,14 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;b
 .ai-card-pred.single-pred{color:#4ade80}
 .ai-card-pred.double-pred{color:#60a5fa}
 .ai-card-pred.skip-pred{color:#6b7280}
+.ai-card-pred.pending-pred{color:#f59e0b;font-style:italic}
 .ai-card-reason{font-size:11px;color:#6b7280;margin-top:3px;line-height:1.4}
 .ai-card-conf{font-size:10px;color:#f59e0b;margin-top:2px}
 .ai-card-arrow{color:#2a2f45;font-size:16px;flex-shrink:0;align-self:center}
 .ai-card-skip{opacity:0.7}
+.ai-card.no-kelly{border-color:rgba(245,158,11,0.4)}
+.ai-no-kelly-warn{background:rgba(245,158,11,0.15);color:#f59e0b;font-size:12px;font-weight:700;margin-top:4px;padding:4px 8px;border-radius:6px;line-height:1.4}
+.upcoming-no-kelly{color:#f59e0b;font-size:10px;font-weight:600;margin-left:4px}
 .ai-skip-tag{color:#ef4444;font-size:11px;font-weight:600;margin-left:4px}
 .ai-kelly-tag{display:inline-block;background:#8b5cf6;color:#fff;font-size:10px;font-weight:700;padding:1px 6px;border-radius:4px;margin-left:4px;vertical-align:middle}
 .ai-bo-tag{display:inline-block;background:#f59e0b;color:#fff;font-size:10px;font-weight:700;padding:1px 6px;border-radius:4px;margin-left:4px;vertical-align:middle;animation:boPulse 1.5s ease-in-out infinite}
@@ -285,6 +290,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;b
 .upcoming-pick{font-size:14px;font-weight:700}
 .upcoming-pick.single{color:#4ade80}
 .upcoming-pick.double{color:#60a5fa}
+.upcoming-pick.pending{color:#f59e0b;font-style:italic}
 .upcoming-info{font-size:11px;color:#6b7280}
 .upcoming-skip{font-size:11px;color:#ef4444;margin-left:6px}
 .upcoming-league{font-size:10px;color:#555;background:#1a1a2e;padding:1px 6px;border-radius:3px}
@@ -2812,11 +2818,12 @@ function _renderUpcoming(){
     h+='<div class="upcoming-pred">';
     
     if(rec){
-      var predClass=rec.type==="single"?"single":"double";
-      var predText=rec.type==="single"?rec.prediction:rec.prediction+"（双选）";
-      var skipTag=rec.skip?'<span class="upcoming-skip">（不建议投注）</span>':'';
-      h+='<span class="upcoming-pick '+predClass+'">🎯 '+predText+skipTag+'</span>';
-      h+='<span class="upcoming-info">置信度'+rec.confidence+'%</span>';
+      var predClass=rec.type==="pending"?"pending":rec.type==="single"?"single":"double";
+      var predText=rec.type==="pending"?"等待实时数据":rec.type==="single"?rec.prediction:rec.prediction+"（双选）";
+      var skipTag=rec.skip&&!rec.noKellyData?'<span class="upcoming-skip">（不建议投注）</span>':'';
+      var noKellyTag=rec.noKellyData?'<span class="upcoming-no-kelly">⚠️无实时数据</span>':'';
+      h+='<span class="upcoming-pick '+predClass+'">🎯 '+predText+skipTag+noKellyTag+'</span>';
+      if(rec.type!=="pending"){h+='<span class="upcoming-info">置信度'+rec.confidence+'%</span>';}
     }else{
       h+='<span class="upcoming-pick" style="color:#6b7280">预测生成中...</span>';
     }
@@ -3172,11 +3179,11 @@ function _renderAIRec(recs){
 
 function _renderAICard(rec){
   
-  var tagClass=rec.type;
-  var tagText=rec.type==="single"?"✅单选":"🛡️双选";
-  var predClass=rec.type==="single"?"single-pred":"double-pred";
+  var tagClass=rec.type==="pending"?"pending":rec.type;
+  var tagText=rec.type==="pending"?"⏳等待数据":rec.type==="single"?"✅单选":"🛡️双选";
+  var predClass=rec.type==="pending"?"pending-pred":rec.type==="single"?"single-pred":"double-pred";
   
-  var predText=rec.type==="single"?rec.prediction:rec.prediction+"（双选）";
+  var predText=rec.type==="pending"?"等待实时数据":rec.type==="single"?rec.prediction:rec.prediction+"（双选）";
   var boTag=rec.boSingle?'<span class="ai-bo-tag">可博'+rec.boSingle+'</span>':'';
   var noDrawTag=rec.noDraw?'<span class="ai-bo-tag" style="background:linear-gradient(135deg,#ef4444,#dc2626);color:#fff">🔥非平</span>':'';
   
@@ -3191,7 +3198,7 @@ function _renderAICard(rec){
     resultBadge='<div class="ai-card-result"><div class="result-score">'+rec.homeScore+' - '+rec.awayScore+'</div><div class="result-label '+hitClass+'">'+actualLabel+' '+hitText+'</div></div>';
   }
   
-  var h='<div class="ai-card'+(rec.skip?' ai-card-skip':'')+verifiedClass+'" onclick="_pickMatch(\''+_esc(rec.home)+'\',\''+_esc(rec.away)+'\',\''+rec.date+'\')">';
+  var h='<div class="ai-card'+(rec.skip?' ai-card-skip':'')+(rec.noKellyData?' no-kelly':'')+verifiedClass+'" onclick="_pickMatch(\''+_esc(rec.home)+'\',\''+_esc(rec.away)+'\',\''+rec.date+'\')">';
   h+='<div class="ai-tag '+tagClass+'">'+tagText+'</div>';
   h+='<div class="ai-card-body"><div class="ai-card-body-inner"><div class="ai-card-body-text">';
   h+='<div class="ai-card-teams">'+_esc(rec.home)+'<span class="vs">对阵</span>'+_esc(rec.away)+'</div>';
@@ -3201,6 +3208,7 @@ function _renderAICard(rec){
   h+='</div>';
   h+='<div class="ai-card-pred '+predClass+'">'+predText+boTag+noDrawTag+skipTag+'</div>';
   h+='<div class="ai-card-reason">'+rec.reason+(rec.skip?' · '+rec.skipReason:'')+'</div>';
+  if(rec.noKellyData){h+='<div class="ai-no-kelly-warn">⚠️ 该场比赛预测未获得实时数据，谨慎参考</div>';}
   h+='<div class="ai-card-conf">置信度 '+rec.confidence+'%'+(rec.kellyLabel&&!rec.boSingle?'<span class="ai-kelly-tag">凯利:'+rec.kellyLabel+'</span>':'')+'</div>';
   h+='</div>'+resultBadge+'</div></div>';
   h+='<span class="ai-card-arrow">›</span>';

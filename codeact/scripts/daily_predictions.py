@@ -2739,6 +2739,16 @@ async def main():
         # 构建 schedule 英文名映射，用于匹配 The Odds API 队名
         schedule_en_map_for_odds = _build_schedule_en_map(all_matches)
 
+        # ===== 6.5.3 加载北单赔率数据（第4级fallback） =====
+        print("[INFO] 加载北单赔率数据...")
+        beidan_odds = _load_beidan_odds()
+        if beidan_odds:
+            _beidan_upcoming = [m for m in beidan_odds if m.get('status') == 'upcoming']
+            print(f"[OK] 北单赔率: {len(beidan_odds)} 场比赛 ({len(_beidan_upcoming)} 场未开赛)")
+            # 按联赛统计
+            _beidan_leagues = set(m.get('league', '') for m in beidan_odds)
+            print(f"[BEIDAN] 覆盖联赛: {', '.join(sorted(_beidan_leagues))}")
+
         # ===== 6.6 获取竞彩网赔率（备选数据源 fallback） =====
         print("[INFO] 获取竞彩网赔率（备选数据源）...")
         sporttery_odds = await _fetch_sporttery_odds(sdk)
@@ -2921,14 +2931,78 @@ async def main():
                     m["odds"] = odds_data
                     print(f"[FALLBACK] {_home} vs {_away}: 竞彩网赔率 {sporttery_match['w']:.2f}/{sporttery_match['d']:.2f}/{sporttery_match['l']:.2f}")
 
-            # 生成新预测
+            # ===== 北单赔率 fallback（第4级） =====
+            # 当 Odds API / 500com / zgzcw / 竞彩网 均无数据时，
+            # 从北单投注页面获取欧赔作为最后备选
+            # 北单覆盖竞彩以外的联赛（罗甲、波兰甲、丹麦甲/超、瑞士超/挑、
+            # 爱甲/爱超、冰岛超、芬甲/超、智利甲、墨西超、巴西甲/乙、阿甲、捷甲等）
+            if not m.get("odds") and not kelly_data and beidan_odds:
+                beidan_match = _match_beidan_odds(_home, _away, beidan_odds)
+                if beidan_match:
+                    odds_data = {
+                        "source": "北单",
+                        "w": beidan_match["w"],
+                        "d": beidan_match["d"],
+                        "l": beidan_match["l"],
+                    }
+                    m["odds"] = odds_data
+                    print(f"[FALLBACK-BEIDAN] {_home} vs {_away}: 北单欧赔 {beidan_match['w']:.2f}/{beidan_match['d']:.2f}/{beidan_match['l']:.2f}")
+
+            # ===== 实时数据铁律：Kelly数据缺失检查 =====
+            _no_kelly = kelly_data is None
+            if _no_kelly:
+                if existing and not existing.get("verified") and not existing.get("noKellyData"):
+                    # 情况A：已有旧预测且无实时Kelly数据 → 沿用上次预测
+                    keep_count += 1
+                    print(f"[KEEP-PREV] {_home} vs {_away}: 无实时Kelly数据，沿用上次预测")
+                    continue
+                elif existing and existing.get("noKellyData"):
+                    # 情况A2：已有占位记录，仍拉不到 → 保持占位不变，持续重试
+                    keep_count += 1
+                    print(f"[KEEP-PENDING] {_home} vs {_away}: 仍无Kelly数据，保持等待")
+                    continue
+                else:
+                    # 情况B：首次无Kelly数据 → 创建占位记录，不生成预测
+                    print(f"[NO-KELLY] {_home} vs {_away}: 无Kelly数据，创建占位等待")
+                    _placeholder = {
+                        "matchId": match_id,
+                        "home": _home,
+                        "away": _away,
+                        "league": m.get("leagueShort", m.get("leagueName", "")),
+                        "leagueCode": m.get("league", ""),
+                        "date": date_iso,
+                        "matchTime": format_match_time(m),
+                        "prediction": "",
+                        "type": "pending",
+                        "confidence": 0,
+                        "skip": True,
+                        "skipReason": "该场比赛预测未获得实时数据，谨慎参考",
+                        "reason": "等待实时Kelly数据",
+                        "doublePick": [],
+                        "stars": 0,
+                        "hasOdds": False,
+                        "spread": 0,
+                        "handicapDir": None,
+                        "noKellyData": True,
+                        "verified": False,
+                        "actualResult": None,
+                        "hit": None,
+                    }
+                    if m.get("odds"):
+                        _placeholder["odds"] = m["odds"]
+                        _placeholder["odds_source"] = m["odds"].get("source", "unknown")
+                    new_count += 1
+                    pred_map[match_id] = _placeholder
+                    continue
+
+            # 生成新预测（有Kelly数据时才执行）
             pred = predict_match(m, teams, kelly_data=kelly_data)
 
             # 构建预测记录
             record = {
                 "matchId": match_id,
-                "home": m.get("home", ""),
-                "away": m.get("away", ""),
+                "home": _home,
+                "away": _away,
                 "league": m.get("leagueShort", m.get("leagueName", "")),
                 "leagueCode": m.get("league", ""),
                 "date": date_iso,
@@ -2951,13 +3025,14 @@ async def main():
                 "kellyDispersion": pred.get("kellyDispersion"),
                 "keBo": pred.get("keBo"),
                 "keBoType": pred.get("keBoType"),
+                "noKellyData": False,
                 "verified": False,
                 "actualResult": None,
                 "hit": None,
             }
 
             if existing and not existing.get("verified"):
-                # 更新未验证的预测
+                # 更新未验证的预测（可能从占位升级为正式预测）
                 update_count += 1
                 pred_map[match_id] = record
             else:
@@ -3208,3 +3283,202 @@ async def main():
 
 asyncio.run(main())
 
+
+
+def _load_beidan_odds() -> list:
+    """加载北单赔率数据（由scrape_beidan_odds.py生成）
+    
+    北单赔率覆盖竞彩以外的联赛（韩K2联、罗甲、波兰甲、丹麦甲/超、
+    瑞士超/挑、爱甲/爱超、冰岛超、芬甲/超、智利甲、墨西超、
+    巴西甲/乙、阿甲、捷甲等），作为第4级fallback数据源。
+    
+    Returns:
+        list of dict: [{beidan_id, league, home, away, odds:{w,d,l}, ...}]
+    """
+    today = datetime.now().strftime("%Y%m%d")
+    tomorrow = (datetime.now() + timedelta(days=1)).strftime("%Y%m%d")
+    yesterday = (datetime.now() - timedelta(days=1)).strftime("%Y%m%d")
+    script_dir = os.path.dirname(os.path.abspath(__file__))
+    base_dir = os.path.dirname(script_dir)  # football-predictions/
+
+    all_matches = []
+    for date_str in [yesterday, today, tomorrow]:
+        path = os.path.join(base_dir, "data", "500com_daily", date_str, "beidan_odds.json")
+        if os.path.exists(path):
+            try:
+                with open(path, "r", encoding="utf-8") as f:
+                    data = json.load(f)
+                matches = data.get("matches", [])
+                if isinstance(matches, list):
+                    all_matches.extend(matches)
+                    print(f"[BEIDAN] 加载{date_str}北单赔率: {len(matches)}场比赛")
+            except Exception as e:
+                print(f"[BEIDAN] 加载{date_str}数据异常: {e}")
+
+    if all_matches:
+        # 去重：同一场比赛可能出现在多个日期文件中
+        seen = set()
+        unique = []
+        for m in all_matches:
+            key = (m.get("home", ""), m.get("away", ""), m.get("match_time", ""))
+            if key not in seen:
+                seen.add(key)
+                unique.append(m)
+        if len(unique) < len(all_matches):
+            print(f"[BEIDAN] 去重: {len(all_matches)} → {len(unique)} 场")
+        return unique
+    print("[BEIDAN] 未找到北单赔率数据")
+    return []
+
+
+def _match_beidan_odds(home_cn: str, away_cn: str, beidan_matches: list) -> dict:
+    """在北单赔率数据中查找匹配的比赛赔率
+    
+    匹配策略：
+    1. 精确匹配（去除空格后完全相同）
+    2. 包含匹配（一方包含另一方，处理简称/全称差异）
+    
+    Args:
+        home_cn: 主队中文名
+        away_cn: 客队中文名
+        beidan_matches: 北单比赛列表
+        
+    Returns:
+        dict {"w": float, "d": float, "l": float} or None
+    """
+    if not beidan_matches or not home_cn or not away_cn:
+        return None
+
+    # 北单队名别名映射（北单简称 → schedule标准名）
+    # 仅包含名称差异显著的映射，同名映射无需列出
+    # 模糊匹配会自动处理子串包含关系（如"比尔森"⊂"比尔森胜利"）
+    _BEIDAN_ALIAS = {
+        # === 简称/缩写 → 全称 ===
+        "萨斯菲": "萨斯菲尔德",
+        "竞技": "竞技俱乐部",
+        "飓风": "飓风队",
+        "普拉腾斯": "普拉滕斯",
+        "图库曼": "图库曼竞技",
+        "意大利人": "奥达斯",
+        "墨美洲": "美洲队",
+        "全北现代": "全北",
+        # === 音译差异 ===
+        "费特斯塔": "腓特烈斯塔",
+        "塞纳乔琪": "塞那乔其",
+        "KS莫摩斯": "莫玛斯",
+        "AB格莱萨": "格莱萨克",
+        "奥尔格里": "奥雷布洛",
+        "希勒勒": "赫勒鲁普",
+        "瑞普斯威尔": "拉波斯维尔",
+        "奥特鲁加": "阿斯特拉",
+        "佩特罗鲁": "彼得罗鲁",
+        "华沙军团": "历基亚",
+        "费恩哈普": "芬哈普斯",
+        "圣帕特里": "圣帕特里克",
+        "韦尔": "瓦杜兹",
+        "伊韦尔东": "伊东",
+        "亚布洛": "亚布洛内茨",
+        "维德祖罗兹": "鲁奇",
+        "霍森斯": "贺森斯",
+        "KF奥斯陆": "奥德KFUM",
+        "桑纳菲": "桑德菲杰",
+        "萨普斯堡": "萨普斯堡08",
+        "贝雷达比": "贝雷达比历克",
+        "博托沙尼": "波图森尼",
+        "KA阿古雷": "阿古雷利",
+        "戈亚尼亚": "戈亚尼亚竞技",
+        "拉卡莱拉联": "拉卡莱拉",
+        "康塞普森": "大学康塞普森",
+        "纽夫莱": "纽布莱斯",
+        "圣贝纳多": "圣本托",
+        "克里丘马": "克里西乌马",
+        "帕梅拉斯": "帕尔梅拉斯",
+        "拉普大学": "拉普拉塔大学",
+        "里奥夸托": "里奥夸尔托",
+        "盖斯": "加尔斯",
+        "布鲁马波": "布洛马波卡纳",
+        "什切青": "波尔什切青",
+        "比亚韦": "比亚韦斯托克",
+        "扎布矿工": "扎布热矿工",
+        "琴斯托霍": "琴斯托霍瓦",
+        "弗雷西亚": "弗雷德里西亚",
+        "克里斯蒂": "克里斯蒂安松",
+        "斯特罗姆": "斯特罗姆加斯特",
+        "国际图尔": "国际图尔库",
+        "布迪纳摩": "布加勒斯特迪纳摩",
+        "圣格塞普西": "圣格奥尔基",
+        "沃伦塔利": "沃伦塔利",
+        "科布漫步": "科克城",
+        "戈尔韦联": "戈尔韦",
+        "摩顿": "格里诺克",
+        "斯坦豪斯": "斯莱戈",
+        "斯特勒门": "斯托罗门",
+        "松达尔": "桑德菲杰",
+        "桑德尼斯": "桑德纳",
+        "奥萨尼": "奥桑内",
+    }
+
+    def _alias(name: str) -> str:
+        return _BEIDAN_ALIAS.get(name, name)
+
+    # 精确匹配
+    for bm in beidan_matches:
+        b_home = bm.get("home", "")
+        b_away = bm.get("away", "")
+        odds = bm.get("odds")
+        if not odds or not odds.get("w") or not odds.get("d") or not odds.get("l"):
+            continue
+
+        # 正序匹配（含别名）
+        if (_alias(b_home) == home_cn or b_home == home_cn) and \
+           (_alias(b_away) == away_cn or b_away == away_cn):
+            return odds
+
+        # 倒序匹配
+        if (_alias(b_home) == away_cn or b_home == away_cn) and \
+           (_alias(b_away) == home_cn or b_away == home_cn):
+            return odds
+
+    # 模糊匹配（子串包含）
+    best_match = None
+    best_score = 0
+    for bm in beidan_matches:
+        b_home = bm.get("home", "")
+        b_away = bm.get("away", "")
+        odds = bm.get("odds")
+        if not odds or not odds.get("w") or not odds.get("d") or not odds.get("l"):
+            continue
+
+        # 计算名称相似度
+        def _sim(a: str, b: str) -> float:
+            if not a or not b:
+                return 0.0
+            a2, b2 = _alias(a), _alias(b)
+            if a2 == b2 or a == b:
+                return 1.0
+            if a in b2 or b2 in a or a2 in b or b in a2:
+                return 0.7
+            # 字符集重合度
+            common = len(set(a) & set(b))
+            total = len(set(a) | set(b))
+            return common / total if total > 0 else 0.0
+
+        # 正序
+        h_sim = _sim(b_home, home_cn)
+        a_sim = _sim(b_away, away_cn)
+        score_fwd = (h_sim + a_sim) / 2
+        # 倒序
+        h_sim_r = _sim(b_home, away_cn)
+        a_sim_r = _sim(b_away, home_cn)
+        score_rev = (h_sim_r + a_sim_r) / 2
+        score = max(score_fwd, score_rev)
+
+        if score > best_score:
+            best_score = score
+            best_match = odds
+
+    # 阈值：0.6
+    if best_score >= 0.6 and best_match:
+        return best_match
+
+    return None
