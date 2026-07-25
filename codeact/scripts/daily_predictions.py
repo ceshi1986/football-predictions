@@ -3050,16 +3050,13 @@ async def main():
         allowed_display_dates = {yesterday_str, today_str, tomorrow_str}
         final_predictions = []
 
-        # 先添加已验证的（按日期排序），只保留3天内
+        # 已验证记录永久保留（不按日期过滤），确保历史战绩可追溯
         verified_preds = [p for p in existing_predictions if p.get("verified")]
-        verified_before_filter = len(verified_preds)
-        verified_preds = [p for p in verified_preds if (_d:=p.get("date", ""), _d[:10].replace("-","") if "-" in _d else _d[:8])[1] in allowed_display_dates]
-        filtered_old_verified = verified_before_filter - len(verified_preds)
         verified_preds.sort(key=lambda x: x.get("date", ""))
         final_predictions.extend(verified_preds)
-        print(f"[DEBUG] 已验证旧预测: {len(verified_preds)} 条（清理{filtered_old_verified}条过期）")
+        print(f"[DEBUG] 已验证旧预测: {len(verified_preds)} 条（永久保留）")
 
-        # 再添加未验证的（新的和更新的），只保留3天内
+        # 未验证记录保留3天窗口（昨天/今天/明天）
         unverified_preds = [p for mid, p in pred_map.items() if not p.get("verified")]
         unverified_before_filter = len(unverified_preds)
         unverified_preds = [p for p in unverified_preds if (_d:=p.get("date", ""), _d[:10].replace("-","") if "-" in _d else _d[:8])[1] in allowed_display_dates]
