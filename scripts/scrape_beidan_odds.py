@@ -22,6 +22,7 @@
 
 import argparse
 import json
+import shutil
 import os
 import re
 import sys
@@ -34,6 +35,24 @@ from bs4 import BeautifulSoup
 # === 配置 ===
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 OUTPUT_DIR = os.path.join(BASE_DIR, "data", "500com_daily")
+
+# ===== 数据资产归档 =====
+def save_snapshot(src_path, date_str):
+    """保存带时间戳的快照副本到 archive 目录，确保每次抓取的原始数据永久保留"""
+    try:
+        archive_dir = os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))),
+                                   'data', 'archive')
+        os.makedirs(archive_dir, exist_ok=True)
+        ts = datetime.now().strftime('%H%M%S')
+        basename = os.path.splitext(os.path.basename(src_path))[0]
+        snapshot_name = f"{basename}_{date_str}_{ts}.json"
+        snapshot_path = os.path.join(archive_dir, snapshot_name)
+        shutil.copy2(src_path, snapshot_path)
+        print(f"  📦 快照归档: {snapshot_name}")
+    except Exception as e:
+        print(f"  ⚠️ 快照归档失败(不影响主流程): {e}")
+
+
 BEIDAN_URL = "https://cp.zgzcw.com/lottery/bdplayvsforJsp.action?lotteryId=250"
 
 HEADERS = {
@@ -415,6 +434,7 @@ def run():
         json.dump(output, f, ensure_ascii=False, indent=2)
 
     print(f"\n✅ 已保存 {len(matches)} 场北单赔率 → {out_path}")
+    save_snapshot(out_path, date_str)
 
     # Step 5: 示例输出
     if args.verbose and matches:

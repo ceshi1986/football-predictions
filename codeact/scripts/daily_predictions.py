@@ -3157,6 +3157,19 @@ async def main():
             f.write(output_json)
         print(f"[OK] 本地备份: {local_path}")
 
+        # ===== 10.5 数据资产归档 =====
+        try:
+            import shutil as _shutil
+            _archive_dir = os.path.join(base_dir, "data", "archive")
+            os.makedirs(_archive_dir, exist_ok=True)
+            from datetime import datetime as _dt
+            _ts = _dt.now().strftime('%Y%m%d_%H%M%S')
+            _snapshot_path = os.path.join(_archive_dir, f"ai-predictions_{_ts}.json")
+            _shutil.copy2(local_path, _snapshot_path)
+            print(f"  📦 快照归档: ai-predictions_{_ts}.json")
+        except Exception as _e:
+            print(f"  ⚠️ 快照归档失败(不影响主流程): {_e}")
+
         # ===== 11. 生成今日预测摘要 =====
         today_preds = [p for p in final_predictions if p.get("date") == today_str and not p.get("verified")]
 

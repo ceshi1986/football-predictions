@@ -18,6 +18,7 @@ zgzcw.com (中国足彩网) 竞彩+北单 凯利指数抓取脚本 v2.1
 """
 import asyncio
 import json
+import shutil
 import os
 import re
 import sys
@@ -30,6 +31,24 @@ from bs4 import BeautifulSoup
 # === 配置 ===
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 OUTPUT_DIR = os.path.join(BASE_DIR, "data", "500com_daily")
+
+# ===== 数据资产归档 =====
+def save_snapshot(src_path, date_str):
+    """保存带时间戳的快照副本到 archive 目录，确保每次抓取的原始数据永久保留"""
+    try:
+        archive_dir = os.path.join(os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__)))),
+                                   'data', 'archive')
+        os.makedirs(archive_dir, exist_ok=True)
+        ts = datetime.now().strftime('%H%M%S')
+        basename = os.path.splitext(os.path.basename(src_path))[0]
+        snapshot_name = f"{basename}_{date_str}_{ts}.json"
+        snapshot_path = os.path.join(archive_dir, snapshot_name)
+        shutil.copy2(src_path, snapshot_path)
+        print(f"  📦 快照归档: {snapshot_name}")
+    except Exception as e:
+        print(f"  ⚠️ 快照归档失败(不影响主流程): {e}")
+
+
 HEADERS = {
     'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 '
                   '(KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
@@ -1163,6 +1182,7 @@ async def run():
         json.dump(output, f, ensure_ascii=False, indent=2)
 
     print(f"  ✅ {len(results)}场新数据 + {kept_count}场旧数据 = {len(merged_results)}场 → {out_path}")
+    save_snapshot(out_path, today)
 
     # 统计
     total_companies = sum(len(m['companies']) for m in results.values())

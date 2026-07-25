@@ -8,6 +8,23 @@ from bs4 import BeautifulSoup
 from datetime import datetime
 
 OUTPUT_DIR = "/app/data/所有对话/主对话/fp-repo/data/500com_daily"
+
+# ===== 数据资产归档 =====
+def save_snapshot(src_path, date_str=None):
+    """保存带时间戳的快照副本到 archive 目录"""
+    try:
+        archive_dir = os.path.join(os.path.dirname(OUTPUT_DIR), 'archive')
+        os.makedirs(archive_dir, exist_ok=True)
+        ts = datetime.now().strftime('%Y%m%d_%H%M%S')
+        basename = os.path.splitext(os.path.basename(src_path))[0]
+        snapshot_name = f"{basename}_{ts}.json"
+        snapshot_path = os.path.join(archive_dir, snapshot_name)
+        shutil.copy2(src_path, snapshot_path)
+        print(f"  📦 快照归档: {snapshot_name}")
+    except Exception as e:
+        print(f"  ⚠️ 快照归档失败(不影响主流程): {e}")
+
+
 HEADERS = {
     'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
     'Accept-Language': 'zh-CN,zh;q=0.9,en;q=0.8',
@@ -240,6 +257,7 @@ def scrape_all(extra_ids=None):
     print(f"\n[3/4] 保存数据...")
     with open(out, 'w', encoding='utf-8') as f:
         json.dump(result, f, ensure_ascii=False, indent=2)
+    save_snapshot(out, today)
     print(f"  ✅ {len(matches)}场 {tc}条公司数据 → {out}")
     
     print(f"\n[4/4] 提取赔率生成 odds_api_odds.json...")
