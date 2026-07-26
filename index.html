@@ -2322,14 +2322,11 @@ function _submitFB(){
   
   document.getElementById("fb-msg").innerHTML='<span style="color:#6b7280">提交中...</span>';
   
-  if(_GH_TOKEN&&_fbImages.length>0){
+  if(_fbImages.length>0){
     Promise.all(_fbImages.slice(0,3).map(function(f){
-      return _compressImg(f,800,800,0.7).then(function(dataUrl){
-        var fname=feedback.id+"_"+Math.random().toString(36).slice(2,5)+".jpg";
-        return _uploadFBImgToGitHub(dataUrl,fname);
-      });
-    })).then(function(urls){
-      feedback.images=urls;
+      return _compressImg(f,400,400,0.5);
+    })).then(function(dataUrls){
+      feedback.images=dataUrls;
       _saveFB(feedback);
     }).catch(function(){
       _saveFB(feedback);
