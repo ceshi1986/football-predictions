@@ -1,5 +1,5 @@
 {
-  "lastUpdated": "2026-07-26T05:29:20.746Z",
+  "lastUpdated": "2026-07-26T05:42:31.091Z",
   "predictions": [
     {
       "prediction": "负+胜",
@@ -388,13 +388,13 @@
       "skip": false,
       "skipReason": "",
       "confidence": 45,
-      "reason": "方向不够明确，双选覆盖 · 竞彩网赔率",
+      "reason": "凯利信号推荐胜(45%)，双选覆盖 · 竞彩网赔率",
       "doublePick": [
         "胜",
         "平"
       ],
-      "kellyLabel": "场景一-两家不看好客胜(主胜/平局仍有分歧)",
-      "boSingle": null,
+      "kellyLabel": "共同看好主胜/平局，主选主胜，防平局",
+      "boSingle": "胜",
       "noDraw": false,
       "matchId": "aac0e58c4",
       "home": "首尔FC",
@@ -508,18 +508,15 @@
       "hit": null
     },
     {
-      "prediction": "负+平",
-      "type": "double",
+      "prediction": "负",
+      "type": "single",
       "skip": false,
       "skipReason": "",
-      "confidence": 57,
-      "reason": "凯利信号推荐负(57%)，双选覆盖 · 竞彩网赔率",
-      "doublePick": [
-        "负",
-        "平"
-      ],
-      "kellyLabel": "共同看好平局/客胜，主选客胜，防平局",
-      "boSingle": "负",
+      "confidence": 67,
+      "reason": "赔率看好客队(67%) · 竞彩网赔率",
+      "doublePick": null,
+      "kellyLabel": "共同看好客胜，主选客胜",
+      "boSingle": null,
       "noDraw": false,
       "matchId": "e8ee7e75e",
       "home": "布鲁马波",
@@ -657,16 +654,16 @@
     {
       "prediction": "胜+平",
       "type": "double",
-      "skip": true,
-      "skipReason": "结果太不确定，各方向概率接近",
-      "confidence": 45,
-      "reason": "方向不够明确，双选覆盖 · 竞彩网赔率",
+      "skip": false,
+      "skipReason": "",
+      "confidence": 51,
+      "reason": "凯利信号推荐胜(51%)，双选覆盖 · 竞彩网赔率",
       "doublePick": [
         "胜",
         "平"
       ],
-      "kellyLabel": "共同看好客胜，主选主胜，防客胜",
-      "boSingle": null,
+      "kellyLabel": "共同看好主胜/平局，主选主胜，防平局",
+      "boSingle": "胜",
       "noDraw": false,
       "matchId": "15b12fa36",
       "home": "赫尔辛基",
@@ -705,18 +702,18 @@
       "hit": null
     },
     {
-      "prediction": "胜+负",
+      "prediction": "胜+平",
       "type": "double",
-      "skip": false,
-      "skipReason": "",
-      "confidence": 54,
-      "reason": "凯利信号推荐胜(54%)，双选覆盖 · 竞彩网赔率",
+      "skip": true,
+      "skipReason": "结果太不确定，各方向概率接近",
+      "confidence": 39,
+      "reason": "方向不够明确，双选覆盖 · 竞彩网赔率",
       "doublePick": [
         "胜",
-        "负"
+        "平"
       ],
-      "kellyLabel": "共同看好主胜，主选主胜",
-      "boSingle": "胜",
+      "kellyLabel": "共同看好平局，主选主胜，防平局",
+      "boSingle": null,
       "noDraw": false,
       "matchId": "7214592ff",
       "home": "马尔默",
@@ -834,14 +831,14 @@
       "type": "double",
       "skip": false,
       "skipReason": "",
-      "confidence": 51,
-      "reason": "方向偏负(51%)，双选防冷 · 竞彩网赔率",
+      "confidence": 57,
+      "reason": "凯利信号推荐负(57%)，双选覆盖 · 竞彩网赔率",
       "doublePick": [
         "负",
         "平"
       ],
-      "kellyLabel": "共同看好平局，主选客胜，防平局",
-      "boSingle": null,
+      "kellyLabel": "共同看好平局/客胜，主选客胜，防平局",
+      "boSingle": "负",
       "noDraw": false,
       "matchId": "d85fc57dc",
       "home": "奥勒松",
