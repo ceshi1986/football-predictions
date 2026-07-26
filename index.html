@@ -619,6 +619,15 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;b
 <div id="fb-list-section" style="background:#151a2e;border-radius:14px;padding:16px;margin-bottom:14px;display:none">
 <h3 style="font-size:14px;color:#6b7280;margin-bottom:12px">📋 用户反馈</h3>
 <div id="fb-list" style="display:flex;flex-direction:column;gap:10px"></div>
+<div id="fb-admin-bar" style="margin-top:10px;text-align:right;display:none">
+<div id="fb-admin-login" style="display:none;margin-top:8px">
+<input id="fb-admin-pwd" type="password" placeholder="管理员密码" style="padding:6px 10px;border:1px solid #2a2f45;border-radius:6px;background:#0d1117;color:#e0e0e0;font-size:12px;width:140px;outline:none">
+<button onclick="_checkAdminPwd()" style="padding:6px 12px;border:none;border-radius:6px;background:#4f8cff;color:#fff;font-size:12px;cursor:pointer;margin-left:4px">登录</button>
+<span id="fb-admin-err" style="font-size:11px;color:#ef4444;margin-left:6px"></span>
+</div>
+<span id="fb-admin-toggle" style="font-size:11px;color:#4f8cff;cursor:pointer;opacity:.5" onclick="document.getElementById('fb-admin-login').style.display='inline-flex';document.getElementById('fb-admin-pwd').focus()" onmouseover="this.style.opacity=1" onmouseout="this.style.opacity=.5">⚙ 管理</span>
+<span id="fb-admin-status" style="font-size:11px;color:#4ade80;display:none;margin-left:8px">✓ 管理员 <span style="cursor:pointer;color:#ef4444;margin-left:4px" onclick="_adminLogout()">退出</span></span>
+</div>
 </div>
 
 
@@ -2401,12 +2410,50 @@ function _loadFBList(){
   });
 }
 
+var _isAdmin=sessionStorage.getItem("fb_admin")==="1";
+var _ADMIN_HASH="d801f358fa267824309ece517e51654b2f03817cd860ca3da726c377960ca794";
+
+async function _checkAdminPwd(){
+  var pwd=document.getElementById("fb-admin-pwd").value;
+  if(!pwd)return;
+  var data=new TextEncoder().encode(pwd);
+  var buf=await crypto.subtle.digest("SHA-256",data);
+  var hash=Array.from(new Uint8Array(buf)).map(function(b){return b.toString(16).padStart(2,"0")}).join("");
+  if(hash===_ADMIN_HASH){
+    _isAdmin=true;
+    sessionStorage.setItem("fb_admin","1");
+    document.getElementById("fb-admin-err").textContent="";
+    document.getElementById("fb-admin-login").style.display="none";
+    document.getElementById("fb-admin-toggle").style.display="none";
+    document.getElementById("fb-admin-status").style.display="inline";
+    _loadFBList();
+  }else{
+    document.getElementById("fb-admin-err").textContent="密码错误";
+  }
+}
+
+function _adminLogout(){
+  _isAdmin=false;
+  sessionStorage.removeItem("fb_admin");
+  document.getElementById("fb-admin-status").style.display="none";
+  document.getElementById("fb-admin-toggle").style.display="inline";
+  document.getElementById("fb-admin-login").style.display="none";
+  _loadFBList();
+}
+
+function _initAdminUI(){
+  if(_isAdmin){
+    document.getElementById("fb-admin-toggle").style.display="none";
+    document.getElementById("fb-admin-status").style.display="inline";
+  }
+}
+
 function _renderFBList(list){
   var section=document.getElementById("fb-list-section");
   var container=document.getElementById("fb-list");
   if(!list||!list.length){section.style.display="none";return}
   section.style.display="block";
-  var isAdmin=!!_GH_TOKEN;
+  document.getElementById("fb-admin-bar").style.display="block";
   container.innerHTML="";
   list.forEach(function(fb){
     var card=document.createElement("div");
@@ -2420,13 +2467,14 @@ function _renderFBList(list){
       }).join("")+'</div>';
     }
     var contactLine=fb.contact?'<div style="font-size:11px;color:#6b7280;margin-top:4px">📬 '+fb.contact+'</div>':"";
-    var delBtn=isAdmin?'<span style="font-size:11px;color:#ef4444;cursor:pointer;opacity:.6" onclick="_deleteFB(\''+fb.id+'\')" onmouseover="this.style.opacity=1" onmouseout="this.style.opacity=.6">删除</span>':"";
+    var delBtn=_isAdmin&&fb.id?'<span style="font-size:11px;color:#ef4444;cursor:pointer;opacity:.6" onclick="_deleteFB(\''+fb.id+'\')" onmouseover="this.style.opacity=1" onmouseout="this.style.opacity=.6">删除</span>':"";
     card.innerHTML='<div style="display:flex;justify-content:space-between;align-items:center"><span style="font-size:11px;color:#6b7280">'+ts+'</span>'+delBtn+'</div><div style="color:#e0e0e0;font-size:13px;margin-top:6px;line-height:1.5;white-space:pre-wrap">'+fb.content.replace(/</g,"&lt;")+'</div>'+contactLine+imgs;
     container.appendChild(card);
   });
 }
 
 function _deleteFB(fbId){
+  if(!_GH_TOKEN){alert("需要先配置GitHub Token才能删除");return}
   if(!confirm("确定删除这条反馈？"))return;
   var url="https://api.github.com/repos/"+_GH_REPO+"/contents/"+_GH_FB_FILE;
   fetch(url,{headers:{"Authorization":"token "+_GH_TOKEN,"Accept":"application/vnd.github.v3+json"}})
@@ -2443,7 +2491,7 @@ function _deleteFB(fbId){
   .catch(function(e){alert("删除失败："+e.message)});
 }
 
-setTimeout(_loadFBList,1000);
+setTimeout(function(){_initAdminUI();_loadFBList()},1000);
 
 function _savePend(h,a,r,md,lid){var v=JSON.parse(localStorage.getItem(_xa)||"[]");
 
