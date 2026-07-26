@@ -605,8 +605,20 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;b
 <h3 style="font-size:14px;color:#6b7280;margin-bottom:12px">💬 意见反馈</h3>
 <textarea id="fb-content" placeholder="告诉我们你的想法：需要什么功能、遇到什么问题、改进建议..." style="width:100%;min-height:80px;padding:10px;border:1px solid #2a2f45;border-radius:8px;background:#0d1117;color:#e0e0e0;font-size:13px;resize:vertical;outline:none;font-family:inherit;margin-bottom:10px"></textarea>
 <input id="fb-contact" type="text" placeholder="联系方式（可选，微信/邮箱）" style="width:100%;padding:10px;border:1px solid #2a2f45;border-radius:8px;background:#0d1117;color:#e0e0e0;font-size:13px;margin-bottom:10px;outline:none">
+<div style="margin-bottom:10px">
+<label style="display:inline-flex;align-items:center;gap:6px;padding:8px 14px;border:1px dashed #2a2f45;border-radius:8px;background:#0d1117;color:#6b7280;font-size:13px;cursor:pointer;transition:border-color .2s" onmouseover="this.style.borderColor='#4f8cff'" onmouseout="this.style.borderColor='#2a2f45'">
+<span>📷</span><span id="fb-img-label">添加截图（可选，最多3张）</span>
+<input id="fb-images" type="file" accept="image/*" multiple style="display:none" onchange="_onFBImgSelect(this)">
+</label>
+<div id="fb-img-preview" style="display:flex;gap:8px;margin-top:8px;flex-wrap:wrap"></div>
+</div>
 <button class="bt bp" onclick="_submitFB()" style="font-size:13px;padding:10px">提交反馈</button>
 <div id="fb-msg" style="margin-top:8px;font-size:12px;text-align:center"></div>
+</div>
+
+<div id="fb-list-section" style="background:#151a2e;border-radius:14px;padding:16px;margin-bottom:14px;display:none">
+<h3 style="font-size:14px;color:#6b7280;margin-bottom:12px">📋 用户反馈</h3>
+<div id="fb-list" style="display:flex;flex-direction:column;gap:10px"></div>
 </div>
 
 
@@ -2198,6 +2210,89 @@ function _createGitHubFile(predictions,sha){
 
 
 var _GH_FB_FILE="feedback.json";
+var _fbImages=[];
+var _FB_RAW_BASE="https://raw.githubusercontent.com/"+_GH_REPO+"/main/feedback_images/";
+
+function _onFBImgSelect(input){
+  var files=Array.from(input.files).slice(0,3);
+  _fbImages=files;
+  var preview=document.getElementById("fb-img-preview");
+  var label=document.getElementById("fb-img-label");
+  preview.innerHTML="";
+  label.textContent=files.length?"已选"+files.length+"张":"添加截图（可选，最多3张）";
+  files.forEach(function(f,i){
+    var reader=new FileReader();
+    reader.onload=function(e){
+      var div=document.createElement("div");
+      div.style.cssText="position:relative;width:64px;height:64px;border-radius:8px;overflow:hidden;border:1px solid #2a2f45";
+      div.innerHTML='<img src="'+e.target.result+'" style="width:100%;height:100%;object-fit:cover"><span style="position:absolute;top:2px;right:2px;width:18px;height:18px;background:rgba(0,0,0,.7);border-radius:50%;display:flex;align-items:center;justify-content:center;cursor:pointer;font-size:11px;color:#fff" onclick="_removeFBImg('+i+')">×</span>';
+      preview.appendChild(div);
+    };
+    reader.readAsDataURL(f);
+  });
+}
+
+function _removeFBImg(idx){
+  _fbImages.splice(idx,1);
+  var input=document.getElementById("fb-images");
+  var dt=new DataTransfer();
+  _fbImages.forEach(function(f){dt.items.add(f)});
+  input.files=dt.files;
+  _onFBImgPreviewRefresh();
+}
+
+function _onFBImgPreviewRefresh(){
+  var preview=document.getElementById("fb-img-preview");
+  var label=document.getElementById("fb-img-label");
+  preview.innerHTML="";
+  label.textContent=_fbImages.length?"已选"+_fbImages.length+"张":"添加截图（可选，最多3张）";
+  _fbImages.forEach(function(f,i){
+    var reader=new FileReader();
+    reader.onload=function(e){
+      var div=document.createElement("div");
+      div.style.cssText="position:relative;width:64px;height:64px;border-radius:8px;overflow:hidden;border:1px solid #2a2f45";
+      div.innerHTML='<img src="'+e.target.result+'" style="width:100%;height:100%;object-fit:cover"><span style="position:absolute;top:2px;right:2px;width:18px;height:18px;background:rgba(0,0,0,.7);border-radius:50%;display:flex;align-items:center;justify-content:center;cursor:pointer;font-size:11px;color:#fff" onclick="_removeFBImg('+i+')">×</span>';
+      preview.appendChild(div);
+    };
+    reader.readAsDataURL(f);
+  });
+}
+
+function _compressImg(file,maxW,maxH,quality){
+  return new Promise(function(resolve){
+    var reader=new FileReader();
+    reader.onload=function(e){
+      var img=new Image();
+      img.onload=function(){
+        var w=img.width,h=img.height;
+        if(w>maxW){h=h*(maxW/w);w=maxW}
+        if(h>maxH){w=w*(maxH/h);h=maxH}
+        var canvas=document.createElement("canvas");
+        canvas.width=w;canvas.height=h;
+        var ctx=canvas.getContext("2d");
+        ctx.drawImage(img,0,0,w,h);
+        resolve(canvas.toDataURL("image/jpeg",quality));
+      };
+      img.src=e.target.result;
+    };
+    reader.readAsDataURL(file);
+  });
+}
+
+function _uploadFBImgToGitHub(dataUrl,filename){
+  var b64=dataUrl.split(",")[1];
+  var url="https://api.github.com/repos/"+_GH_REPO+"/contents/feedback_images/"+filename;
+  var body={message:"上传反馈截图",content:b64,branch:"main"};
+  return fetch(url,{
+    method:"PUT",
+    headers:{"Authorization":"token "+_GH_TOKEN,"Accept":"application/vnd.github.v3+json","Content-Type":"application/json"},
+    body:JSON.stringify(body)
+  }).then(function(r){
+    if(r.ok)return _FB_RAW_BASE+filename;
+    throw new Error("Image upload failed");
+  });
+}
+
 function _submitFB(){
   var content=document.getElementById("fb-content").value.trim();
   var contact=document.getElementById("fb-contact").value.trim();
@@ -2206,13 +2301,45 @@ function _submitFB(){
   
   var uid="u_"+btoa(navigator.userAgent+screen.width+screen.height).slice(0,12);
   var feedback={
+    id:"fb_"+Date.now()+"_"+Math.random().toString(36).slice(2,6),
     content:content,
     contact:contact,
+    images:[],
     time:new Date().toISOString(),
     userId:uid
   };
   
   document.getElementById("fb-msg").innerHTML='<span style="color:#6b7280">提交中...</span>';
+  
+  if(_GH_TOKEN&&_fbImages.length>0){
+    Promise.all(_fbImages.slice(0,3).map(function(f){
+      return _compressImg(f,800,800,0.7).then(function(dataUrl){
+        var fname=feedback.id+"_"+Math.random().toString(36).slice(2,5)+".jpg";
+        return _uploadFBImgToGitHub(dataUrl,fname);
+      });
+    })).then(function(urls){
+      feedback.images=urls;
+      _saveFB(feedback);
+    }).catch(function(){
+      _saveFB(feedback);
+    });
+  }else{
+    _saveFB(feedback);
+  }
+}
+
+function _saveFB(feedback){
+  var onDone=function(){
+    document.getElementById("fb-content").value="";
+    document.getElementById("fb-contact").value="";
+    document.getElementById("fb-images").value="";
+    _fbImages=[];
+    document.getElementById("fb-img-preview").innerHTML="";
+    document.getElementById("fb-img-label").textContent="添加截图（可选，最多3张）";
+    document.getElementById("fb-msg").innerHTML='<span style="color:#4ade80">✓ 反馈已提交，感谢！</span>';
+    setTimeout(function(){document.getElementById("fb-msg").textContent=""},3000);
+    _loadFBList();
+  };
   
   if(_GH_TOKEN){
     var url="https://api.github.com/repos/"+_GH_REPO+"/contents/"+_GH_FB_FILE;
@@ -2227,36 +2354,25 @@ function _submitFB(){
       })}
       throw new Error("Failed to fetch");
     })
-    .then(function(){
-      document.getElementById("fb-content").value="";
-      document.getElementById("fb-contact").value="";
-      document.getElementById("fb-msg").innerHTML='<span style="color:#4ade80">✓ 反馈已提交，感谢！</span>';
-      setTimeout(function(){document.getElementById("fb-msg").textContent=""},3000);
-    })
+    .then(onDone)
     .catch(function(e){
       console.log("Feedback save error:",e);
       var local=JSON.parse(localStorage.getItem("fb_local")||"[]");
       local.push(feedback);
       localStorage.setItem("fb_local",JSON.stringify(local));
-      document.getElementById("fb-content").value="";
-      document.getElementById("fb-contact").value="";
-      document.getElementById("fb-msg").innerHTML='<span style="color:#4ade80">✓ 反馈已提交，感谢！</span>';
-      setTimeout(function(){document.getElementById("fb-msg").textContent=""},3000);
+      onDone();
     });
   }else{
     var local=JSON.parse(localStorage.getItem("fb_local")||"[]");
     local.push(feedback);
     localStorage.setItem("fb_local",JSON.stringify(local));
-    document.getElementById("fb-content").value="";
-    document.getElementById("fb-contact").value="";
-    document.getElementById("fb-msg").innerHTML='<span style="color:#4ade80">✓ 反馈已提交，感谢！</span>';
-    setTimeout(function(){document.getElementById("fb-msg").textContent=""},3000);
+    onDone();
   }
 }
 
 function _saveFBToGitHub(feedbacks,sha){
   var url="https://api.github.com/repos/"+_GH_REPO+"/contents/"+_GH_FB_FILE;
-  var content=btoa(JSON.stringify(feedbacks,null,2));
+  var content=btoa(unescape(encodeURIComponent(JSON.stringify(feedbacks,null,2))));
   var body={message:"更新反馈数据",content:content,branch:"main"};
   if(sha)body.sha=sha;
   return fetch(url,{
@@ -2265,6 +2381,69 @@ function _saveFBToGitHub(feedbacks,sha){
     body:JSON.stringify(body)
   });
 }
+
+function _loadFBList(){
+  var url="https://api.github.com/repos/"+_GH_REPO+"/contents/"+_GH_FB_FILE;
+  var headers={"Accept":"application/vnd.github.v3+json"};
+  if(_GH_TOKEN)headers["Authorization"]="token "+_GH_TOKEN;
+  fetch(url,{headers:headers})
+  .then(function(r){
+    if(r.ok)return r.json();
+    throw new Error("no feedback file");
+  })
+  .then(function(data){
+    var list=JSON.parse(atob(data.content.replace(/\n/g,"")));
+    _renderFBList(list.reverse());
+  })
+  .catch(function(){
+    var local=JSON.parse(localStorage.getItem("fb_local")||"[]");
+    if(local.length)_renderFBList(local.reverse());
+  });
+}
+
+function _renderFBList(list){
+  var section=document.getElementById("fb-list-section");
+  var container=document.getElementById("fb-list");
+  if(!list||!list.length){section.style.display="none";return}
+  section.style.display="block";
+  var isAdmin=!!_GH_TOKEN;
+  container.innerHTML="";
+  list.forEach(function(fb){
+    var card=document.createElement("div");
+    card.style.cssText="background:#0d1117;border-radius:10px;padding:12px;border:1px solid #2a2f45";
+    var t=new Date(fb.time);
+    var ts=t.getFullYear()+"-"+String(t.getMonth()+1).padStart(2,"0")+"-"+String(t.getDate()).padStart(2,"0")+" "+String(t.getHours()).padStart(2,"0")+":"+String(t.getMinutes()).padStart(2,"0");
+    var imgs="";
+    if(fb.images&&fb.images.length){
+      imgs='<div style="display:flex;gap:6px;margin-top:8px;flex-wrap:wrap">'+fb.images.map(function(u){
+        return '<img src="'+u+'" style="width:80px;height:80px;object-fit:cover;border-radius:6px;border:1px solid #2a2f45;cursor:pointer" onclick="window.open(this.src)">';
+      }).join("")+'</div>';
+    }
+    var contactLine=fb.contact?'<div style="font-size:11px;color:#6b7280;margin-top:4px">📬 '+fb.contact+'</div>':"";
+    var delBtn=isAdmin?'<span style="font-size:11px;color:#ef4444;cursor:pointer;opacity:.6" onclick="_deleteFB(\''+fb.id+'\')" onmouseover="this.style.opacity=1" onmouseout="this.style.opacity=.6">删除</span>':"";
+    card.innerHTML='<div style="display:flex;justify-content:space-between;align-items:center"><span style="font-size:11px;color:#6b7280">'+ts+'</span>'+delBtn+'</div><div style="color:#e0e0e0;font-size:13px;margin-top:6px;line-height:1.5;white-space:pre-wrap">'+fb.content.replace(/</g,"&lt;")+'</div>'+contactLine+imgs;
+    container.appendChild(card);
+  });
+}
+
+function _deleteFB(fbId){
+  if(!confirm("确定删除这条反馈？"))return;
+  var url="https://api.github.com/repos/"+_GH_REPO+"/contents/"+_GH_FB_FILE;
+  fetch(url,{headers:{"Authorization":"token "+_GH_TOKEN,"Accept":"application/vnd.github.v3+json"}})
+  .then(function(r){
+    if(!r.ok)throw new Error("fetch fail");
+    return r.json();
+  })
+  .then(function(data){
+    var list=JSON.parse(atob(data.content.replace(/\n/g,"")));
+    list=list.filter(function(fb){return fb.id!==fbId});
+    return _saveFBToGitHub(list,data.sha);
+  })
+  .then(function(){_loadFBList()})
+  .catch(function(e){alert("删除失败："+e.message)});
+}
+
+setTimeout(_loadFBList,1000);
 
 function _savePend(h,a,r,md,lid){var v=JSON.parse(localStorage.getItem(_xa)||"[]");
 
