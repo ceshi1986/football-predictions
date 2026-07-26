@@ -613,21 +613,23 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;b
 <div id="fb-img-preview" style="display:flex;gap:8px;margin-top:8px;flex-wrap:wrap"></div>
 </div>
 <button class="bt bp" onclick="_submitFB()" style="font-size:13px;padding:10px">提交反馈</button>
-<div id="fb-msg" style="margin-top:8px;font-size:12px;text-align:center"></div>
+<div style="display:flex;justify-content:space-between;align-items:center;margin-top:8px">
+<div id="fb-msg" style="font-size:12px"></div>
+<div style="display:flex;align-items:center;gap:8px">
+<div id="fb-admin-login" style="display:none">
+<input id="fb-admin-pwd" type="password" placeholder="管理员密码" style="padding:4px 8px;border:1px solid #2a2f45;border-radius:6px;background:#0d1117;color:#e0e0e0;font-size:11px;width:120px;outline:none">
+<button onclick="_checkAdminPwd()" style="padding:4px 10px;border:none;border-radius:6px;background:#4f8cff;color:#fff;font-size:11px;cursor:pointer">登录</button>
+<span id="fb-admin-err" style="font-size:10px;color:#ef4444;margin-left:4px"></span>
+</div>
+<span id="fb-admin-toggle" style="font-size:10px;color:#4f8cff;cursor:pointer;opacity:.4" onclick="document.getElementById('fb-admin-login').style.display='inline-flex';document.getElementById('fb-admin-pwd').focus()" onmouseover="this.style.opacity=1" onmouseout="this.style.opacity=.4">⚙ 管理</span>
+<span id="fb-admin-status" style="font-size:10px;color:#4ade80;display:none">✓ 管理员 <span style="cursor:pointer;color:#ef4444;margin-left:4px" onclick="_adminLogout()">退出</span></span>
+</div>
+</div>
 </div>
 
 <div id="fb-list-section" style="background:#151a2e;border-radius:14px;padding:16px;margin-bottom:14px;display:none">
 <h3 style="font-size:14px;color:#6b7280;margin-bottom:12px">📋 用户反馈</h3>
 <div id="fb-list" style="display:flex;flex-direction:column;gap:10px"></div>
-<div id="fb-admin-bar" style="margin-top:10px;text-align:right;display:none">
-<div id="fb-admin-login" style="display:none;margin-top:8px">
-<input id="fb-admin-pwd" type="password" placeholder="管理员密码" style="padding:6px 10px;border:1px solid #2a2f45;border-radius:6px;background:#0d1117;color:#e0e0e0;font-size:12px;width:140px;outline:none">
-<button onclick="_checkAdminPwd()" style="padding:6px 12px;border:none;border-radius:6px;background:#4f8cff;color:#fff;font-size:12px;cursor:pointer;margin-left:4px">登录</button>
-<span id="fb-admin-err" style="font-size:11px;color:#ef4444;margin-left:6px"></span>
-</div>
-<span id="fb-admin-toggle" style="font-size:11px;color:#4f8cff;cursor:pointer;opacity:.5" onclick="document.getElementById('fb-admin-login').style.display='inline-flex';document.getElementById('fb-admin-pwd').focus()" onmouseover="this.style.opacity=1" onmouseout="this.style.opacity=.5">⚙ 管理</span>
-<span id="fb-admin-status" style="font-size:11px;color:#4ade80;display:none;margin-left:8px">✓ 管理员 <span style="cursor:pointer;color:#ef4444;margin-left:4px" onclick="_adminLogout()">退出</span></span>
-</div>
 </div>
 
 
@@ -2453,7 +2455,6 @@ function _renderFBList(list){
   var container=document.getElementById("fb-list");
   if(!list||!list.length){section.style.display="none";return}
   section.style.display="block";
-  document.getElementById("fb-admin-bar").style.display="block";
   container.innerHTML="";
   list.forEach(function(fb){
     var card=document.createElement("div");
