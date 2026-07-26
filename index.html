@@ -2461,7 +2461,7 @@ function _renderFBList(list){
     var imgs="";
     if(fb.images&&fb.images.length){
       imgs='<div style="display:flex;gap:6px;margin-top:8px;flex-wrap:wrap">'+fb.images.map(function(u){
-        return '<img src="'+u+'" style="width:80px;height:80px;object-fit:cover;border-radius:6px;border:1px solid #2a2f45;cursor:pointer" onclick="window.open(this.src)">';
+        return '<img src="'+u+'" style="width:80px;height:80px;object-fit:cover;border-radius:6px;border:1px solid #2a2f45;cursor:pointer" onclick="_zoomImg(this.src)">';
       }).join("")+'</div>';
     }
     var contactLine=fb.contact?'<div style="font-size:11px;color:#6b7280;margin-top:4px">📬 '+fb.contact+'</div>':"";
@@ -2471,6 +2471,19 @@ function _renderFBList(list){
   });
 }
 
+function _zoomImg(src){
+  var ov=document.getElementById("fb-zoom-overlay");
+  if(!ov){
+    ov=document.createElement("div");
+    ov.id="fb-zoom-overlay";
+    ov.style.cssText="position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,.85);z-index:99999;display:flex;align-items:center;justify-content:center;cursor:pointer;padding:20px;box-sizing:border-box";
+    ov.innerHTML='<img id="fb-zoom-img" style="max-width:100%;max-height:100%;object-fit:contain;border-radius:8px;box-shadow:0 4px 30px rgba(0,0,0,.5)" />';
+    ov.onclick=function(){ov.style.display="none"};
+    document.body.appendChild(ov);
+  }
+  document.getElementById("fb-zoom-img").src=src;
+  ov.style.display="flex";
+}
 function _deleteFB(fbId){
   if(!_GH_TOKEN){alert("需要先配置GitHub Token才能删除");return}
   if(!confirm("确定删除这条反馈？"))return;
