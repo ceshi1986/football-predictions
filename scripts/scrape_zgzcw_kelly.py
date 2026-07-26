@@ -145,7 +145,7 @@ async def _playwright_fetch_page(page, url, wait_for_selector='tr.matchTr',
     """
     print(f"  Playwright加载 {label or url}...")
     try:
-        await page.goto(url, timeout=30000, wait_until='domcontentloaded')
+        await page.goto(url, timeout=30000, wait_until='commit')
     except Exception as e:
         print(f"    ✗ 页面加载异常: {e}")
         return None
@@ -368,60 +368,36 @@ async def fetch_match_list_playwright(source='all'):
     """
     from playwright.async_api import async_playwright
 
-    print("[1/3] 获取比赛列表 (Playwright)...")
+    print("[1/3] 获取比赛列表 (requests)...")
 
     all_matches = {}
 
-    async with async_playwright() as p:
-        browser = await p.chromium.launch(headless=True, args=BROWSER_ARGS)
-        context = await browser.new_context(
-            user_agent=HEADERS['User-Agent'],
-            viewport={'width': 1920, 'height': 1080},
-        )
-        await context.add_init_script(ANTI_DETECT_SCRIPT)
-        page = await context.new_page()
-
-        # 先访问主站建立WAF cookie（有助于后续子域名通过验证）
-        print("  预热: 访问 www.zgzcw.com 建立 WAF cookie...")
+    # --- 竞彩比赛列表 ---
+    if source in ('jz', 'all'):
+        print("\n  --- 竞彩 (jz) ---")
         try:
-            await page.goto('https://www.zgzcw.com/', timeout=20000,
-                            wait_until='domcontentloaded')
-            await asyncio.sleep(3)
-            cookie_count = len(await context.cookies())
-            print(f"  预热完成, cookie数={cookie_count}")
-        except Exception as e:
-            print(f"  预热失败(非致命): {e}")
-
-        # --- 竞彩比赛列表 ---
-        if source in ('jz', 'all'):
-            print("\n  --- 竞彩 (jz) ---")
-            jz_html = await _playwright_fetch_page(
-                page,
-                'https://live.zgzcw.com/jz/',
-                wait_for_selector='tr.matchTr',
-                min_html_len=50000,
-                label='竞彩列表'
-            )
-            if jz_html:
+            resp = requests.get('https://live.zgzcw.com/jz/', headers=HEADERS, timeout=15)
+            resp.encoding = 'utf-8'
+            jz_html = resp.text
+            if 'matchTr' in jz_html and len(jz_html) > 50000:
                 jz_matches = _parse_jz_match_list(jz_html)
                 print(f"  竞彩: 找到 {len(jz_matches)} 场比赛")
                 for mid, info in list(jz_matches.items())[:3]:
                     print(f"    {info['jingcai_id']} {info['match_name']} ({info['league']})")
                 all_matches.update(jz_matches)
             else:
-                print("  竞彩: ✗ 获取失败（WAF拦截或页面加载异常）")
+                print(f"  竞彩: ✗ 获取失败（HTML长度={len(jz_html)}）")
+        except Exception as e:
+            print(f"  竞彩: ✗ 请求异常: {e}")
 
-        # --- 北单比赛列表 ---
-        if source in ('bd', 'all'):
-            print("\n  --- 北单 (bd) ---")
-            bd_html = await _playwright_fetch_page(
-                page,
-                'https://live.zgzcw.com/bd/',
-                wait_for_selector='tr.matchTr',
-                min_html_len=50000,
-                label='北单列表'
-            )
-            if bd_html:
+    # --- 北单比赛列表 ---
+    if source in ('bd', 'all'):
+        print("\n  --- 北单 (bd) ---")
+        try:
+            resp = requests.get('https://live.zgzcw.com/bd/', headers=HEADERS, timeout=15)
+            resp.encoding = 'utf-8'
+            bd_html = resp.text
+            if 'matchTr' in bd_html and len(bd_html) > 50000:
                 bd_matches = _parse_bd_match_list(bd_html)
                 print(f"  北单: 找到 {len(bd_matches)} 场比赛")
                 for mid, info in list(bd_matches.items())[:3]:
@@ -436,9 +412,9 @@ async def fetch_match_list_playwright(source='all'):
                     else:
                         all_matches[mid] = info
             else:
-                print("  北单: ✗ 获取失败（WAF拦截或页面加载异常）")
-
-        await browser.close()
+                print(f"  北单: ✗ 获取失败（HTML长度={len(bd_html)}）")
+        except Exception as e:
+            print(f"  北单: ✗ 请求异常: {e}")
 
     # 汇总
     jz_count = sum(1 for m in all_matches.values() if m.get('source', '') in ('jz', 'jz+bd'))
@@ -473,15 +449,6 @@ async def scrape_all_matches(match_ids, match_info, dongqiudi_id_map=None, no_do
         # 注入反自动化检测脚本
         await context.add_init_script(ANTI_DETECT_SCRIPT)
         page = await context.new_page()
-
-        # 先访问fenxi子域名首页建立WAF cookie
-        print("  预热: 访问 fenxi.zgzcw.com 建立 WAF cookie...")
-        try:
-            await page.goto('http://fenxi.zgzcw.com/', timeout=15000,
-                            wait_until='domcontentloaded')
-            await asyncio.sleep(3)
-        except Exception as e:
-            print(f"  预热失败(非致命): {e}")
 
         for i, mid in enumerate(match_ids):
             info = match_info.get(mid, {})
@@ -554,8 +521,8 @@ async def scrape_all_matches(match_ids, match_info, dongqiudi_id_map=None, no_do
 async def scrape_single_match(page, match_id):
     """用Playwright加载单场比赛的赔率页面并解析"""
     url = f'http://fenxi.zgzcw.com/{match_id}/bjop'
-    await page.goto(url, timeout=20000)
-    # 等待WAF验证 + 数据渲染（通常需要10-15秒）
+    await page.goto(url, timeout=20000, wait_until='commit')
+    # 等待WAF验证 + 数据渲染（通常需要5-10秒）
     html = ''
     for attempt in range(WAF_MAX_WAIT):
         await asyncio.sleep(WAF_CHECK_INTERVAL)
@@ -696,7 +663,7 @@ async def fetch_dongqiudi_match_list(page):
     print("\n  --- 懂球帝赛程获取 ---")
     url = f'{DONGQIUDI_BASE_URL}/'
     try:
-        await page.goto(url, timeout=20000, wait_until='domcontentloaded')
+        await page.goto(url, timeout=20000, wait_until='commit')
     except Exception as e:
         print(f"    ✗ 懂球帝首页加载失败: {e}")
         return {}
@@ -856,7 +823,7 @@ async def scrape_dongqiudi_kelly(page, dongqiudi_match_id):
     """
     url = DONGQIUDI_MATCH_DETAIL_URL.format(match_id=dongqiudi_match_id)
     try:
-        await page.goto(url, timeout=20000, wait_until='domcontentloaded')
+        await page.goto(url, timeout=20000, wait_until='commit')
     except Exception as e:
         print(f"✗ 懂球帝页面加载失败: {e}")
         return None
