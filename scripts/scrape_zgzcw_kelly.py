@@ -53,6 +53,7 @@ HEADERS = {
     'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 '
                   '(KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
     'Accept-Language': 'zh-CN,zh;q=0.9,en;q=0.8',
+    'Referer': 'https://live.zgzcw.com/bd/',
 }
 
 # 目标公司映射：页面显示名(去掉末尾*) -> 标准key
@@ -60,6 +61,7 @@ TARGET_COMPANIES = {
     '36': 'bet365',
     '韦': 'weide',
     '立': 'libo',
+    '澳': 'macau',
 }
 
 # 全量公司映射（可扩展）
@@ -425,128 +427,167 @@ async def fetch_match_list_playwright(source='all'):
     return all_matches
 
 
-# === Step 2: Playwright抓取赔率数据 ===
-async def scrape_all_matches(match_ids, match_info, dongqiudi_id_map=None, no_dongqiudi=False):
-    """用Playwright批量抓取多场比赛的赔率数据（共享浏览器上下文以复用WAF cookie）
+# === Step 2: 批量抓取赔率数据 ===
+def scrape_all_matches_sync(match_ids, match_info):
+    """用requests顺序批量抓取多场比赛的赔率数据（通过Referer绕过WAF）
+    顺序请求 + 间隔延迟，遇到连续 WAF 封锁时提前终止。
 
     Args:
         match_ids: 比赛ID列表
         match_info: 比赛信息字典
-        dongqiudi_id_map: zgzcw_match_id -> dongqiudi_match_id 映射
-        no_dongqiudi: 是否禁用懂球帝fallback
+
+    Returns:
+        {match_id: {match_name, league, ...companies}}
     """
-    from playwright.async_api import async_playwright
-
     results = {}
-    fallback_count = 0
+    success = 0
+    fail = 0
+    waf_consecutive = 0  # 连续 WAF 封锁计数
+    WAF_LIMIT = 2       # 连续封锁2次即停止
+    WAF_COOLDOWN = 30   # WAF封锁后等待秒数（让冷却窗口过去）
 
-    async with async_playwright() as p:
-        browser = await p.chromium.launch(headless=True, args=BROWSER_ARGS)
-        context = await browser.new_context(
-            user_agent=HEADERS['User-Agent'],
-            viewport={'width': 1920, 'height': 1080},
-        )
-        # 注入反自动化检测脚本
-        await context.add_init_script(ANTI_DETECT_SCRIPT)
-        page = await context.new_page()
+    for idx, mid in enumerate(match_ids, 1):
+        info = match_info.get(mid, {})
+        src = info.get('source', '')
+        bd_id = info.get('beidan_id', '')
+        jc_id = info.get('jingcai_id', '')
+        label = f"{mid}"
+        if jc_id:
+            label += f" [{jc_id}]"
+        if bd_id:
+            label += f" [北单{bd_id}]"
 
-        for i, mid in enumerate(match_ids):
-            info = match_info.get(mid, {})
-            src = info.get('source', '')
-            bd_id = info.get('beidan_id', '')
-            jc_id = info.get('jingcai_id', '')
-            label = f"{mid}"
-            if jc_id:
-                label += f" [{jc_id}]"
-            if bd_id:
-                label += f" [北单{bd_id}]"
+        try:
+            result = scrape_single_match(mid)
+        except Exception as e:
+            print(f"  [{idx}/{len(match_ids)}] {label} ✗ 异常: {e}")
+            fail += 1
+            waf_consecutive = 0
+            time.sleep(3)
+            continue
 
-            print(f"  [{i+1}/{len(match_ids)}] {label}...", end=' ', flush=True)
-            try:
-                companies = await scrape_single_match(page, mid)
-            except Exception as e:
-                print(f"✗ 异常: {e}")
-                companies = None
+        if result == 'WAF_BLOCKED':
+            waf_consecutive += 1
+            print(f"  [{idx}/{len(match_ids)}] {label} 🔒 WAF封锁 ({waf_consecutive}/{WAF_LIMIT})")
+            if waf_consecutive >= WAF_LIMIT:
+                print(f"  ⚠️ 连续 {WAF_LIMIT} 次 WAF 封锁，提前终止。已获取 {success} 场。")
+                break
+            # 第一次WAF封锁：等待冷却后继续
+            print(f"  ⏳ 等待 {WAF_COOLDOWN}s WAF冷却...")
+            time.sleep(WAF_COOLDOWN)
+        elif result:
+            waf_consecutive = 0
+            results[mid] = {
+                'match_name': info.get('match_name', ''),
+                'league': info.get('league', ''),
+                'match_time': info.get('match_time', ''),
+                'jingcai_id': info.get('jingcai_id', ''),
+                'beidan_id': info.get('beidan_id', ''),
+                'source': src,
+                'data_source': 'zgzcw',
+                'companies': result,
+            }
+            target_keys = [k for k in TARGET_COMPANIES.values() if k in result]
+            print(f"  [{idx}/{len(match_ids)}] {label} ✓ {len(result)}家公司, 目标: {', '.join(target_keys)}")
+            success += 1
+            time.sleep(3)
+        else:
+            waf_consecutive = 0
+            print(f"  [{idx}/{len(match_ids)}] {label} ✗ 无数据")
+            fail += 1
+            time.sleep(3)
 
-            data_source = 'zgzcw'
+    print(f"\n  zgzcw抓取完成: {success}场成功, {fail}场失败")
+    return results
 
-            # zgzcw失败 → 尝试懂球帝fallback
-            if not companies and not no_dongqiudi:
-                dongqiudi_mid = (dongqiudi_id_map or {}).get(mid)
-                if dongqiudi_mid:
-                    print(f"  → 懂球帝fallback (dqid={dongqiudi_mid})...", end=' ', flush=True)
+
+async def scrape_all_matches(match_ids, match_info, dongqiudi_id_map=None, no_dongqiudi=False):
+    """批量抓取多场比赛的赔率数据
+    主流程用requests，失败时fallback到懂球帝（Playwright）
+    """
+    # Step 2a: 用requests抓取zgzcw数据
+    results = scrape_all_matches_sync(match_ids, match_info)
+
+    # Step 2b: 对失败的场次，尝试懂球帝fallback
+    if not no_dongqiudi and dongqiudi_id_map:
+        failed_ids = [mid for mid in match_ids if mid not in results]
+        if failed_ids:
+            print(f"\n  尝试懂球帝fallback ({len(failed_ids)}场)...")
+            from playwright.async_api import async_playwright
+
+            async with async_playwright() as p:
+                browser = await p.chromium.launch(headless=True, args=BROWSER_ARGS)
+                context = await browser.new_context(
+                    user_agent='Mozilla/5.0 (iPhone; CPU iPhone OS 16_0 like Mac OS X) '
+                               'AppleWebKit/605.1.15 (KHTML, like Gecko) Version/16.0 '
+                               'Mobile/15E148 Safari/604.1',
+                    viewport={'width': 375, 'height': 812},
+                )
+                await context.add_init_script(ANTI_DETECT_SCRIPT)
+                page = await context.new_page()
+                fallback_count = 0
+
+                for mid in failed_ids:
+                    dongqiudi_mid = dongqiudi_id_map.get(mid)
+                    if not dongqiudi_mid:
+                        continue
+                    info = match_info.get(mid, {})
+                    print(f"    {mid} → 懂球帝 (dqid={dongqiudi_mid})...", end=' ', flush=True)
                     try:
                         companies = await scrape_dongqiudi_kelly(page, dongqiudi_mid)
                         if companies:
-                            data_source = 'dongqiudi'
+                            results[mid] = {
+                                'match_name': info.get('match_name', ''),
+                                'league': info.get('league', ''),
+                                'match_time': info.get('match_time', ''),
+                                'jingcai_id': info.get('jingcai_id', ''),
+                                'beidan_id': info.get('beidan_id', ''),
+                                'source': info.get('source', ''),
+                                'data_source': 'dongqiudi',
+                                'companies': companies,
+                            }
                             fallback_count += 1
+                            print(f"✓ {len(companies)}家公司")
+                        else:
+                            print("✗ 无数据")
                     except Exception as e:
-                        print(f"✗ 懂球帝异常: {e}")
+                        print(f"✗ 异常: {e}")
 
-            if companies:
-                results[mid] = {
-                    'match_name': info.get('match_name', ''),
-                    'league': info.get('league', ''),
-                    'match_time': info.get('match_time', ''),
-                    'jingcai_id': info.get('jingcai_id', ''),
-                    'beidan_id': info.get('beidan_id', ''),
-                    'source': src,
-                    'data_source': data_source,
-                    'companies': companies,
-                }
-                target_keys = [k for k in TARGET_COMPANIES.values() if k in companies]
-                src_tag = f"[{data_source}]" if data_source != 'zgzcw' else ''
-                print(f"✓ {len(companies)}家公司, 目标: {', '.join(target_keys)} {src_tag}")
-                for ck in target_keys:
-                    cd = companies[ck]
-                    print(f"    {ck}({cd['name']}): "
-                          f"赔率={cd['latest_odds']} "
-                          f"凯利={cd['kelly']} "
-                          f"赔付={cd['payout']}")
-            else:
-                print("✗ 无数据")
+                await browser.close()
 
-            # 短暂延迟避免被限流
-            if i < len(match_ids) - 1:
-                await asyncio.sleep(1.5)
-
-        await browser.close()
-
-    if fallback_count > 0:
-        print(f"\n  懂球帝fallback: {fallback_count}场比赛从懂球帝获取数据")
+            if fallback_count > 0:
+                print(f"  懂球帝fallback: {fallback_count}场比赛从懂球帝获取数据")
 
     return results
 
 
-async def scrape_single_match(page, match_id):
-    """用Playwright加载单场比赛的赔率页面并解析"""
+def scrape_single_match(match_id):
+    """用requests加载单场比赛的赔率页面并解析（通过Referer绕过WAF）
+
+    返回:
+      - dict: 成功解析到公司数据
+      - 'WAF_BLOCKED': WAF封锁（小响应体或特征内容）
+      - None: 页面正常但无数据
+    """
     url = f'http://fenxi.zgzcw.com/{match_id}/bjop'
-    await page.goto(url, timeout=20000, wait_until='commit')
-    # 等待WAF验证 + 数据渲染（通常需要5-10秒）
-    html = ''
-    for attempt in range(WAF_MAX_WAIT):
-        await asyncio.sleep(WAF_CHECK_INTERVAL)
-        try:
-            html = await page.content()
-        except Exception:
-            # 页面正在导航中（WAF跳转），继续等待
-            continue
+    try:
+        resp = requests.get(url, headers=HEADERS, timeout=6)
+        # WAF 检测：HTTP 418 状态码（CloudWAF v2）
+        if resp.status_code == 418:
+            return 'WAF_BLOCKED'
+        resp.encoding = 'utf-8'
+        html = resp.text
+    except requests.exceptions.Timeout:
+        return 'WAF_BLOCKED'
+    except Exception as e:
+        print(f"  ✗ requests异常: {e}")
+        return None
 
-        # 检查WAF拦截
-        if 'The access is blocked' in html or '访问被拦截' in html:
-            continue
+    # WAF 检测：响应体小 或 包含 CloudWAF 挑战特征
+    if len(html) < 20000:
+        return 'WAF_BLOCKED'
 
-        # 检查数据加载完成
-        if 'bf-tab-02' in html or ('36*' in html and len(html) > 100000):
-            break
-    else:
-        # 最后一次尝试获取内容
-        try:
-            html = await page.content()
-        except Exception:
-            return None
-
-    if len(html) < 50000:
+    if 'bf-tab-02' not in html:
         return None
 
     return parse_odds_html(html)

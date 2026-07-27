@@ -364,6 +364,15 @@ async def run():
 
     print(f"  ✅ {len(results)}场新数据 + {kept_count}场旧数据 = {len(merged_results)}场 → {out_path}")
 
+    # Step 4: 保存时间戳快照（用于赛前数据回测）
+    snapshot_dir = os.path.join(OUTPUT_DIR, today, 'snapshots')
+    os.makedirs(snapshot_dir, exist_ok=True)
+    time_str = datetime.now().strftime('%H%M%S')
+    snapshot_path = os.path.join(snapshot_dir, f'zgzcw_kelly_data_{time_str}.json')
+    with open(snapshot_path, 'w', encoding='utf-8') as f:
+        json.dump(output, f, ensure_ascii=False, indent=2)
+    print(f"  📸 快照已保存 → {snapshot_path}")
+
     # 统计
     total_companies = sum(len(m['companies']) for m in results.values())
     target_count = sum(1 for m in results.values()

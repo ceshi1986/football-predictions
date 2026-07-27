@@ -3139,6 +3139,7 @@ function _aiJudge(m,hf,df,af){
   var skip=false,skipReason="";
   var kellyLabel="";
   var kr=null; // 提升到外层，供双选分支使用
+  var nonDrawSignal=false;
   var kellyData=_matchKellyData(m.home,m.away);
   if(kellyData&&kellyData.companies){
     var c365=_getKellyCompany(kellyData.companies,'bet365')||_getKellyCompany(kellyData.companies,'365');
@@ -3151,7 +3152,15 @@ function _aiJudge(m,hf,df,af){
       kr=_detectKellyScenario(c365,cW,baseP,effConf);
       if(kr.skip){
         skip=true;skipReason=kr.skipReason;
-        kellyLabel=kr.label;
+        
+      // === 非平模块（365+韦德组合）===
+      // 不依赖usedOdds，直接用Kelly数据判断
+      // 条件：365和韦德的平Kelly都高于各自赔付率 → 不看好平局
+      if(c365.kelly_d > c365.payout && cW.kelly_d > cW.payout){
+        nonDrawSignal = true;
+      }
+
+    kellyLabel=kr.label;
       }else if(kr._finalProbs){
         var fp2=kr._finalProbs;
         probs=[{r:"胜",p:fp2.hf},{r:"平",p:fp2.df},{r:"负",p:fp2.af}];
@@ -3256,7 +3265,8 @@ function _aiJudge(m,hf,df,af){
     
     // === 双选组合：必须包含boSingle方向 ===
     // 获取Kelly已排除的方向
-    var kellyDropped=[];
+    var 
+kellyDropped=[];
     if(kr&&kr.scenarios){
       var _kbd365=_K_DIRS.filter(function(d){return _kJK(c365['kelly_'+d],c365.payout)==='bad';});
       var _kbdW=_K_DIRS.filter(function(d){return _kJK(cW['kelly_'+d],cW.payout)==='bad';});
@@ -3371,6 +3381,19 @@ function _aiJudge(m,hf,df,af){
         }
       }
       prediction=mainPick+"+"+secondPick;
+          // === 非平模块生效：双选含平时，检查是否转为去平 ===
+          if(nonDrawSignal){
+            var _predParts = prediction.split("+");
+            if(_predParts.indexOf("平")!==-1){
+              // 替换平局为另一个方向
+              var _keep = _predParts.filter(function(d){return d!=="平";})[0];
+              var _replace = ["胜","平","负"].filter(function(d){return d!==_keep && d!==probs[0].r;})[0] || ["胜","平","负"].filter(function(d){return d!==_keep;})[0];
+              prediction = _keep + "+" + _replace;
+              doublePick = [_keep, _replace];
+              reason += " · 非平信号(365+韦德kelly_d>payout)";
+            }
+          }
+
       doublePick=[mainPick,secondPick];
       if(effConf>=0.50&&probDiff>=0.10){
         reason="方向偏"+mainPick+"("+Math.round(effConf*100)+"%)，双选防冷";
