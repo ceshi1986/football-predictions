@@ -3177,9 +3177,11 @@ function _aiJudge(m,hf,df,af){
     type="single";
     prediction=probs[0].r;
     doublePick=null;
+    hedgePick=probs[1].r;
     if(probs[0].r==="胜")reason="赔率看好主队("+Math.round(effConf*100)+"%)";
     else if(probs[0].r==="负")reason="赔率看好客队("+Math.round(effConf*100)+"%)";
     else reason="赔率倾向平局("+Math.round(effConf*100)+"%)";
+    reason+=" · 防："+hedgePick;
     reason+=frogNote;
     if(usedOdds)reason+=" · 竞彩网赔率";
   }else{
@@ -3294,11 +3296,25 @@ function _aiJudge(m,hf,df,af){
       }
     }
     // 可博方向必须是双选的第一位（优先方向）
-    if(boSingle){
-      mainPick=boSingle;
-      var others=candidateDirs.filter(function(d){return d!==boSingle;});
-      if(others.length>0){secondPick=others[0];}
-      else{secondPick=(boSingle==="胜")?"负":"胜";}
+    // === 可博规则优先级：可博A(博胜/负) → 单选；可博B(博平) → 双选平在前 ===
+    var hedgePick=null;
+    if(boSingle==='胜'||boSingle==='负'){
+      // 可博A：改为单选，附带防冷选项
+      type="single";
+      prediction=boSingle;
+      var _hedgeOpts=['胜','平','负'].filter(function(d){return d!==boSingle;});
+      hedgePick=secondPick||_hedgeOpts[0];
+      doublePick=null;
+      reason="凯利信号强推"+boSingle+"("+Math.round(effConf*100)+"%)，单选博"+boSingle;
+    }else if(boSingle==='平'){
+      // 可博B：双选，平局必须在首位
+      type="double";
+      mainPick='平';
+      var _bpOthers=candidateDirs.filter(function(d){return d!=='平';});
+      secondPick=_bpOthers.length>0?_bpOthers[0]:(c365&&cW&&c365.kelly_h<=c365.payout?'胜':'负');
+      prediction='平+'+secondPick;
+      doublePick=['平',secondPick];
+      reason="方向分歧+立博看好平局，双选博平("+Math.round(effConf*100)+"%)";
     }else{
       var others=candidateDirs.filter(function(d){return d!==mainPick;});
       if(others.length>0){secondPick=others[0];}
@@ -3314,17 +3330,11 @@ function _aiJudge(m,hf,df,af){
           var _rcDrawW=(cW.kelly_d<=_rcPW);
           if(_rcDraw365||_rcDrawW){
             // 规则C修订(2026-07-24)：立博不看好平→仍保留防平，仅降低信心
-            // 立博平Kelly>payout→标注信心降低，但不取消防平
             var _rcWeaken=false;
             if(cLB&&cLB.kelly_d>cLB.payout){
               _rcWeaken=true;
             }
-            // 无论立博态度如何，都保留防平（secondPick=平）
             secondPick='平';
-            if(_rcWeaken){
-              // 立博否定平局→降低信心标注（不影响选择结果）
-              // 信心降低在UI中不改变输出，仅供内部参考
-            }
           }
         }
       }
@@ -3360,28 +3370,26 @@ function _aiJudge(m,hf,df,af){
           secondPick=_rest.length>0?_rest[0]:null;
         }
       }
+      prediction=mainPick+"+"+secondPick;
+      doublePick=[mainPick,secondPick];
+      if(effConf>=0.50&&probDiff>=0.10){
+        reason="方向偏"+mainPick+"("+Math.round(effConf*100)+"%)，双选防冷";
+      }else{
+        reason="方向不够明确，双选覆盖";
+      }
     }
-    
     // === V4.2 非平模块 ===
     var noDraw=false;
-    if(c365&&cW&&secondPick==='平'){
+    if(c365&&cW&&secondPick==='平'&&type!=='single'){
       if(c365.kelly_d>c365.payout&&cW.kelly_d>cW.payout){
         noDraw=true;
         secondPick=(mainPick==='胜')?'负':'胜';
+        prediction=mainPick+"+"+secondPick;
+        doublePick=[mainPick,secondPick];
       }
     }
-    
-    prediction=mainPick+"+"+secondPick;
-    doublePick=[mainPick,secondPick];
     if(noDraw){
       kellyLabel=(kellyLabel?kellyLabel+' · ':'')+'🔥非平(365+韦德)';
-    }
-    if(boSingle){
-      reason="凯利信号推荐"+boSingle+"("+Math.round(effConf*100)+"%)，双选覆盖";
-    }else if(effConf>=0.50&&probDiff>=0.10){
-      reason="方向偏"+mainPick+"("+Math.round(effConf*100)+"%)，双选防冷";
-    }else{
-      reason="方向不够明确，双选覆盖";
     }
     reason+=frogNote;
     if(usedOdds)reason+=" · 竞彩网赔率";
@@ -3397,6 +3405,7 @@ function _aiJudge(m,hf,df,af){
     doublePick:doublePick,
     kellyLabel:kellyLabel,
     boSingle:boSingle||null,
+    hedgePick:hedgePick,
     noDraw:noDraw||false
   };
 }
@@ -3423,6 +3432,9 @@ function _renderAICard(rec){
   var predClass=rec.type==="pending"?"pending-pred":rec.type==="single"?"single-pred":"double-pred";
   
   var predText=rec.type==="pending"?"等待实时数据":rec.type==="single"?rec.prediction:rec.prediction+"（双选）";
+  // 可博A(胜/负)单选时：显示防冷提示
+  var hedgeText=rec.hedgePick&&rec.type==="single"?'<span class="ai-bo-tag" style="background:linear-gradient(135deg,#f59e0b,#d97706);color:#fff;font-size:0.7em;margin-left:6px">防：'+rec.hedgePick+'</span>':'';
+  // 可博B(平)双选时：标签显示"可博平"
   var boTag=rec.boSingle?'<span class="ai-bo-tag">可博'+rec.boSingle+'</span>':'';
   var noDrawTag=rec.noDraw?'<span class="ai-bo-tag" style="background:linear-gradient(135deg,#ef4444,#dc2626);color:#fff">🔥非平</span>':'';
   
@@ -3445,7 +3457,7 @@ function _renderAICard(rec){
   h+='<span class="ai-league">'+rec.league+'</span>';
   h+='<span class="ai-time"> '+rec.matchTime+'</span>';
   h+='</div>';
-  h+='<div class="ai-card-pred '+predClass+'">'+predText+boTag+noDrawTag+skipTag+'</div>';
+  h+='<div class="ai-card-pred '+predClass+'">'+predText+hedgeText+boTag+noDrawTag+skipTag+'</div>';
   h+='<div class="ai-card-reason">'+rec.reason+(rec.skip?' · '+rec.skipReason:'')+'</div>';
   if(rec.noKellyData){h+='<div class="ai-no-kelly-warn">⚠️ 该场比赛预测未获得实时数据，谨慎参考</div>';}
   h+='<div class="ai-card-conf">置信度 '+rec.confidence+'%'+(rec.kellyLabel&&!rec.boSingle?'<span class="ai-kelly-tag">凯利:'+rec.kellyLabel+'</span>':'')+'</div>';
