@@ -2926,8 +2926,9 @@ async function _doGenAIRec(){
   for(var i=0;i<upcoming.length;i++){
     upcomingIds[upcoming[i].id]=true;
   }
+  // 保留所有历史预测（无论是否验证），由显示过滤器决定展示什么
   for(var i=0;i<stored.length;i++){
-    if(stored[i].verified&&!upcomingIds[stored[i].matchId]){
+    if(!upcomingIds[stored[i].matchId]){
       recs.push(stored[i]);
     }
   }
@@ -2941,7 +2942,9 @@ async function _doGenAIRec(){
   for(var i=0;i<upcoming.length;i++){
     var m=upcoming[i];
     
-    if(storedMap[m.id]&&!storedMap[m.id].needUpdate&&!_kellyCache){
+    // 赛前预测固化：如果已有缓存预测（未验证），直接使用，不重新生成
+    // 只有当没有缓存预测时，才生成新预测
+    if(storedMap[m.id]&&!storedMap[m.id].verified){
       recs.push(storedMap[m.id]);
       continue;
     }
