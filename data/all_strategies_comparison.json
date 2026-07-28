@@ -1,0 +1,637 @@
+{
+  "total_matches": 4,
+  "mode": "double_pick",
+  "strategies": {
+    "V1(初版Kelly)": {
+      "hits": 2,
+      "total": 2,
+      "rate": 100.0,
+      "low_hits": 0,
+      "low_total": 0,
+      "low_rate": 0,
+      "high_hits": 2,
+      "high_total": 2,
+      "high_rate": 100.0
+    },
+    "V3(三场景)": {
+      "hits": 3,
+      "total": 3,
+      "rate": 100.0,
+      "low_hits": 0,
+      "low_total": 0,
+      "low_rate": 0,
+      "high_hits": 3,
+      "high_total": 3,
+      "high_rate": 100.0
+    },
+    "V4.1(完整版)": {
+      "hits": 4,
+      "total": 4,
+      "rate": 100.0,
+      "low_hits": 0,
+      "low_total": 0,
+      "low_rate": 0,
+      "high_hits": 4,
+      "high_total": 4,
+      "high_rate": 100.0
+    },
+    "V4.1分层": {
+      "hits": 4,
+      "total": 4,
+      "rate": 100.0,
+      "low_hits": 0,
+      "low_total": 0,
+      "low_rate": 0,
+      "high_hits": 4,
+      "high_total": 4,
+      "high_rate": 100.0
+    },
+    "最低赔率+平局": {
+      "hits": 4,
+      "total": 4,
+      "rate": 100.0,
+      "low_hits": 0,
+      "low_total": 0,
+      "low_rate": 0,
+      "high_hits": 4,
+      "high_total": 4,
+      "high_rate": 100.0
+    },
+    "Elo+平局": {
+      "hits": 4,
+      "total": 4,
+      "rate": 100.0,
+      "low_hits": 0,
+      "low_total": 0,
+      "low_rate": 0,
+      "high_hits": 4,
+      "high_total": 4,
+      "high_rate": 100.0
+    },
+    "Elo含平(双选)": {
+      "hits": 4,
+      "total": 4,
+      "rate": 100.0,
+      "low_hits": 0,
+      "low_total": 0,
+      "low_rate": 0,
+      "high_hits": 4,
+      "high_total": 4,
+      "high_rate": 100.0
+    },
+    "Elo+非平+三场景": {
+      "hits": 3,
+      "total": 3,
+      "rate": 100.0,
+      "low_hits": 0,
+      "low_total": 0,
+      "low_rate": 0,
+      "high_hits": 3,
+      "high_total": 3,
+      "high_rate": 100.0
+    },
+    "Kelly 7场景": {
+      "hits": 4,
+      "total": 4,
+      "rate": 100.0,
+      "low_hits": 0,
+      "low_total": 0,
+      "low_rate": 0,
+      "high_hits": 4,
+      "high_total": 4,
+      "high_rate": 100.0
+    },
+    "V4.1+非平(澳门+韦德)": {
+      "hits": 4,
+      "total": 4,
+      "rate": 100.0,
+      "low_hits": 0,
+      "low_total": 0,
+      "low_rate": 0,
+      "high_hits": 4,
+      "high_total": 4,
+      "high_rate": 100.0
+    },
+    "V4.1+非平(365+韦德)": {
+      "hits": 4,
+      "total": 4,
+      "rate": 100.0,
+      "low_hits": 0,
+      "low_total": 0,
+      "low_rate": 0,
+      "high_hits": 4,
+      "high_total": 4,
+      "high_rate": 100.0
+    }
+  },
+  "match_details": [
+    {
+      "match_name": "拉多麦科 vs KS莫摩斯",
+      "league": "波兰甲",
+      "actual": "胜",
+      "min_odds": 2.33,
+      "odds_band": ">=2.0",
+      "strategies": {
+        "V1(初版Kelly)": {
+          "prediction": [],
+          "prediction_cn": "",
+          "hit": false,
+          "skip": true,
+          "scenario": "",
+          "reason": "最低方向含平局"
+        },
+        "V3(三场景)": {
+          "prediction": [
+            "d",
+            "h"
+          ],
+          "prediction_cn": "平+胜",
+          "hit": true,
+          "skip": false,
+          "scenario": "V3-场景C",
+          "reason": ""
+        },
+        "V4.1(完整版)": {
+          "prediction": [
+            "h",
+            "d"
+          ],
+          "prediction_cn": "胜+平",
+          "hit": true,
+          "skip": false,
+          "scenario": "0-共同看好",
+          "reason": ""
+        },
+        "V4.1分层": {
+          "prediction": [
+            "h",
+            "d"
+          ],
+          "prediction_cn": "胜+平",
+          "hit": true,
+          "skip": false,
+          "scenario": "0-共同看好",
+          "reason": ""
+        },
+        "最低赔率+平局": {
+          "prediction": [
+            "h",
+            "d"
+          ],
+          "prediction_cn": "胜+平",
+          "hit": true,
+          "skip": false,
+          "scenario": "最低赔率",
+          "reason": ""
+        },
+        "Elo+平局": {
+          "prediction": [
+            "h",
+            "d"
+          ],
+          "prediction_cn": "胜+平",
+          "hit": true,
+          "skip": false,
+          "scenario": "Elo+平",
+          "reason": ""
+        },
+        "Elo含平(双选)": {
+          "prediction": [
+            "h",
+            "d"
+          ],
+          "prediction_cn": "胜+平",
+          "hit": true,
+          "skip": false,
+          "scenario": "Elo含平",
+          "reason": ""
+        },
+        "Elo+非平+三场景": {
+          "prediction": [
+            "d",
+            "h"
+          ],
+          "prediction_cn": "平+胜",
+          "hit": true,
+          "skip": false,
+          "scenario": "Elo+三场景-C",
+          "reason": ""
+        },
+        "Kelly 7场景": {
+          "prediction": [
+            "h",
+            "d"
+          ],
+          "prediction_cn": "胜+平",
+          "hit": true,
+          "skip": false,
+          "scenario": "7场景-0",
+          "reason": ""
+        },
+        "V4.1+非平(澳门+韦德)": {
+          "prediction": [
+            "h",
+            "d"
+          ],
+          "prediction_cn": "胜+平",
+          "hit": true,
+          "skip": false,
+          "scenario": "0-共同看好",
+          "reason": ""
+        },
+        "V4.1+非平(365+韦德)": {
+          "prediction": [
+            "h",
+            "d"
+          ],
+          "prediction_cn": "胜+平",
+          "hit": true,
+          "skip": false,
+          "scenario": "0-共同看好",
+          "reason": ""
+        }
+      }
+    },
+    {
+      "match_name": "维堡 vs 欧登塞",
+      "league": "丹麦超",
+      "actual": "胜",
+      "min_odds": 2.03,
+      "odds_band": ">=2.0",
+      "strategies": {
+        "V1(初版Kelly)": {
+          "prediction": [],
+          "prediction_cn": "",
+          "hit": false,
+          "skip": true,
+          "scenario": "",
+          "reason": "两家方向不一致"
+        },
+        "V3(三场景)": {
+          "prediction": [],
+          "prediction_cn": "",
+          "hit": false,
+          "skip": true,
+          "scenario": "",
+          "reason": "场景B信号矛盾"
+        },
+        "V4.1(完整版)": {
+          "prediction": [
+            "h",
+            "d"
+          ],
+          "prediction_cn": "胜+平",
+          "hit": true,
+          "skip": false,
+          "scenario": "0-共同看好",
+          "reason": ""
+        },
+        "V4.1分层": {
+          "prediction": [
+            "h",
+            "d"
+          ],
+          "prediction_cn": "胜+平",
+          "hit": true,
+          "skip": false,
+          "scenario": "0-共同看好",
+          "reason": ""
+        },
+        "最低赔率+平局": {
+          "prediction": [
+            "h",
+            "d"
+          ],
+          "prediction_cn": "胜+平",
+          "hit": true,
+          "skip": false,
+          "scenario": "最低赔率",
+          "reason": ""
+        },
+        "Elo+平局": {
+          "prediction": [
+            "h",
+            "d"
+          ],
+          "prediction_cn": "胜+平",
+          "hit": true,
+          "skip": false,
+          "scenario": "Elo+平",
+          "reason": ""
+        },
+        "Elo含平(双选)": {
+          "prediction": [
+            "h",
+            "d"
+          ],
+          "prediction_cn": "胜+平",
+          "hit": true,
+          "skip": false,
+          "scenario": "Elo含平",
+          "reason": ""
+        },
+        "Elo+非平+三场景": {
+          "prediction": [],
+          "prediction_cn": "",
+          "hit": false,
+          "skip": true,
+          "scenario": "",
+          "reason": "场景B-方向不同"
+        },
+        "Kelly 7场景": {
+          "prediction": [
+            "h",
+            "a"
+          ],
+          "prediction_cn": "胜+负",
+          "hit": true,
+          "skip": false,
+          "scenario": "7场景-1+5",
+          "reason": ""
+        },
+        "V4.1+非平(澳门+韦德)": {
+          "prediction": [
+            "h",
+            "d"
+          ],
+          "prediction_cn": "胜+平",
+          "hit": true,
+          "skip": false,
+          "scenario": "0-共同看好",
+          "reason": ""
+        },
+        "V4.1+非平(365+韦德)": {
+          "prediction": [
+            "h",
+            "a"
+          ],
+          "prediction_cn": "胜+负",
+          "hit": true,
+          "skip": false,
+          "scenario": "0-共同看好+非平(365+韦德)",
+          "reason": ""
+        }
+      }
+    },
+    {
+      "match_name": "奥尔堡 vs 希勒勒",
+      "league": "丹麦甲",
+      "actual": "胜",
+      "min_odds": 2.25,
+      "odds_band": ">=2.0",
+      "strategies": {
+        "V1(初版Kelly)": {
+          "prediction": [
+            "h",
+            "d"
+          ],
+          "prediction_cn": "胜+平",
+          "hit": true,
+          "skip": false,
+          "scenario": "V1-同方向",
+          "reason": ""
+        },
+        "V3(三场景)": {
+          "prediction": [
+            "h",
+            "d"
+          ],
+          "prediction_cn": "胜+平",
+          "hit": true,
+          "skip": false,
+          "scenario": "V3-场景A",
+          "reason": ""
+        },
+        "V4.1(完整版)": {
+          "prediction": [
+            "h",
+            "d"
+          ],
+          "prediction_cn": "胜+平",
+          "hit": true,
+          "skip": false,
+          "scenario": "7-蛙跳",
+          "reason": ""
+        },
+        "V4.1分层": {
+          "prediction": [
+            "h",
+            "d"
+          ],
+          "prediction_cn": "胜+平",
+          "hit": true,
+          "skip": false,
+          "scenario": "7-蛙跳",
+          "reason": ""
+        },
+        "最低赔率+平局": {
+          "prediction": [
+            "h",
+            "d"
+          ],
+          "prediction_cn": "胜+平",
+          "hit": true,
+          "skip": false,
+          "scenario": "最低赔率",
+          "reason": ""
+        },
+        "Elo+平局": {
+          "prediction": [
+            "h",
+            "d"
+          ],
+          "prediction_cn": "胜+平",
+          "hit": true,
+          "skip": false,
+          "scenario": "Elo+平",
+          "reason": ""
+        },
+        "Elo含平(双选)": {
+          "prediction": [
+            "h",
+            "d"
+          ],
+          "prediction_cn": "胜+平",
+          "hit": true,
+          "skip": false,
+          "scenario": "Elo含平",
+          "reason": ""
+        },
+        "Elo+非平+三场景": {
+          "prediction": [
+            "h",
+            "d"
+          ],
+          "prediction_cn": "胜+平",
+          "hit": true,
+          "skip": false,
+          "scenario": "Elo+三场景-A(一致)",
+          "reason": ""
+        },
+        "Kelly 7场景": {
+          "prediction": [
+            "h",
+            "d"
+          ],
+          "prediction_cn": "胜+平",
+          "hit": true,
+          "skip": false,
+          "scenario": "7场景-0",
+          "reason": ""
+        },
+        "V4.1+非平(澳门+韦德)": {
+          "prediction": [
+            "h",
+            "d"
+          ],
+          "prediction_cn": "胜+平",
+          "hit": true,
+          "skip": false,
+          "scenario": "7-蛙跳",
+          "reason": ""
+        },
+        "V4.1+非平(365+韦德)": {
+          "prediction": [
+            "h",
+            "a"
+          ],
+          "prediction_cn": "胜+负",
+          "hit": true,
+          "skip": false,
+          "scenario": "7-蛙跳+非平(365+韦德)",
+          "reason": ""
+        }
+      }
+    },
+    {
+      "match_name": "瑞普斯威尔 vs 韦尔",
+      "league": "瑞士挑",
+      "actual": "负",
+      "min_odds": 2.03,
+      "odds_band": ">=2.0",
+      "strategies": {
+        "V1(初版Kelly)": {
+          "prediction": [
+            "a",
+            "d"
+          ],
+          "prediction_cn": "负+平",
+          "hit": true,
+          "skip": false,
+          "scenario": "V1-同方向",
+          "reason": ""
+        },
+        "V3(三场景)": {
+          "prediction": [
+            "a",
+            "d"
+          ],
+          "prediction_cn": "负+平",
+          "hit": true,
+          "skip": false,
+          "scenario": "V3-场景A",
+          "reason": ""
+        },
+        "V4.1(完整版)": {
+          "prediction": [
+            "a",
+            "d"
+          ],
+          "prediction_cn": "负+平",
+          "hit": true,
+          "skip": false,
+          "scenario": "0-共同看好",
+          "reason": ""
+        },
+        "V4.1分层": {
+          "prediction": [
+            "a",
+            "d"
+          ],
+          "prediction_cn": "负+平",
+          "hit": true,
+          "skip": false,
+          "scenario": "0-共同看好",
+          "reason": ""
+        },
+        "最低赔率+平局": {
+          "prediction": [
+            "a",
+            "d"
+          ],
+          "prediction_cn": "负+平",
+          "hit": true,
+          "skip": false,
+          "scenario": "最低赔率",
+          "reason": ""
+        },
+        "Elo+平局": {
+          "prediction": [
+            "a",
+            "d"
+          ],
+          "prediction_cn": "负+平",
+          "hit": true,
+          "skip": false,
+          "scenario": "Elo+平",
+          "reason": ""
+        },
+        "Elo含平(双选)": {
+          "prediction": [
+            "a",
+            "d"
+          ],
+          "prediction_cn": "负+平",
+          "hit": true,
+          "skip": false,
+          "scenario": "Elo含平",
+          "reason": ""
+        },
+        "Elo+非平+三场景": {
+          "prediction": [
+            "a",
+            "d"
+          ],
+          "prediction_cn": "负+平",
+          "hit": true,
+          "skip": false,
+          "scenario": "Elo+三场景-A(一致)",
+          "reason": ""
+        },
+        "Kelly 7场景": {
+          "prediction": [
+            "a",
+            "d"
+          ],
+          "prediction_cn": "负+平",
+          "hit": true,
+          "skip": false,
+          "scenario": "7场景-0",
+          "reason": ""
+        },
+        "V4.1+非平(澳门+韦德)": {
+          "prediction": [
+            "a",
+            "d"
+          ],
+          "prediction_cn": "负+平",
+          "hit": true,
+          "skip": false,
+          "scenario": "0-共同看好",
+          "reason": ""
+        },
+        "V4.1+非平(365+韦德)": {
+          "prediction": [
+            "a",
+            "d"
+          ],
+          "prediction_cn": "负+平",
+          "hit": true,
+          "skip": false,
+          "scenario": "0-共同看好",
+          "reason": ""
+        }
+      }
+    }
+  ]
+}
