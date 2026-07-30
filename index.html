@@ -2980,10 +2980,10 @@ async function _doGenAIRec(){
   
   var today=_dateKey(new Date());
   var yesterday=_dateKey(new Date(Date.now()-86400000));
+  var tomorrowKey=_dateKey(new Date(Date.now()+86400000));
   var displayRecs=recs.filter(function(r){
-    if(!r.verified) return true;
     var recDate=r.date.substring(0,10).replace(/-/g,'');
-    return recDate===today||recDate===yesterday;
+    return recDate>=yesterday && recDate<=tomorrowKey;
   });
   displayRecs.sort(function(a,b){
     var getTime=function(r){var m=(r.matchTime||"").match(/(\d{2}):(\d{2})/);return m?m[1]+m[2]:"0000"};
@@ -3444,9 +3444,30 @@ function _renderAIRec(recs){
     return;
   }
   
-  var h="";
+  // 按日期分组
+  var groups={};
+  var groupOrder=[];
   for(var i=0;i<recs.length;i++){
-    h+=_renderAICard(recs[i]);
+    var dk=recs[i].date.substring(0,10).replace(/-/g,'');
+    if(!groups[dk]){groups[dk]=[];groupOrder.push(dk);}
+    groups[dk].push(recs[i]);
+  }
+  groupOrder.sort();
+  
+  var h="";
+  for(var gi=0;gi<groupOrder.length;gi++){
+    var dk=groupOrder[gi];
+    var list=groups[dk];
+    // 日期标签
+    var d=new Date(dk.substring(0,4)+"-"+dk.substring(4,6)+"-"+dk.substring(6,8));
+    var today=new Date();today.setHours(0,0,0,0);
+    var diff=Math.round((d-today)/(1000*60*60*24));
+    var label=diff===0?"今天":diff===1?"明天":diff===-1?"昨天":(d.getMonth()+1)+"/"+d.getDate();
+    var weekDay=["周日","周一","周二","周三","周四","周五","周六"][d.getDay()];
+    h+='<div style="padding:8px 16px 4px;font-size:13px;color:#9ca3af;font-weight:600;border-bottom:1px solid #1e293b;margin-bottom:6px">'+label+' '+weekDay+' <span style="color:#4b5563;font-weight:400">('+list.length+'场)</span></div>';
+    for(var mi=0;mi<list.length;mi++){
+      h+=_renderAICard(list[mi]);
+    }
   }
   el.innerHTML=h;
 }
@@ -3542,10 +3563,10 @@ async function _verifyAIRecs(){
     _updateAccPanel();
     var today=_dateKey(new Date());
     var yesterday=_dateKey(new Date(Date.now()-86400000));
+    var tomorrowKey=_dateKey(new Date(Date.now()+86400000));
     var displayRecs=recs.filter(function(r){
-      if(!r.verified) return true;
       var recDate=r.date.substring(0,10).replace(/-/g,'');
-      return recDate===today||recDate===yesterday;
+      return recDate>=yesterday && recDate<=tomorrowKey;
     });
     displayRecs.sort(function(a,b){
       var getTime=function(r){var m=(r.matchTime||"").match(/(\d{2}):(\d{2})/);return m?m[1]+m[2]:"0000"};
