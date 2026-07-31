@@ -2577,7 +2577,7 @@ try{
 var local=await _getScoreFromLocal(home,away,md);
 if(local) return local;
 }catch(e){console.log('Local score lookup failed:',e)}
-var enCode=_lc[lid]||({"mls":"usa.1","uefa.champions.qual":"uefa.champions"}[lid])||((lid&&lid.indexOf(".")>=0)?lid:null)||((lid&&lid.indexOf("fifa.")===0)?lid:null)||"eng.1";
+var enCode=_lc[lid]||({"mls":"usa.1","uefa.champions.qual":"uefa.champions","den.1":"den.1","sui.1":"sui.1","aut.1":"aut.1","bel.1":"bel.1","tur.1":"tur.1","pol.1":"pol.1","rou.1":"rou.1","isl.1":"isl.1","irl.1":"irl.1","fin.1":"fin.1","fin.2":"fin.2","nor.2":"nor.2","bra.2":"bra.2","kor.2":"kor.2","den.2":"den.2","sui.2":"sui.2"}[lid])||((lid&&lid.indexOf(".")>=0)?lid:null)||((lid&&lid.indexOf("fifa.")===0)?lid:null)||"eng.1";
 try{
 var url="https://site.api.espn.com/apis/site/v2/sports/soccer/"+enCode+"/scoreboard?dates="+ds;
 var resp=await fetch(url,{signal:AbortSignal.timeout(8000)});
@@ -3494,6 +3494,13 @@ function _renderAICard(rec){
     var hitText=rec.hit?'✅ 命中':'❌ 未中';
     var actualLabel=rec.actualResult==='胜'?'主胜':rec.actualResult==='负'?'客胜':'平局';
     resultBadge='<div class="ai-card-result"><div class="result-score">'+rec.homeScore+' - '+rec.awayScore+'</div><div class="result-label '+hitClass+'">'+actualLabel+' '+hitText+'</div></div>';
+  }else if(!rec.verified){
+    // 检查是否已过比赛时间但未获取到赛果
+    var recDateStr=(rec.date||"").substring(0,10).replace(/-/g,"");
+    var todayStr=_dateKey(new Date());
+    if(recDateStr&&recDateStr<=todayStr){
+      resultBadge='<div class="ai-card-result" style="background:#1a1a1a;border-color:#333"><div class="result-score" style="color:#6b7280">?-?</div><div class="result-label" style="color:#f59e0b">⏳ 赛果获取中</div></div>';
+    }
   }
   
   var h='<div class="ai-card'+(rec.skip?' ai-card-skip':'')+(rec.noKellyData?' no-kelly':'')+verifiedClass+'" onclick="_pickMatch(\''+_esc(rec.home)+'\',\''+_esc(rec.away)+'\',\''+rec.date+'\')">';
@@ -3639,6 +3646,14 @@ function _updateAccPanel(){
   
   
   var verifiedRecs=recs.filter(function(r){return r.verified});
+  // 按日期+时间排序，确保取最近10场
+  verifiedRecs.sort(function(a,b){
+    var da=(a.date||"")+(a.matchTime||"");
+    var db=(b.date||"")+(b.matchTime||"");
+    if(da<db) return -1;
+    if(da>db) return 1;
+    return 0;
+  });
   var last10=verifiedRecs.slice(-10);
   var last10Hit=0;
   for(var i=0;i<last10.length;i++){
@@ -3646,7 +3661,14 @@ function _updateAccPanel(){
   }
   var rollingRate=last10.length>0?Math.round(last10Hit/last10.length*100):0;
   var rollEl=document.getElementById("acc-rolling");
-  rollEl.textContent=rollingRate+"%";
+  // 显示近10场命中率+最近日期范围
+  var last10DateRange="";
+  if(last10.length>=2){
+    var d1=(last10[0].date||"").substring(0,10);
+    var d2=(last10[last10.length-1].date||"").substring(0,10);
+    last10DateRange=d1!==d2?" ("+d1.substring(5)+"~"+d2.substring(5)+")":" ("+d1.substring(5)+")";
+  }
+  rollEl.textContent=rollingRate+"% "+last10Hit+"/"+last10.length+last10DateRange;
   rollEl.parentElement.className="ai-acc-row"+(rollingRate>=80&&last10.length>=3?" highlight":"");if(rollingRate>=80&&last10.length>=3&&!rollEl.textContent.startsWith("\ud83d\udd25"))rollEl.textContent="\ud83d\udd25 "+rollEl.textContent;
   
   
