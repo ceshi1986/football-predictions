@@ -826,15 +826,16 @@ def _compute_kelly_from_odds_api(bookmaker_odds: dict) -> dict:
 
 
 
-def _calc_v2_strategy_tier(w, d, l):
+def _calc_v2_strategy_tier(w, d, l, kelly_data=None):
     """
-    V2策略分层检测（基于258场回测 2026-08-04，更新于19:17）
+    V2策略分层检测（基于258场回测 2026-08-04，融合V5更新于19:47）
     本质发现：博彩公司对"比赛会不会平"的判断是核心指标
     平赔>=4.0 → 平局概率<23% → 冷门率仅10% → 强队不败命中率90%
+    S+级：平赔>=4.0 + V5去平场景 → 13场100%，7/7天稳定
 
     Returns:
         (tier, fav_odds, draw_odds):
-        tier: 'S' | 'A' | None
+        tier: 'S+' | 'S' | 'A' | None
         fav_odds: 强队赔率
         draw_odds: 平赔
     """
@@ -846,9 +847,44 @@ def _calc_v2_strategy_tier(w, d, l):
 
     # S级精选：平赔>=4.0 → 69场89.9%（本质：平局概率<23%，冷门率仅10%）
     if draw_odds >= 4.0:
+        # S+融合检测：V5去平场景 → 13场100%
+        if kelly_data and kelly_data.get('bet365_kelly') and kelly_data.get('weide_kelly'):
+            k365 = kelly_data['bet365_kelly']
+            kw = kelly_data['weide_kelly']
+            p365 = kelly_data.get('bet365_payout', 0.93)
+            pw = kelly_data.get('weide_payout', 0.93)
+            # 各方向Kelly信号（<=payout=看好）
+            def kelly_sig(k, p):
+                sig = []
+                for d_key in ['h', 'd', 'a']:
+                    if k.get(d_key, 1.0) <= p:
+                        sig.append(d_key)
+                return set(sig)
+            sig365 = kelly_sig(k365, p365)
+            sigW = kelly_sig(kw, pw)
+            # 去平：看好胜+负，不看好平
+            def is_no_draw(sig):
+                return sig == {'h', 'a'}
+            # 看好不败：H={h,d}/pure_H={h}, A={d,a}
+            def is_h_safe(sig):
+                return sig in ({'h', 'd'}, {'h'})
+            def is_a_safe(sig):
+                return sig == {'d', 'a'}
+            # 去平场景（V5融合）：
+            # 场景⑤：一家去平+另一家看好不败(H或A)
+            # 场景③：两家都去平
+            is_quping = False
+            if is_no_draw(sig365) and (is_h_safe(sigW) or is_a_safe(sigW)):
+                is_quping = True
+            if is_no_draw(sigW) and (is_h_safe(sig365) or is_a_safe(sig365)):
+                is_quping = True
+            if is_no_draw(sig365) and is_no_draw(sigW):
+                is_quping = True
+            if is_quping:
+                return 'S+', fav_odds, draw_odds
         return 'S', fav_odds, draw_odds
 
-    # A级常规：平赔>=3.1 且 强赔<2.3（但平赔<4.0） → 124场75.2%
+    # A级常规：平赔>=3.1 且 强赔<2.3（但平赔<4.0） → 125场75.2%
     if draw_odds >= 3.1 and fav_odds < 2.3:
         return 'A', fav_odds, draw_odds
 
@@ -1133,7 +1169,7 @@ def predict_match(match: dict, teams: dict, kelly_data: dict = None) -> dict:
     v2_fav_odds = None
     v2_draw_odds = None
     if has_odds:
-        v2_tier, v2_fav_odds, v2_draw_odds = _calc_v2_strategy_tier(w, d, l)
+        v2_tier, v2_fav_odds, v2_draw_odds = _calc_v2_strategy_tier(w, d, l, kelly_data)
         if v2_tier and not skip:
             # V2条件满足 → 强制预测为"强队不败"（回测80.3%命中率）
             fav_odds_val = min(w, l)
@@ -1144,8 +1180,10 @@ def predict_match(match: dict, teams: dict, kelly_data: dict = None) -> dict:
             pred_type = 'double'
             prediction = f'{pick_cn}+平'
             double_pick = [pick_cn, '平']
-            if v2_tier == 'S':
-                reason = f'🏆V2精选(93%): 平赔{d:.1f}≥4.0+赔率差≥3.0，强队不败'
+            if v2_tier == 'S+':
+                reason = f'🔥V2精选(100%): 平赔{d:.1f}≥4.0+凯利去平，强队不败'
+            elif v2_tier == 'S':
+                reason = f'🏆V2精选(89.9%): 平赔{d:.1f}≥4.0，强队不败'
             else:
                 reason = f'✅V2策略(80.3%): 平赔{d:.1f}≥3.1+强赔{fav_odds_val:.2f}<2.3，强队不败'
             if odds_source:
@@ -3266,7 +3304,9 @@ async def main():
                     # V2策略标签
                     v2_tag = ""
                     v2t = p.get("v2Tier")
-                    if v2t == 'S':
+                    if v2t == 'S+':
+                        v2_tag = " 🔥V2精选"
+                    elif v2t == 'S':
                         v2_tag = " 🏆V2精选"
                     elif v2t == 'A':
                         v2_tag = " ✅V2"
@@ -3326,10 +3366,13 @@ async def main():
 
             # V2策略统计
             v2_preds = [p for p in today_preds if p.get("v2Tier") and not p.get("skip")]
+            v2_sp = [p for p in v2_preds if p.get("v2Tier") == 'S+']
             v2_s = [p for p in v2_preds if p.get("v2Tier") == 'S']
             v2_a = [p for p in v2_preds if p.get("v2Tier") == 'A']
             if v2_preds:
-                msg_parts.append(f"\n🎯 V2策略命中 {len(v2_preds)} 场（精选{len(v2_s)}+常规{len(v2_a)}）")
+                msg_parts.append(f"\n🎯 V2策略命中 {len(v2_preds)} 场（精选{len(v2_sp)}+{len(v2_s)}+常规{len(v2_a)}）")
+                for p in v2_sp[:3]:
+                    msg_parts.append(f"  🔥 {p['home']} vs {p['away']}: {p['prediction']} (平赔{p.get('v2DrawOdds','')}/强赔{p.get('v2FavOdds','')})")
                 for p in v2_s[:3]:
                     msg_parts.append(f"  🏆 {p['home']} vs {p['away']}: {p['prediction']} (平赔{p.get('v2DrawOdds','')}/强赔{p.get('v2FavOdds','')})")
 
