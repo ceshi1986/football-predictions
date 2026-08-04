@@ -1006,6 +1006,14 @@ function _detectKellyScenario(c365,cW,baseProbs,oddsConf){
     for(var i=0;i<commonFavor.length;i++){
       r.adjustments[_K_DK[commonFavor[i]]]+=0.15;
     }
+    // V5.1场景⑤标签检测：一家no_draw + 另一家看好不败
+    (function(){
+      function _isND(f,b){return f.length===2&&f.indexOf('h')>=0&&f.indexOf('a')>=0&&b.indexOf('d')>=0;}
+      function _udDir(f){if(f.indexOf('h')>=0&&f.indexOf('d')>=0&&f.indexOf('a')<0)return'h';if(f.indexOf('d')>=0&&f.indexOf('a')>=0&&f.indexOf('h')<0)return'a';return null;}
+      var nd365=_isND(f365,b365),ndW=_isND(fW,bW);
+      if(nd365&&!ndW){var ud=_udDir(fW);if(ud){r.scenarios.push('5');r.scenarios=r.scenarios.filter(function(s){return s!=='0';});r.pick=ud;r.adjustments[_K_DK[ud]]+=0.15;r.label='场景五-分胜负+不败→'+_K_DN[ud];return;}}
+      if(ndW&&!nd365){var ud=_udDir(f365);if(ud){r.scenarios.push('5');r.scenarios=r.scenarios.filter(function(s){return s!=='0';});r.pick=ud;r.adjustments[_K_DK[ud]]+=0.15;r.label='场景五-分胜负+不败→'+_K_DN[ud];return;}}
+    })();
     // 非主选的commonFavor方向作为补防(cover)，额外+0.05
     for(var j=0;j<commonFavor.length;j++){
       if(commonFavor[j]!==topDir){
@@ -1064,16 +1072,23 @@ function _detectKellyScenario(c365,cW,baseProbs,oddsConf){
     r.scenarios.push('3');r.adjustments.df=-(baseProbs.df*0.7);
     r.label='场景三-去平局';r._finalProbs=_kNormAdj(baseProbs,r.adjustments);return r;
   }
-  // 场景五：信号矛盾（仅在无共同bad时触发）
-  var o365=f365.filter(function(d){return fW.indexOf(d)<0});
-  var oW=fW.filter(function(d){return f365.indexOf(d)<0});
-  if(o365.length>=1&&oW.length>=1){
-    r.scenarios.push('5');
-    for(var i=0;i<safe.length;i++){r.adjustments[_K_DK[safe[i]]]+=0.05;}
-    r.adjustments.df+=0.03;r.confidence_mod-=10;
-    r.label='场景五-信号矛盾'+(dropped.length<_K_DIRS.length&&dropped.length>0?'('+dropped.map(function(d){return _K_DN[d]}).join(',')+'不看好)':'');
-    r._finalProbs=_kNormAdj(baseProbs,r.adjustments);return r;
-  }
+  // 场景五(V5.1)：一家no_draw(胜负K≤p,平K>p) + 另一家看好不败({胜,平}或{平,负}) → 跟不败方向
+  // 注意：V5.1场景⑤在数学上必然被场景零(共同看好)先捕获(共同看好方向=不败方向)
+  // 因此场景⑤的标签识别已内置在场景零中，此处为兜底保护
+  (function(){
+    function _isNoDraw(f,b){return f.length===2&&f.indexOf('h')>=0&&f.indexOf('a')>=0&&b.indexOf('d')>=0;}
+    function _undefDir(f){if(f.indexOf('h')>=0&&f.indexOf('d')>=0&&f.indexOf('a')<0)return'h';if(f.indexOf('d')>=0&&f.indexOf('a')>=0&&f.indexOf('h')<0)return'a';return null;}
+    var nd365=_isNoDraw(f365,b365),ndW=_isNoDraw(fW,bW);
+    var udDir=null;
+    if(nd365&&!ndW){udDir=_undefDir(fW);}
+    else if(ndW&&!nd365){udDir=_undefDir(f365);}
+    if(udDir){
+      r.scenarios.push('5');r.pick=udDir;
+      r.adjustments[_K_DK[udDir]]+=0.15;
+      r.label='场景五-分胜负+不败→'+_K_DN[udDir];
+      r._finalProbs=_kNormAdj(baseProbs,r.adjustments);return r;
+    }
+  })();
   // 场景二：各不看好不同方向
   if(b365.length>0&&bW.length>0){
     var dA=b365.filter(function(d){return bW.indexOf(d)<0});
@@ -3744,96 +3759,24 @@ function fpLogoutKey(){if(!confirm('确定退出Key？退出后部分内容将�
 
 function fpUpdateLockState(){
   var allCards=document.querySelectorAll('#ai-rec-body .ai-card');
-  // 先全部展示
+  // 开放模式：全部展示
   for(var i=0;i<allCards.length;i++){allCards[i].style.display=''}
   var oldCta=document.getElementById('fp-upgrade-cta');
   if(oldCta&&oldCta.parentNode) oldCta.parentNode.removeChild(oldCta);
-
-  // 已完赛的比赛（带verified class）始终免费展示，不参与锁定
-  // 只对未开赛的比赛（无verified class）执行锁定逻辑
-  var unverifiedCards=[];
-  for(var i=0;i<allCards.length;i++){
-    if(!allCards[i].classList.contains('verified')){
-      unverifiedCards.push(allCards[i]);
-    }
-  }
-
-  // 今天已解锁？直接展示全部
-  var today=new Date().toISOString().split('T')[0];
-  if(localStorage.getItem('fp_predictions_unlocked_date')===today) return;
-
-  // 未开赛的比赛不超过3场，无需锁定
-  if(unverifiedCards.length<=3) return;
-
-  // 锁住第4场及之后的未开赛比赛
-  for(var i=3;i<unverifiedCards.length;i++){unverifiedCards[i].style.display='none'}
-  var lockedCount=unverifiedCards.length-3;
-
-  var cta=document.createElement('div');
-  cta.id='fp-upgrade-cta';
-  cta.style.cssText='margin-top:12px;padding:12px 16px;text-align:center;background:rgba(245,158,11,0.08);border:1px solid rgba(245,158,11,0.2);border-radius:10px;color:#d1d5db;font-size:14px';
-
-  var key=fpGetActiveKey();
-  if(key){
-    // Key用户：一键解锁，扣token
-    cta.innerHTML='\ud83d\udd12 还有 '+lockedCount+' 场预测待解锁 \u00b7 <button onclick="fpUnlockAllPredictions()" style="background:linear-gradient(135deg,#f59e0b,#d97706);color:#000;border:none;padding:6px 16px;border-radius:8px;font-size:13px;font-weight:700;cursor:pointer;margin-left:4px">\ud83d\udd13 一键解锁（消耗 '+lockedCount*5000+' token）</button>';
-  }else{
-    // 非Key用户：引导购买
-    cta.innerHTML='\ud83d\udd12 还有 '+lockedCount+' 场预测待解锁 \u00b7 <button onclick="showPayModal(\'足球预测\')" style="background:linear-gradient(135deg,#f59e0b,#d97706);color:#000;border:none;padding:6px 16px;border-radius:8px;font-size:13px;font-weight:700;cursor:pointer;margin-left:4px">验证Key解锁</button>';
-  }
-  document.getElementById('ai-rec-body').appendChild(cta);
+  // 开放模式提示（可隐藏）
+  var banner=document.createElement('div');
+  banner.id='fp-upgrade-cta';
+  banner.style.cssText='margin-top:12px;padding:10px 16px;text-align:center;background:rgba(74,222,128,0.06);border:1px solid rgba(74,222,128,0.15);border-radius:10px;color:#9ca3af;font-size:12px';
+  banner.innerHTML='\ud83c\udf89 <span style="color:#4ade80;font-weight:600">限时开放</span> \u00b7 所有预测免费查看 \u00b7 输入Key可解锁AI深度分析';
+  document.getElementById('ai-rec-body').appendChild(banner);
 }
 
 function fpUnlockAllPredictions(){
-  var key=fpGetActiveKey();
-  if(!key){showToast('请先验证Key');showPayModal('足球预测');return}
-
   var allCards=document.querySelectorAll('#ai-rec-body .ai-card');
-  // 只对未开赛的比赛（无verified class）计数和解锁
-  var unverifiedCards=[];
-  for(var i=0;i<allCards.length;i++){
-    if(!allCards[i].classList.contains('verified')){
-      unverifiedCards.push(allCards[i]);
-    }
-  }
-  var lockedCount=Math.max(0,unverifiedCards.length-3);
-  if(lockedCount===0){showToast('没有需要解锁的预测');return}
-
-  // 检查token余额
-  var remaining=parseInt(localStorage.getItem('fp_paid_remaining')||'0');
-  var unlockCost=lockedCount*5000;if(remaining<unlockCost){
-    showToast('⚠️ Token不足！需要 '+unlockCost+' 个，当前剩余 '+remaining+' 个');
-    return;
-  }
-
-  // 扣token
-  var newRemaining=remaining-unlockCost;
-  localStorage.setItem('fp_paid_remaining',String(newRemaining));
-  fpKeyState.remaining=newRemaining;
-  if(newRemaining<=0){
-    fpKeyState.valid=false;
-    localStorage.removeItem('fp_paid_key');
-  }
-
-  // 记录今天已解锁
-  var today=new Date().toISOString().split('T')[0];
-  localStorage.setItem('fp_predictions_unlocked_date',today);
-
-  // 显示全部卡片（包括之前被锁定的未开赛比赛）
   for(var i=0;i<allCards.length;i++){allCards[i].style.display=''}
-
-  // 替换CTA为已解锁提示
   var oldCta=document.getElementById('fp-upgrade-cta');
   if(oldCta&&oldCta.parentNode) oldCta.parentNode.removeChild(oldCta);
-  var msg=document.createElement('div');
-  msg.id='fp-upgrade-cta';
-  msg.style.cssText='margin-top:12px;padding:10px 16px;text-align:center;background:rgba(74,222,128,0.08);border:1px solid rgba(74,222,128,0.2);border-radius:10px;color:#4ade80;font-size:14px';
-  msg.innerHTML='✅ 已解锁全部 '+unverifiedCards.length+' 场未开赛预测（消耗 '+lockedCount*5000+' token）';
-  document.getElementById('ai-rec-body').appendChild(msg);
-
-  // 更新顶部状态
-  if(typeof fpShowLoggedInUI==='function') fpShowLoggedInUI();
-  showToast('🎉 已解锁全部预测，扣除 '+unlockCost+' token');
+  showToast('\u2705 \u5df2\u89e3\u9501\u6240\u6709\u9884\u6d4b');
 }
 
 // 昨日战绩动态更新函数

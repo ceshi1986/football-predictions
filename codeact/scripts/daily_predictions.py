@@ -825,6 +825,35 @@ def _compute_kelly_from_odds_api(bookmaker_odds: dict) -> dict:
     return result
 
 
+
+def _calc_v2_strategy_tier(w, d, l):
+    """
+    V2策略分层检测（基于258场回测 2026-08-04）
+    核心逻辑：平赔高=平局概率低+强赔低=实力差距大 → 可预测性高
+    
+    Returns:
+        (tier, fav_odds, draw_odds): 
+        tier: 'S' | 'A' | None
+        fav_odds: 强队赔率
+        draw_odds: 平赔
+    """
+    if w is None or d is None or l is None:
+        return None, None, None
+    
+    fav_odds = min(w, l)  # 强队赔率（赔率低的是强队）
+    draw_odds = d
+    
+    # A级：平赔>=3.1 且 强赔<2.3 → 193场80.3%
+    if draw_odds >= 3.1 and fav_odds < 2.3:
+        # S级精选：平赔>=4.0 且 赔率差>=3.0 → 57场93%
+        underdog_odds = max(w, l)
+        odds_diff = underdog_odds - fav_odds
+        if draw_odds >= 4.0 and odds_diff >= 3.0:
+            return 'S', fav_odds, draw_odds
+        return 'A', fav_odds, draw_odds
+    
+    return None, fav_odds, draw_odds
+
 def predict_match(match: dict, teams: dict, kelly_data: dict = None) -> dict:
     """
     对单场比赛生成预测（融合凯利七场景引擎）
@@ -1099,6 +1128,31 @@ def predict_match(match: dict, teams: dict, kelly_data: dict = None) -> dict:
                     skip = True
                     stars = max(1, stars - 2)
 
+    # ===== V2策略分层检测（平赔×强赔双条件筛选） =====
+    v2_tier = None
+    v2_fav_odds = None
+    v2_draw_odds = None
+    if has_odds:
+        v2_tier, v2_fav_odds, v2_draw_odds = _calc_v2_strategy_tier(w, d, l)
+        if v2_tier and not skip:
+            # V2条件满足 → 强制预测为"强队不败"（回测80.3%命中率）
+            fav_odds_val = min(w, l)
+            if fav_odds_val == w:  # 主队是强队
+                pick_cn = '胜'
+            else:  # 客队是强队
+                pick_cn = '负'
+            pred_type = 'double'
+            prediction = f'{pick_cn}+平'
+            double_pick = [pick_cn, '平']
+            if v2_tier == 'S':
+                reason = f'🏆V2精选(93%): 平赔{d:.1f}≥4.0+赔率差≥3.0，强队不败'
+            else:
+                reason = f'✅V2策略(80.3%): 平赔{d:.1f}≥3.1+强赔{fav_odds_val:.2f}<2.3，强队不败'
+            if odds_source:
+                reason += f' · {odds_source}赔率'
+            # V2标记的比赛提升1星
+            stars = min(5, stars + 1)
+
     # 构建场景相关reason后缀
     if kelly_scenario and kelly_signal and '凯利场景' not in reason:
         reason += f' · [凯利{kelly_scenario}]{kelly_signal}'
@@ -1126,6 +1180,9 @@ def predict_match(match: dict, teams: dict, kelly_data: dict = None) -> dict:
         "contradiction": contradiction,
         "keBo": kelly_data.get('keBo') if kelly_data else None,
         "keBoType": kelly_data.get('keBoType') if kelly_data else None,
+        "v2Tier": v2_tier,
+        "v2FavOdds": round(v2_fav_odds, 2) if v2_fav_odds else None,
+        "v2DrawOdds": round(v2_draw_odds, 2) if v2_draw_odds else None,
     }
 
 
@@ -3039,6 +3096,9 @@ async def main():
                 "kellyDispersion": pred.get("kellyDispersion"),
                 "keBo": pred.get("keBo"),
                 "keBoType": pred.get("keBoType"),
+                "v2Tier": pred.get("v2Tier"),
+                "v2FavOdds": pred.get("v2FavOdds"),
+                "v2DrawOdds": pred.get("v2DrawOdds"),
                 "noKellyData": False,
                 "verified": False,
                 "actualResult": None,
@@ -3203,13 +3263,20 @@ async def main():
                     disp_tag = f" D{round(kelly_disp,3)}" if kelly_disp else ""
                     unique_tag = ""
                     reverse_tag = ""
+                    # V2策略标签
+                    v2_tag = ""
+                    v2t = p.get("v2Tier")
+                    if v2t == 'S':
+                        v2_tag = " 🏆V2精选"
+                    elif v2t == 'A':
+                        v2_tag = " ✅V2"
                     conf = p.get("confidence", 0)
                     pred_text = p.get("prediction", "")
                     pred_type = "单选" if p.get("type") == "single" else "双选"
 
                     line = (
                         f"  {p.get('home', '')} vs {p.get('away', '')}\n"
-                        f"    {pred_type} {pred_text} | 置信度{conf}% | {stars_str}{kelly_tag}{disp_tag}{unique_tag}{reverse_tag}{skip_tag}\n"
+                        f"    {pred_type} {pred_text} | 置信度{conf}% | {stars_str}{kelly_tag}{disp_tag}{unique_tag}{reverse_tag}{v2_tag}{skip_tag}\n"
                         f"    {odds_tag} {p.get('reason', '')}"
                     )
                     summary_lines.append(line)
@@ -3256,6 +3323,15 @@ async def main():
                 )
             if len(today_preds) > 10:
                 msg_parts.append(f"...还有 {len(today_preds) - 10} 场")
+
+            # V2策略统计
+            v2_preds = [p for p in today_preds if p.get("v2Tier") and not p.get("skip")]
+            v2_s = [p for p in v2_preds if p.get("v2Tier") == 'S']
+            v2_a = [p for p in v2_preds if p.get("v2Tier") == 'A']
+            if v2_preds:
+                msg_parts.append(f"\n🎯 V2策略命中 {len(v2_preds)} 场（精选{len(v2_s)}+常规{len(v2_a)}）")
+                for p in v2_s[:3]:
+                    msg_parts.append(f"  🏆 {p['home']} vs {p['away']}: {p['prediction']} (平赔{p.get('v2DrawOdds','')}/强赔{p.get('v2FavOdds','')})")
 
             # 推荐重点
             recommended = [p for p in today_preds if not p.get("skip") and p.get("stars", 0) >= 3]
