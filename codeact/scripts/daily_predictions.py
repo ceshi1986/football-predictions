@@ -828,30 +828,30 @@ def _compute_kelly_from_odds_api(bookmaker_odds: dict) -> dict:
 
 def _calc_v2_strategy_tier(w, d, l):
     """
-    V2策略分层检测（基于258场回测 2026-08-04）
-    核心逻辑：平赔高=平局概率低+强赔低=实力差距大 → 可预测性高
-    
+    V2策略分层检测（基于258场回测 2026-08-04，更新于19:17）
+    本质发现：博彩公司对"比赛会不会平"的判断是核心指标
+    平赔>=4.0 → 平局概率<23% → 冷门率仅10% → 强队不败命中率90%
+
     Returns:
-        (tier, fav_odds, draw_odds): 
+        (tier, fav_odds, draw_odds):
         tier: 'S' | 'A' | None
         fav_odds: 强队赔率
         draw_odds: 平赔
     """
     if w is None or d is None or l is None:
         return None, None, None
-    
+
     fav_odds = min(w, l)  # 强队赔率（赔率低的是强队）
     draw_odds = d
-    
-    # A级：平赔>=3.1 且 强赔<2.3 → 193场80.3%
+
+    # S级精选：平赔>=4.0 → 69场89.9%（本质：平局概率<23%，冷门率仅10%）
+    if draw_odds >= 4.0:
+        return 'S', fav_odds, draw_odds
+
+    # A级常规：平赔>=3.1 且 强赔<2.3（但平赔<4.0） → 124场75.2%
     if draw_odds >= 3.1 and fav_odds < 2.3:
-        # S级精选：平赔>=4.0 且 赔率差>=3.0 → 57场93%
-        underdog_odds = max(w, l)
-        odds_diff = underdog_odds - fav_odds
-        if draw_odds >= 4.0 and odds_diff >= 3.0:
-            return 'S', fav_odds, draw_odds
         return 'A', fav_odds, draw_odds
-    
+
     return None, fav_odds, draw_odds
 
 def predict_match(match: dict, teams: dict, kelly_data: dict = None) -> dict:
