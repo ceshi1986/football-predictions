@@ -2668,10 +2668,12 @@ return false;
 }
 async function _getScoreFromLocal(home,away,md){
 var data=await _loadLocalResults();
-if(!data||!data.results) return null;
+if(!data) return null;
+var arr=Array.isArray(data)?data:(data.results||null);
+if(!arr) return null;
 var ds=md.replace(/-/g,'');
-for(var i=0;i<data.results.length;i++){
-var r=data.results[i];
+for(var i=0;i<arr.length;i++){
+var r=arr[i];
 if(r.date!==ds) continue;
 var fwd=_matchTeamCN(r.home,home)&&_matchTeamCN(r.away,away);
 var rev=_matchTeamCN(r.home,away)&&_matchTeamCN(r.away,home);
