@@ -2,7 +2,7 @@
   {
     "name": "daily_predictions.py",
     "path": "./codeact/scripts/daily_predictions.py",
-    "description": "每日足球预测 - 凯利策略+Elo降级+竞彩网赔率fallback；The Odds API赔率优先，无Odds API数据时自动从竞彩网(sporttery.cn)获取胜平负赔率作为备选数据源，含凯利场景分析（Pinnacle/BetVictor）、唯独信号、反向信号、场景D和立博平局过滤",
+    "description": "每日足球预测 - V6 36场景Kelly分类体系+V5七场景引擎+Elo降级；365+韦德双公司Kelly强队视角分类（范畴一/二/三+蛙跳盘），看好等级（强看好/看好/分歧/博冷）+信心等级（强信心/中等信心/弱信心待验证）；竞彩网赔率fallback；含凯利场景分析（Bet365/韦德/立博）、独特信号、反向信号、场景D和立博平局过滤",
     "params": {
       "result_mode": "display_only"
     },

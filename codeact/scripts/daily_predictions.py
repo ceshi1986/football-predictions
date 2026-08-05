@@ -890,10 +890,249 @@ def _calc_v2_strategy_tier(w, d, l, kelly_data=None):
 
     return None, fav_odds, draw_odds
 
-def predict_match(match: dict, teams: dict, kelly_data: dict = None) -> dict:
+# ===== V6 36场景Kelly分类体系（2026-08-05定稿） =====
+# 强队视角状态字母映射: frozenset(favored_directions) → (当强队是主队, 当强队是客队)
+_V6_STATE_MAP = {
+    frozenset(['h']): ('A', 'Z'),
+    frozenset(['h', 'd']): ('B', 'C'),
+    frozenset(['h', 'a']): ('C', 'B'),
+    frozenset(['d']): ('Y', 'Y'),
+    frozenset(['a']): ('Z', 'A'),
+    frozenset(['d', 'a']): ('W', 'W'),
+    frozenset(['h', 'd', 'a']): ('D', 'D'),
+    frozenset(): ('X', 'X'),
+}
+
+# V6 36场景策略表: (365_state, weide_state) → (prediction, hit_rate%)
+_V6_SCENARIO_TABLE = {
+    # 范畴一（9场）
+    ('A','A'): ('胜平', 61.9), ('A','B'): ('胜平', 90.0), ('A','C'): ('胜负', 50.0),
+    ('B','A'): ('胜平', 71.4), ('B','B'): ('胜平', 87.5), ('B','C'): ('胜平', 75.0),
+    ('C','A'): ('胜负', 78.6), ('C','B'): ('胜平', 83.3), ('C','C'): ('胜负', 85.7),
+    # 范畴二（18场）
+    ('W','A'): ('胜平', 92.9), ('W','B'): ('平胜', 66.7), ('W','C'): ('负胜', 50.0),
+    ('A','W'): ('胜平', 70.0), ('A','Y'): ('胜平', 60.0), ('A','Z'): ('胜负', 71.4),
+    ('B','W'): ('平胜', 66.7), ('B','Y'): ('胜平', 80.0), ('B','Z'): ('胜平', 100.0),
+    ('C','W'): ('负胜', 100.0), ('C','Y'): ('胜平', 66.7), ('C','Z'): ('胜负', 50.0),
+    ('Y','A'): ('胜平', 100.0), ('Y','B'): ('胜平', 75.0), ('Y','C'): ('胜平', 100.0),
+    ('Z','A'): ('胜负', 100.0), ('Z','B'): ('胜平', 66.7), ('Z','C'): ('胜负', 100.0),
+    # 范畴三（9场）
+    ('W','W'): ('平负', 50.0), ('W','Y'): ('平负', 100.0), ('W','Z'): ('平负', 100.0),
+    ('Y','W'): ('平负', 50.0), ('Y','Y'): ('平胜', 66.7), ('Y','Z'): ('平负', 66.7),
+    ('Z','W'): ('平负', 50.0), ('Z','Y'): ('平负', 100.0), ('Z','Z'): ('负胜', 0.0),
+}
+
+# 范畴一/二/三包含的状态字母（含强队胜方向A/B/C vs 不含Y/Z/W）
+_V6_FAV_DIRS = {'A', 'B', 'C'}  # 含强队胜方向
+_V6_NON_FAV_DIRS = {'Y', 'Z', 'W'}  # 不含强队胜方向
+
+# 蛙跳盘阈值：澳门赔率变动 >= 此值视为蛙跳
+_V6_FROG_JUMP_THRESHOLD = 0.08
+
+
+def _get_v6_state_letter(favored_dirs: set, is_home_strong: bool) -> str:
+    """根据看好方向和强队位置，返回V6状态字母"""
+    key = frozenset(favored_dirs)
+    mapping = _V6_STATE_MAP.get(key)
+    if mapping is None:
+        return 'X'
+    return mapping[0] if is_home_strong else mapping[1]
+
+
+def _detect_frog_jump(macau_data: dict, is_home_strong: bool) -> dict:
     """
-    对单场比赛生成预测（融合凯利七场景引擎）
+    检测澳门蛙跳盘
+    macau_data: {"initial_odds": [w,d,l], "latest_odds": [w,d,l]} 或 None
+    is_home_strong: 强队是否为主队
+    
+    Returns: {"jump": True/False, "direction": "up"/"down"/None}
+    up=上盘跳(强队赔率下降), down=下盘跳(弱队赔率下降)
+    """
+    if not macau_data:
+        return {"jump": False, "direction": None}
+    initial = macau_data.get("initial_odds", [])
+    latest = macau_data.get("latest_odds", [])
+    if len(initial) < 3 or len(latest) < 3:
+        return {"jump": False, "direction": None}
+    
+    threshold = _V6_FROG_JUMP_THRESHOLD
+    if is_home_strong:
+        strong_diff = initial[0] - latest[0]  # 主胜赔率变化（正=下降）
+        weak_diff = initial[2] - latest[2]    # 客胜赔率变化
+    else:
+        strong_diff = initial[2] - latest[2]  # 客胜赔率变化
+        weak_diff = initial[0] - latest[0]    # 主胜赔率变化
+    
+    if strong_diff >= threshold and strong_diff > weak_diff:
+        return {"jump": True, "direction": "up"}
+    if weak_diff >= threshold and weak_diff > strong_diff:
+        return {"jump": True, "direction": "down"}
+    return {"jump": False, "direction": None}
+
+
+def classify_v6_scenario(kelly_data: dict, odds_365: dict = None, macau_data: dict = None) -> dict:
+    """
+    V6 36场景Kelly分类
+    
+    Args:
+        kelly_data: calc_kelly_scenario返回的数据，含bet365_kelly/weide_kelly/payout
+        odds_365: {"w": float, "d": float, "l": float} bet365赔率（判断强队方向）
+        macau_data: {"initial_odds": [w,d,l], "latest_odds": [w,d,l]} 澳门赔率（蛙跳检测）
+    
+    Returns:
+        {
+            "scenario": "AB",        # 场景代码
+            "category": 1,           # 范畴1/2/3
+            "favor_level": "看好",    # 看好等级
+            "confidence_level": "强信心",  # 信心等级
+            "prediction": "胜平",     # 双选策略
+            "hit_rate": 90.0,        # 历史命中率
+            "is_frog_jump": False,   # 是否蛙跳盘
+            "frog_direction": None,  # 蛙跳方向
+            "state_365": "A",        # 365状态字母
+            "state_weide": "B",      # 韦德状态字母
+        }
+        若无法分类（D/X状态或缺数据）返回 None
+    """
+    if not kelly_data:
+        return None
+    
+    b365_kelly = kelly_data.get('bet365_kelly')
+    bw_kelly = kelly_data.get('weide_kelly')
+    b365_payout = kelly_data.get('bet365_payout')
+    bw_payout = kelly_data.get('weide_payout')
+    
+    if not b365_kelly or not bw_kelly or not b365_payout or not bw_payout:
+        return None
+    
+    # 判断强队方向（365赔率：胜赔≤负赔→主队强）
+    is_home_strong = True
+    if odds_365:
+        w_odds = odds_365.get('w', 0)
+        l_odds = odds_365.get('l', 0)
+        if w_odds > 1 and l_odds > 1:
+            is_home_strong = w_odds <= l_odds
+    
+    # 获取各公司看好方向（Kelly <= payout）
+    favored_365 = set()
+    for d in ['h', 'd', 'a']:
+        if b365_kelly.get(d, 1.0) <= b365_payout:
+            favored_365.add(d)
+    
+    favored_weide = set()
+    for d in ['h', 'd', 'a']:
+        if bw_kelly.get(d, 1.0) <= bw_payout:
+            favored_weide.add(d)
+    
+    # 转为强队视角状态字母
+    state_365 = _get_v6_state_letter(favored_365, is_home_strong)
+    state_weide = _get_v6_state_letter(favored_weide, is_home_strong)
+    
+    # D状态处理：某公司三个方向Kelly全部≤payout（全看好）
+    # 取Kelly值最高的方向为"不看好"，其余两个为"看好"，映射到A/B/C/W/Y/Z
+    has_d_state = False
+    
+    # 两家同时D → 无法分类
+    if state_365 == 'D' and state_weide == 'D':
+        return None
+    
+    # 单家D状态：转换（取Kelly最高的方向为不看好）
+    if state_365 == 'D':
+        max_kelly_dir = max(['h', 'd', 'a'], key=lambda d: b365_kelly.get(d, 0))
+        favored_365_d = favored_365 - {max_kelly_dir}
+        state_365 = _get_v6_state_letter(favored_365_d, is_home_strong)
+        has_d_state = True
+    
+    if state_weide == 'D':
+        max_kelly_dir = max(['h', 'd', 'a'], key=lambda d: bw_kelly.get(d, 0))
+        favored_weide_d = favored_weide - {max_kelly_dir}
+        state_weide = _get_v6_state_letter(favored_weide_d, is_home_strong)
+        has_d_state = True
+    
+    # X状态排除（X = 三个方向都不看好，无法分类）
+    if state_365 == 'X' or state_weide == 'X':
+        return None
+    
+    # 检查蛙跳盘（最高优先级）
+    frog_jump = _detect_frog_jump(macau_data, is_home_strong)
+    if frog_jump["jump"]:
+        # 蛙跳盘：直接跟跳方向
+        if is_home_strong:
+            if frog_jump["direction"] == "up":
+                pred = "胜平"
+            else:
+                pred = "平负"
+        else:
+            if frog_jump["direction"] == "up":
+                pred = "平负"
+            else:
+                pred = "胜平"
+        return {
+            "scenario": "蛙跳",
+            "category": 0,
+            "favor_level": "强看好",
+            "confidence_level": "强信心",
+            "prediction": pred,
+            "hit_rate": 100.0,
+            "is_frog_jump": True,
+            "frog_direction": frog_jump["direction"],
+            "state_365": state_365,
+            "state_weide": state_weide,
+            "has_d_state": has_d_state,
+        }
+    
+    # 查36场景策略表
+    scenario_key = (state_365, state_weide)
+    scenario_entry = _V6_SCENARIO_TABLE.get(scenario_key)
+    if not scenario_entry:
+        return None
+    
+    prediction, hit_rate = scenario_entry
+    scenario_code = f"{state_365}{state_weide}"
+    
+    # 范畴判定
+    s365_in_fav = state_365 in _V6_FAV_DIRS
+    sweide_in_fav = state_weide in _V6_FAV_DIRS
+    if s365_in_fav and sweide_in_fav:
+        category = 1
+        favor_level = "看好"
+    elif s365_in_fav or sweide_in_fav:
+        category = 2
+        favor_level = "分歧"
+    else:
+        category = 3
+        favor_level = "博冷"
+    
+    # 信心等级
+    if hit_rate >= 80.0:
+        confidence_level = "强信心"
+    elif hit_rate >= 70.0:
+        confidence_level = "中等信心"
+    else:
+        confidence_level = "弱信心待验证"
+    
+    return {
+        "scenario": scenario_code,
+        "category": category,
+        "favor_level": favor_level,
+        "confidence_level": confidence_level,
+        "prediction": prediction,
+        "hit_rate": hit_rate,
+        "is_frog_jump": False,
+        "frog_direction": None,
+        "state_365": state_365,
+        "state_weide": state_weide,
+        "has_d_state": has_d_state,
+    }
+
+
+def predict_match(match: dict, teams: dict, kelly_data: dict = None,
+                  odds_365: dict = None, macau_data: dict = None) -> dict:
+    """
+    对单场比赛生成预测（融合V6 36场景Kelly分类 + V5七场景引擎）
     kelly_data: 来自 calc_kelly_scenario() 的七场景分析数据
+    odds_365: bet365赔率 {"w": float, "d": float, "l": float}（V6强队判定）
+    macau_data: 澳门赔率数据（V6蛙跳检测）{"initial_odds": [w,d,l], "latest_odds": [w,d,l]}
     返回预测结果字典
     """
     home = match.get("home", "")
@@ -1191,8 +1430,59 @@ def predict_match(match: dict, teams: dict, kelly_data: dict = None) -> dict:
             # V2标记的比赛提升1星
             stars = min(5, stars + 1)
 
+    # ===== V6 36场景Kelly分类（最高优先级） =====
+    v6_result = classify_v6_scenario(kelly_data, odds_365=odds_365, macau_data=macau_data)
+    v6_scenario = None
+    v6_category = None
+    favor_level = None
+    confidence_level = None
+    v6_hit_rate = None
+    v6_is_frog_jump = False
+    v6_state_365 = None
+    v6_state_weide = None
+    v6_has_d_state = False
+
+    if v6_result:
+        v6_scenario = v6_result['scenario']
+        v6_category = v6_result['category']
+        favor_level = v6_result['favor_level']
+        confidence_level = v6_result['confidence_level']
+        v6_hit_rate = v6_result['hit_rate']
+        v6_is_frog_jump = v6_result['is_frog_jump']
+        v6_state_365 = v6_result.get('state_365')
+        v6_state_weide = v6_result.get('state_weide')
+        v6_has_d_state = v6_result.get('has_d_state', False)
+
+        # V6双选策略覆盖现有预测
+        v6_pred = v6_result['prediction']
+        # 解析V6双选为两个方向
+        v6_parts = list(v6_pred)  # e.g., "胜平" → ['胜', '平'], "负胜" → ['负', '胜']
+        if len(v6_parts) == 2:
+            pred_type = 'double'
+            prediction = f'{v6_parts[0]}+{v6_parts[1]}'
+            double_pick = v6_parts
+
+            # 构建V6 reason
+            if v6_is_frog_jump:
+                frog_dir = v6_result.get('frog_direction', '')
+                frog_label = '上盘跳' if frog_dir == 'up' else '下盘跳'
+                reason = f'🐸蛙跳盘({frog_label}) → {prediction} | {favor_level} | {confidence_level}'
+            else:
+                d_tag = '含D ' if v6_has_d_state else ''
+                reason = f'V6场景{v6_scenario}({d_tag}{favor_level} | {confidence_level} | 历史{v6_hit_rate}%) → {prediction}'
+
+            if has_odds and odds_source:
+                reason += f' · {odds_source}赔率'
+
+            # V6看好等级影响星级
+            if favor_level == '强看好':
+                stars = min(5, max(stars, 4))  # 蛙跳盘至少4星
+            elif favor_level == '看好':
+                stars = min(5, max(stars, 3))  # 范畴一至少3星
+            # 分歧和博冷不额外调星
+
     # 构建场景相关reason后缀
-    if kelly_scenario and kelly_signal and '凯利场景' not in reason:
+    if kelly_scenario and kelly_signal and '凯利场景' not in reason and 'V6场景' not in reason:
         reason += f' · [凯利{kelly_scenario}]{kelly_signal}'
     if contradiction:
         reason += ' · ⚠️赔率与凯利矛盾'
@@ -1221,6 +1511,16 @@ def predict_match(match: dict, teams: dict, kelly_data: dict = None) -> dict:
         "v2Tier": v2_tier,
         "v2FavOdds": round(v2_fav_odds, 2) if v2_fav_odds else None,
         "v2DrawOdds": round(v2_draw_odds, 2) if v2_draw_odds else None,
+        # V6新增字段
+        "v6Scenario": v6_scenario,
+        "v6Category": v6_category,
+        "favorLevel": favor_level,
+        "confidenceLevel": confidence_level,
+        "v6HitRate": v6_hit_rate,
+        "v6IsFrogJump": v6_is_frog_jump,
+        "v6State365": v6_state_365,
+        "v6StateWeide": v6_state_weide,
+        "v6HasDState": v6_has_d_state,
     }
 
 
@@ -2903,6 +3203,8 @@ async def main():
 
             # 匹配 The Odds API 多公司赔率数据
             kelly_data = None
+            match_odds_365 = None   # V6: bet365赔率（强队判定）
+            match_macau_data = None # V6: 澳门赔率数据（蛙跳检测）
             match_league = m.get("league", "")
             sched_en = schedule_en_map_for_odds.get(match_id, {})
             sched_home_en = sched_en.get("homeEN", "")
@@ -2939,6 +3241,10 @@ async def main():
                         _ep = calc_elo_probs(get_team_strength(teams, _home), get_team_strength(teams, _away))
                         _base_p = {'hf': _ep['胜'], 'df': _ep['平'], 'af': _ep['负']}
                     kelly_data = calc_kelly_scenario(_odds_kelly, _base_p, odds={'w': _w2, 'd': _d2, 'l': _l2} if _w2 and _d2 and _l2 else None)
+                # V6: 提取bet365赔率用于强队判定
+                if matched_odds_evt.get("bookmakers", {}).get("bet365"):
+                    _b365_odds = matched_odds_evt["bookmakers"]["bet365"]
+                    match_odds_365 = {"w": _b365_odds.get("home", 0), "d": _b365_odds.get("draw", 0), "l": _b365_odds.get("away", 0)}
                 if kelly_data and kelly_data.get("scenario"):
                     disp_tag = f" 离散度{round(kelly_data.get('dispersion',0),3)}" if kelly_data.get('dispersion') else ""
                     skip_tag_k = " [SKIP]" if kelly_data.get('skip') else ""
@@ -2961,6 +3267,16 @@ async def main():
                             _ep3 = calc_elo_probs(get_team_strength(teams, _home), get_team_strength(teams, _away))
                             _base_p3 = {'hf': _ep3['胜'], 'df': _ep3['平'], 'af': _ep3['负']}
                         kelly_data = calc_kelly_scenario(_kelly_companies, _base_p3, odds={'w': _w3, 'd': _d3, 'l': _l3} if _w3 and _d3 and _l3 else None)
+                        # V6: 提取bet365赔率
+                        if not match_odds_365:
+                            _b365_rec = matched_500com.get("companies", {}).get("Bet365", [])
+                            if _b365_rec:
+                                _b365_r = _b365_rec[0] if isinstance(_b365_rec, list) else _b365_rec
+                                _bw = _b365_r.get("odds_h", 0)
+                                _bd = _b365_r.get("odds_d", 0)
+                                _bl = _b365_r.get("odds_a", 0)
+                                if _bw > 1 and _bd > 1 and _bl > 1:
+                                    match_odds_365 = {"w": _bw, "d": _bd, "l": _bl}
                         if kelly_data and kelly_data.get("scenario"):
                             disp_tag = f" 离散度{round(kelly_data.get('dispersion',0),3)}" if kelly_data.get('dispersion') else ""
                             skip_tag_k = " [SKIP]" if kelly_data.get('skip') else ""
@@ -3009,6 +3325,18 @@ async def main():
                                 _ep4 = calc_elo_probs(get_team_strength(teams, _home), get_team_strength(teams, _away))
                                 _base_p4 = {'hf': _ep4['胜'], 'df': _ep4['平'], 'af': _ep4['负']}
                         kelly_data = calc_kelly_scenario(_kelly_companies_z, _base_p4, odds={'w': _w4, 'd': _d4, 'l': _l4} if _w4 and _d4 and _l4 else None)
+                        # V6: 从zgzcw提取bet365赔率和澳门赔率
+                        if not match_odds_365:
+                            _z_b365_odds = matched_zgzcw.get("companies", {}).get("bet365", {})
+                            _z_latest_odds = _z_b365_odds.get("latest_odds", [])
+                            if len(_z_latest_odds) >= 3 and all(x > 1 for x in _z_latest_odds):
+                                match_odds_365 = {"w": _z_latest_odds[0], "d": _z_latest_odds[1], "l": _z_latest_odds[2]}
+                        # V6: 提取澳门初始/最新赔率（蛙跳检测）
+                        _z_macau = matched_zgzcw.get("companies", {}).get("macau", {})
+                        _z_macau_init = _z_macau.get("initial_odds", [])
+                        _z_macau_latest = _z_macau.get("latest_odds", [])
+                        if len(_z_macau_init) >= 3 and len(_z_macau_latest) >= 3:
+                            match_macau_data = {"initial_odds": _z_macau_init, "latest_odds": _z_macau_latest}
                         if kelly_data and kelly_data.get("scenario"):
                             disp_tag = f" 离散度{round(kelly_data.get('dispersion',0),3)}" if kelly_data.get('dispersion') else ""
                             skip_tag_k = " [SKIP]" if kelly_data.get('skip') else ""
@@ -3105,7 +3433,7 @@ async def main():
                     continue
 
             # 生成新预测（有Kelly数据时才执行）
-            pred = predict_match(m, teams, kelly_data=kelly_data)
+            pred = predict_match(m, teams, kelly_data=kelly_data, odds_365=match_odds_365, macau_data=match_macau_data)
 
             # 构建预测记录
             record = {
@@ -3137,6 +3465,15 @@ async def main():
                 "v2Tier": pred.get("v2Tier"),
                 "v2FavOdds": pred.get("v2FavOdds"),
                 "v2DrawOdds": pred.get("v2DrawOdds"),
+                "v6Scenario": pred.get("v6Scenario"),
+                "v6Category": pred.get("v6Category"),
+                "favorLevel": pred.get("favorLevel"),
+                "confidenceLevel": pred.get("confidenceLevel"),
+                "v6HitRate": pred.get("v6HitRate"),
+                "v6IsFrogJump": pred.get("v6IsFrogJump"),
+                "v6State365": pred.get("v6State365"),
+                "v6StateWeide": pred.get("v6StateWeide"),
+                "v6HasDState": pred.get("v6HasDState"),
                 "noKellyData": False,
                 "verified": False,
                 "actualResult": None,
@@ -3310,13 +3647,27 @@ async def main():
                         v2_tag = " 🏆V2精选"
                     elif v2t == 'A':
                         v2_tag = " ✅V2"
+                    # V6标签
+                    v6_tag = ""
+                    v6s = p.get("v6Scenario")
+                    v6fl = p.get("favorLevel")
+                    v6cl = p.get("confidenceLevel")
+                    v6hr = p.get("v6HitRate")
+                    v6frog = p.get("v6IsFrogJump")
+                    if v6s:
+                        if v6frog:
+                            v6_tag = f" 🐸蛙跳|{v6fl}|{v6cl}"
+                        else:
+                            v6_tag = f" 场景{v6s}|{v6fl}|{v6cl}"
+                            if v6hr is not None:
+                                v6_tag += f"|{v6hr:.0f}%"
                     conf = p.get("confidence", 0)
                     pred_text = p.get("prediction", "")
                     pred_type = "单选" if p.get("type") == "single" else "双选"
 
                     line = (
                         f"  {p.get('home', '')} vs {p.get('away', '')}\n"
-                        f"    {pred_type} {pred_text} | 置信度{conf}% | {stars_str}{kelly_tag}{disp_tag}{unique_tag}{reverse_tag}{v2_tag}{skip_tag}\n"
+                        f"    {pred_type} {pred_text} | 置信度{conf}% | {stars_str}{v6_tag}{kelly_tag}{disp_tag}{unique_tag}{reverse_tag}{v2_tag}{skip_tag}\n"
                         f"    {odds_tag} {p.get('reason', '')}"
                     )
                     summary_lines.append(line)
@@ -3357,8 +3708,24 @@ async def main():
             for p in today_preds[:10]:
                 stars_str = star_symbols.get(p.get("stars", 1), "☆")
                 skip_tag = " ⚠️" if p.get("skip") else ""
+                # V6标签（看好等级|信心等级|场景|命中率）
+                v6_info = ""
+                v6s = p.get("v6Scenario")
+                v6fl = p.get("favorLevel")
+                v6cl = p.get("confidenceLevel")
+                v6hr = p.get("v6HitRate")
+                v6frog = p.get("v6IsFrogJump")
+                v6d = p.get("v6HasDState")
+                if v6s:
+                    d_tag = "含D " if v6d else ""
+                    if v6frog:
+                        v6_info = f"（{d_tag}{v6fl} | {v6cl} | 🐸蛙跳）"
+                    else:
+                        hr_str = f"历史{v6hr:.0f}%" if v6hr is not None else ""
+                        v6_info = f"（{d_tag}{v6fl} | {v6cl} | 场景{v6s} | {hr_str}）"
                 msg_parts.append(
                     f"• {p['home']} vs {p['away']}: {p['prediction']} "
+                    f"{v6_info}"
                     f"({p['confidence']}% {stars_str}{skip_tag})"
                 )
             if len(today_preds) > 10:
@@ -3382,7 +3749,12 @@ async def main():
                 msg_parts.append(f"\n🎯 重点推荐 ({len(recommended)} 场):")
                 for p in recommended[:5]:
                     stars_str = star_symbols.get(p.get("stars", 1), "☆")
-                    msg_parts.append(f"  ★ {p['home']} vs {p['away']}: {p['prediction']} ({p['confidence']}% {stars_str})")
+                    v6_rec = ""
+                    _v6s = p.get("v6Scenario")
+                    _v6fl = p.get("favorLevel")
+                    if _v6s:
+                        v6_rec = f" [{_v6fl}/场景{_v6s}]"
+                    msg_parts.append(f"  ★ {p['home']} vs {p['away']}: {p['prediction']} ({p['confidence']}% {stars_str}{v6_rec})")
 
             msg_parts.append(f"\n历史命中率: {hit_rate}% | GitHub更新: {'✅' if push_success else '❌'}")
             

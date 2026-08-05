@@ -432,10 +432,10 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;b
 </div>
 
 
-<div class="key-bar" id="fp-key-bar">
+<div class="key-bar" id="fp-key-bar" style="display:none">
   <div class="key-bar-inner">
     <span class="key-icon">🔑</span>
-    <span class="key-hint" id="fp-key-hint">🎁 免费查看基础预测 | 验证Key解锁完整分析+AI预测+投注建议</span>
+    <span class="key-hint" id="fp-key-hint">🎉 所有预测免费查看</span>
     <input type="text" id="fp-key-input" placeholder="输入Key解锁完整内容" />
     <button class="key-verify-btn" onclick="fpVerifyKey()">验证</button><button class="fp-buy-btn" onclick="showPayModal('football')">&#x83B7;&#x53D6;Key</button>
     <span class="key-status" id="fp-key-status"></span>
@@ -510,6 +510,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;b
 <div class="rm" id="pr"></div>
 <div class="st" id="st"></div>
 <div class="rp" id="cf"></div>
+<div class="v6-badge" id="v6-badge" style="display:none;margin-top:8px;padding:8px 12px;border-radius:8px;font-size:12px;font-weight:600;text-align:center;line-height:1.6"></div>
 </div>
 <div class="rb">
 <div class="rb-title">胜平负</div>
@@ -960,6 +961,66 @@ function _kIsSafe(c365,cW,d){return _kJK(c365['kelly_'+d],c365.payout)!=='bad'&&
 function _kLowest(c){var md='h',mv=c.kelly_h;for(var i=1;i<_K_DIRS.length;i++){var d=_K_DIRS[i];var v=c['kelly_'+d];if(v<mv){md=d;mv=v;}}return{dir:md,val:mv};}
 function _kDispersion(c365,cW){var ds=_K_DIRS.map(function(d){return{dir:d,v:Math.abs(c365['kelly_'+d]-cW['kelly_'+d])};});ds.sort(function(a,b){return a.v-b.v;});return{minDir:ds[0].dir,min:ds[0].v,avg:ds.reduce(function(s,x){return s+x.v},0)/3};}
 function _kNormAdj(base,adj){var hf=Math.max(0.01,base.hf+(adj.hf||0)),df=Math.max(0.01,base.df+(adj.df||0)),af=Math.max(0.01,base.af+(adj.af||0));var t=hf+df+af;return{hf:hf/t,df:df/t,af:af/t};}
+
+// ===== V6 36场景分类 =====
+var _V6_FAVOR_DIRS={'A':1,'B':1,'C':1}; // 含强队胜方向
+var _V6_STRATEGY={
+'AA':'胜平','AB':'胜平','AC':'胜负','BA':'胜平','BB':'胜平','BC':'胜平','CA':'胜负','CB':'胜平','CC':'胜负',
+'WA':'胜平','WB':'平胜','WC':'负胜','AW':'胜平','AY':'胜平','AZ':'胜负','BW':'平胜','BY':'胜平','BZ':'胜平','CW':'负胜','CY':'胜平','CZ':'胜负','YA':'胜平','YB':'胜平','YC':'胜平','ZA':'胜负','ZB':'胜平','ZC':'胜负',
+'WW':'平负','WY':'平负','WZ':'平负','YW':'平负','YY':'平胜','YZ':'平负','ZW':'平负','ZY':'平负','ZZ':'负胜'
+};
+var _V6_HIT_RATE={
+'AA':61.9,'AB':90.0,'AC':50.0,'BA':71.4,'BB':87.5,'BC':75.0,'CA':78.6,'CB':83.3,'CC':85.7,
+'WA':92.9,'WB':66.7,'WC':50.0,'AW':70.0,'AY':60.0,'AZ':71.4,'BW':66.7,'BY':80.0,'BZ':100,'CW':100,'CY':66.7,'CZ':50.0,'YA':100,'YB':75.0,'YC':100,'ZA':100,'ZB':66.7,'ZC':100,
+'WW':50.0,'WY':100,'WZ':100,'YW':50.0,'YY':66.7,'YZ':66.7,'ZW':50.0,'ZY':100,'ZZ':0
+};
+function _v6StateLetter(c,payout,isHomeStrong){
+  var favs=[];
+  if(c.kelly_h<=payout)favs.push('h');
+  if(c.kelly_d<=payout)favs.push('d');
+  if(c.kelly_a<=payout)favs.push('a');
+  if(favs.length===0)return 'X';
+  if(favs.length===3)return 'D';
+  favs.sort();
+  var key=favs.join('');
+  if(isHomeStrong){
+    if(key==='h')return 'A';
+    if(key==='hd')return 'B';
+    if(key==='ha')return 'C';
+    if(key==='d')return 'Y';
+    if(key==='a')return 'Z';
+    if(key==='ad')return 'W';
+  }else{
+    if(key==='h')return 'Z';
+    if(key==='hd')return 'C';
+    if(key==='ha')return 'B';
+    if(key==='d')return 'Y';
+    if(key==='a')return 'A';
+    if(key==='ad')return 'W';
+  }
+  return 'X';
+}
+function _classifyV6(c365,cW,oddsW,oddsD,oddsL){
+  if(!c365||!cW)return null;
+  var isHomeStrong=(oddsW<=oddsL);
+  var s365=_v6StateLetter(c365,c365.payout,isHomeStrong);
+  var sW=_v6StateLetter(cW,cW.payout,isHomeStrong);
+  if(s365==='D'||s365==='X'||sW==='D'||sW==='X')return null;
+  var scenario=s365+sW;
+  var cat=0,favorLevel='';
+  var s365HasFav=!!_V6_FAVOR_DIRS[s365];
+  var sWHasFav=!!_V6_FAVOR_DIRS[sW];
+  if(s365HasFav&&sWHasFav){cat=1;favorLevel='看好';}
+  else if(s365HasFav||sWHasFav){cat=2;favorLevel='分歧';}
+  else{cat=3;favorLevel='博冷';}
+  var pred=_V6_STRATEGY[scenario]||'';
+  var hitRate=_V6_HIT_RATE[scenario]||0;
+  var confLevel='';
+  if(hitRate>=80)confLevel='强信心';
+  else if(hitRate>=70)confLevel='中等信心';
+  else confLevel='弱信心待验证';
+  return{scenario:scenario,category:cat,favorLevel:favorLevel,confidenceLevel:confLevel,prediction:pred,hitRate:hitRate,s365:s365,sW:sW};
+}
 
 function _detectKellyScenario(c365,cW,baseProbs,oddsConf){
   var r={scenarios:[],adjustments:{hf:0,df:0,af:0},label:'',confidence_mod:0,skip:false,skipReason:'',pick:null,cover:null,_finalProbs:null};
@@ -1878,34 +1939,13 @@ function fpIncrementManualPredictCount(){
 
 function fpUpdateFreeCountHint(){
   var el=document.getElementById('fp-free-count-hint');
-  if(!el)return;
-  var hasKey=fpGetActiveKey();
-  if(hasKey){
-    el.textContent='';
-    return;
-  }
-  var count=fpGetManualPredictCount();
-  var remaining=Math.max(0,3-count);
-  if(remaining>0){
-    el.textContent='剩余免费次数：'+remaining+'/3';
-    el.style.color='#6b7280';
-  }else{
-    el.textContent='免费次数已用完';
-    el.style.color='#ef4444';
-  }
+  if(el)el.textContent='';
 }
 
 function _calc(){
   // 检查是否已验证Key
-  var hasKey=fpGetActiveKey();
-  if(!hasKey){
-    var freeCount=fpGetManualPredictCount();
-    if(freeCount>=3){
-      showPayModal('足球预测');
-      showToast('免费预测次数已用完，请获取Key解锁完整功能');
-      return;
-    }
-  }
+  // 开放模式：无需Key
+  var hasKey=true;
 
 var h=document.getElementById("ht").value.trim();
 var a=document.getElementById("at").value.trim();
@@ -2097,6 +2137,23 @@ if(_jr.type==="double")sh+='<span style="font-size:10px;color:#f59e0b;margin-lef
 document.getElementById("st").innerHTML=sh;
 var ct=_jr.confidence;
 document.getElementById("cf").textContent="置信度 "+ct+"%"+(_jr.type==="double"?" (双选)":"");
+// V6 等级展示
+var v6El=document.getElementById("v6-badge");
+if(_jr.v6){
+  var v6=_jr.v6;
+  var v6Bg='',v6Color='';
+  if(v6.favorLevel==='强看好'){v6Bg='rgba(34,197,94,0.15)';v6Color='#22c55e';}
+  else if(v6.favorLevel==='看好'){v6Bg='rgba(59,130,246,0.15)';v6Color='#3b82f6';}
+  else if(v6.favorLevel==='分歧'){v6Bg='rgba(245,158,11,0.15)';v6Color='#f59e0b';}
+  else{v6Bg='rgba(239,68,68,0.15)';v6Color='#ef4444';}
+  var confIcon=v6.confidenceLevel==='强信心'?'🟢':(v6.confidenceLevel==='中等信心'?'🟡':'🔴');
+  v6El.style.display='block';
+  v6El.style.background=v6Bg;
+  v6El.style.color=v6Color;
+  v6El.innerHTML='<span style="font-size:11px;opacity:0.8">V6场景</span> '+v6.scenario+' · '+v6.favorLevel+' · '+confIcon+v6.confidenceLevel+'<br><span style="font-size:11px;opacity:0.7">历史命中 '+v6.hitRate+'%</span>';
+}else{
+  v6El.style.display='none';
+}
 var kellyNote=_jr.kellyLabel?(" · "+_jr.kellyLabel):"";
 var an=_jr.reason+kellyNote;
 if(hB)an+=" · 盘口信号一致↑";
@@ -3436,6 +3493,21 @@ kellyDropped=[];
     if(usedOdds)reason+=" · 竞彩网赔率";
   }
   
+  // === V6 场景分类 ===
+  var v6Result=null;
+  if(c365&&cW){
+    var _v6oddsW=usedOdds?m.odds.w:(minOdds||99);
+    var _v6oddsD=usedOdds?m.odds.d:(minOdds||99);
+    var _v6oddsL=usedOdds?m.odds.l:(minOdds||99);
+    if(!usedOdds&&kellyData&&kellyData.companies){
+      var _v6c=_getKellyCompany(kellyData.companies,'bet365')||_getKellyCompany(kellyData.companies,'365');
+      if(_v6c&&_v6c.odds_h>1){_v6oddsW=_v6c.odds_h;_v6oddsD=_v6c.odds_d;_v6oddsL=_v6c.odds_a;}
+    }
+    if(_v6oddsW>1&&_v6oddsD>1&&_v6oddsL>1){
+      v6Result=_classifyV6(c365,cW,_v6oddsW,_v6oddsD,_v6oddsL);
+    }
+  }
+  
   return{
     prediction:prediction,
     type:type,
@@ -3447,7 +3519,8 @@ kellyDropped=[];
     kellyLabel:kellyLabel,
     boSingle:boSingle||null,
     hedgePick:hedgePick,
-    noDraw:noDraw||false
+    noDraw:noDraw||false,
+    v6:v6Result
   };
 }
 
@@ -3500,6 +3573,11 @@ function _renderAICard(rec){
   var boTag=rec.boSingle?'<span class="ai-bo-tag">可博'+rec.boSingle+'</span>':'';
   var noDrawTag=rec.noDraw?'<span class="ai-bo-tag" style="background:linear-gradient(135deg,#ef4444,#dc2626);color:#fff">🔥非平</span>':'';
   
+  // V2策略标签
+  var v2Tag='';
+  if(rec.v2Tier==='S+'){v2Tag='<span class="ai-bo-tag" style="background:linear-gradient(135deg,#ef4444,#dc2626);color:#fff;font-weight:700">\ud83d\udd25V2\u7cbe\u9009</span>';}
+  else if(rec.v2Tier==='S'){v2Tag='<span class="ai-bo-tag" style="background:linear-gradient(135deg,#f59e0b,#d97706);color:#fff;font-weight:700">\ud83c\udfc6V2\u7cbe\u9009</span>';}
+  else if(rec.v2Tier==='A'){v2Tag='<span class="ai-bo-tag" style="background:linear-gradient(135deg,#22c55e,#16a34a);color:#fff">\u2705V2</span>';}
   var skipTag=rec.skip?'<span class="ai-skip-tag">（不建议投注）</span>':'';
   
   var verifiedClass=rec.verified?' verified':'';
@@ -3526,10 +3604,11 @@ function _renderAICard(rec){
   h+='<span class="ai-league">'+rec.league+'</span>';
   h+='<span class="ai-time"> '+rec.matchTime+'</span>';
   h+='</div>';
-  h+='<div class="ai-card-pred '+predClass+'">'+predText+hedgeText+boTag+noDrawTag+skipTag+'</div>';
+  h+='<div class="ai-card-pred '+predClass+'">'+predText+hedgeText+boTag+noDrawTag+v2Tag+skipTag+'</div>';
   h+='<div class="ai-card-reason">'+rec.reason+(rec.skip?' · '+rec.skipReason:'')+'</div>';
   if(rec.noKellyData){h+='<div class="ai-no-kelly-warn">⚠️ 该场比赛预测未获得实时数据，谨慎参考</div>';}
   h+='<div class="ai-card-conf">置信度 '+rec.confidence+'%'+(rec.kellyLabel&&!rec.boSingle?'<span class="ai-kelly-tag">凯利:'+rec.kellyLabel+'</span>':'')+'</div>';
+  if(rec.v6){var v6=rec.v6;var v6Bg=v6.favorLevel==='强看好'?'#16a34a':v6.favorLevel==='看好'?'#3b82f6':v6.favorLevel==='分歧'?'#f59e0b':'#ef4444';var v6ConfIcon=v6.confidenceLevel==='强信心'?'🟢':v6.confidenceLevel==='中等信心'?'🟡':'🔴';h+='<div style="margin-top:4px;padding:3px 8px;border-radius:6px;font-size:10px;font-weight:600;background:'+v6Bg+'22;color:'+v6Bg+';display:inline-block">V6 '+v6.scenario+' · '+v6.favorLevel+' · '+v6ConfIcon+v6.confidenceLevel+' ('+v6.hitRate+'%)</div>';}
   h+='</div>'+resultBadge+'</div></div>';
   h+='<span class="ai-card-arrow">›</span>';
   h+='</div>';
@@ -3751,7 +3830,7 @@ function fpGetActiveKey(){
 function fpFormatTokens(n){if(n>=10000)return(n/10000).toFixed(1)+'万';return String(n)}
 function fpShowLoggedInUI(){var statusEl=document.getElementById('fp-key-status');var hintEl=document.getElementById('fp-key-hint');var inputEl=document.getElementById('fp-key-input');var verifyBtn=document.querySelector('.key-verify-btn');var buyBtn=document.querySelector('.fp-buy-btn');var logoutBtn=document.getElementById('fp-logout-btn');if(statusEl){statusEl.textContent='\u2705 已解锁 (剩余 '+fpFormatTokens(fpKeyState.remaining)+' token)';statusEl.style.color='#4ade80'}if(hintEl)hintEl.textContent='\ud83d\udd13 Key已验证 \u00b7 可解锁完整预测';if(inputEl)inputEl.style.display='none';if(verifyBtn)verifyBtn.style.display='none';if(buyBtn)buyBtn.style.display='none';if(logoutBtn)logoutBtn.style.display='inline-block';fpUpdateFreeCountHint()}
 
-function fpHideLoggedInUI(){var statusEl=document.getElementById('fp-key-status');var hintEl=document.getElementById('fp-key-hint');var inputEl=document.getElementById('fp-key-input');var verifyBtn=document.querySelector('.key-verify-btn');var buyBtn=document.querySelector('.fp-buy-btn');var logoutBtn=document.getElementById('fp-logout-btn');if(statusEl){statusEl.textContent='';statusEl.style.color='#9ca3af'}if(hintEl)hintEl.textContent='\ud83c\udf81 免费查看基础预测 | 验证Key解锁完整分析+AI预测+投注建议';if(inputEl){inputEl.style.display='';inputEl.value=''}if(verifyBtn)verifyBtn.style.display='';if(buyBtn)buyBtn.style.display='';if(logoutBtn)logoutBtn.style.display='none';fpUpdateFreeCountHint()}
+function fpHideLoggedInUI(){var statusEl=document.getElementById('fp-key-status');var hintEl=document.getElementById('fp-key-hint');var inputEl=document.getElementById('fp-key-input');var verifyBtn=document.querySelector('.key-verify-btn');var buyBtn=document.querySelector('.fp-buy-btn');var logoutBtn=document.getElementById('fp-logout-btn');if(statusEl){statusEl.textContent='';statusEl.style.color='#9ca3af'}if(hintEl)hintEl.textContent='\ud83c\udf89 所有预测免费查看';if(inputEl){inputEl.style.display='';inputEl.value=''}if(verifyBtn)verifyBtn.style.display='';if(buyBtn)buyBtn.style.display='';if(logoutBtn)logoutBtn.style.display='none';fpUpdateFreeCountHint()}
 
 function fpVerifyKey(){var input=document.getElementById('fp-key-input');var key=input.value.trim();if(!key){showToast('请输入Key');return}var statusEl=document.getElementById('fp-key-status');statusEl.textContent='验证中...';statusEl.style.color='#9ca3af';fetch('https://metaphyai-api-v-cwpuwzgtdx.cn-shanghai.fcapp.run',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({action:'key_validate',key:key})}).then(function(r){return r.json()}).then(function(data){if(data.success&&data.valid){fpKeyState.key=key;fpKeyState.valid=true;fpKeyState.remaining=data.remaining||data.token_remaining||0;localStorage.setItem('fp_paid_key',key);localStorage.setItem('fp_paid_remaining',String(fpKeyState.remaining));fpShowLoggedInUI();showToast('\ud83c\udf89 Key验证成功！');if(typeof fpUpdateLockState==='function')fpUpdateLockState();if(typeof closePayModal==='function')closePayModal()}else{statusEl.textContent='\u274c Key无效';statusEl.style.color='#ef4444'}}).catch(function(){statusEl.textContent='\u274c 网络错误';statusEl.style.color='#ef4444'})}
 
@@ -3767,7 +3846,7 @@ function fpUpdateLockState(){
   var banner=document.createElement('div');
   banner.id='fp-upgrade-cta';
   banner.style.cssText='margin-top:12px;padding:10px 16px;text-align:center;background:rgba(74,222,128,0.06);border:1px solid rgba(74,222,128,0.15);border-radius:10px;color:#9ca3af;font-size:12px';
-  banner.innerHTML='\ud83c\udf89 <span style="color:#4ade80;font-weight:600">限时开放</span> \u00b7 所有预测免费查看 \u00b7 输入Key可解锁AI深度分析';
+  banner.innerHTML='\ud83c\udf89 <span style="color:#4ade80;font-weight:600">完全开放</span> \u00b7 所有功能免费使用';
   document.getElementById('ai-rec-body').appendChild(banner);
 }
 
@@ -3942,21 +4021,18 @@ function updateCompareFreeBadge() {
     badge.textContent = '免费1次';
     badge.style.display = 'inline';
   } else {
-    badge.textContent = '需Key';
-    badge.style.color = '#ef4444';
-    badge.style.background = 'rgba(239,68,68,.1)';
+    badge.textContent = '免费';
+    badge.style.color = '#4ade80';
+    badge.style.background = 'rgba(74,222,128,.1)';
     badge.style.display = 'inline';
   }
 }
 
 function openCompareModal() {
   // 权限检查
-  var freeLeft = canUseCompareFree();
-  var hasKey = fpKeyState.valid && fpKeyState.remaining > 0;
-  if (!freeLeft && !hasKey) {
-    showToast('⚠️ 免费试用已用完，此功能需要 Premium Key 解锁');
-    return;
-  }
+  // 开放模式：无需Key
+  var freeLeft = true;
+  var hasKey = true;
   var modal = document.getElementById('compareModal');
   if (modal) {
     modal.classList.add('show');
@@ -4014,12 +4090,9 @@ async function startCompare() {
   if (!compareImageData) return;
   
   // 再次检查权限
-  var freeLeft = canUseCompareFree();
-  var hasKey = fpKeyState.valid && fpKeyState.remaining > 0;
-  if (!freeLeft && !hasKey) {
-    showToast('⚠️ 免费试用已用完，需要 Premium Key');
-    return;
-  }
+  // 开放模式：无需Key
+  var freeLeft = true;
+  var hasKey = true;
   
   // 显示 loading
   var startBtn = document.getElementById('compareStartBtn');
