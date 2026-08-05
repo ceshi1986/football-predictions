@@ -986,14 +986,14 @@ function _v6StateLetterFromFavs(favs,isHomeStrong){
     if(key==='ha')return 'C';
     if(key==='d')return 'Y';
     if(key==='a')return 'Z';
-    if(key==='ad')return 'W';
+    if(key==='da')return 'W';
   }else{
     if(key==='h')return 'Z';
     if(key==='hd')return 'C';
     if(key==='ha')return 'B';
     if(key==='d')return 'Y';
     if(key==='a')return 'A';
-    if(key==='ad')return 'W';
+    if(key==='da')return 'W';
   }
   return 'X';
 }
@@ -1016,19 +1016,25 @@ function _classifyV6(c365,cW,oddsW,oddsD,oddsL){
   if(s365==='D'&&sW==='D')return null;
   // 单家D状态：转换（取Kelly最高的方向为不看好）
   if(s365==='D'){
+    if(c365.kelly_h===c365.kelly_d&&c365.kelly_d===c365.kelly_a){s365=isHomeStrong?'B':'W';}
+    else{
     var maxDir='h',maxVal=c365.kelly_h;
     if(c365.kelly_d>maxVal){maxDir='d';maxVal=c365.kelly_d;}
     if(c365.kelly_a>maxVal){maxDir='a';maxVal=c365.kelly_a;}
-    var favs365=['h','d','a'].filter(function(d){return d!==maxDir;});
+    var favs365=['h','d','a'].filter(function(d){return c365['kelly_'+d]!==maxVal;});
     s365=_v6StateLetterFromFavs(favs365,isHomeStrong);
+    }
     hasD=true;
   }
   if(sW==='D'){
+    if(cW.kelly_h===cW.kelly_d&&cW.kelly_d===cW.kelly_a){sW=isHomeStrong?'B':'W';}
+    else{
     var maxDir2='h',maxVal2=cW.kelly_h;
     if(cW.kelly_d>maxVal2){maxDir2='d';maxVal2=cW.kelly_d;}
     if(cW.kelly_a>maxVal2){maxDir2='a';maxVal2=cW.kelly_a;}
-    var favsW=['h','d','a'].filter(function(d){return d!==maxDir2;});
+    var favsW=['h','d','a'].filter(function(d){return cW['kelly_'+d]!==maxVal2;});
     sW=_v6StateLetterFromFavs(favsW,isHomeStrong);
+    }
     hasD=true;
   }
   // X状态排除（三个方向都不看好，无法分类）
