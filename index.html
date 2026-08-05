@@ -967,21 +967,18 @@ var _V6_FAVOR_DIRS={'A':1,'B':1,'C':1}; // 含强队胜方向
 var _V6_STRATEGY={
 'AA':'胜平','AB':'胜平','AC':'胜负','BA':'胜平','BB':'胜平','BC':'胜平','CA':'胜负','CB':'胜平','CC':'胜负',
 'WA':'胜平','WB':'平胜','WC':'负胜','AW':'胜平','AY':'胜平','AZ':'胜负','BW':'平胜','BY':'胜平','BZ':'胜平','CW':'负胜','CY':'胜平','CZ':'胜负','YA':'胜平','YB':'胜平','YC':'胜平','ZA':'胜负','ZB':'胜平','ZC':'胜负',
-'WW':'平负','WY':'平负','WZ':'平负','YW':'平负','YY':'平胜','YZ':'平负','ZW':'平负','ZY':'平负','ZZ':'负胜'
+'WW':'平负','WY':'平负','WZ':'平负','YW':'平负','YY':'平胜','YZ':'平负','ZW':'平负','ZY':'平负','ZZ':'负胜',
+'da':'胜平','dh':'胜平','ah':'胜负'
 };
 var _V6_HIT_RATE={
 'AA':61.9,'AB':90.0,'AC':50.0,'BA':71.4,'BB':87.5,'BC':75.0,'CA':78.6,'CB':83.3,'CC':85.7,
 'WA':92.9,'WB':66.7,'WC':50.0,'AW':70.0,'AY':60.0,'AZ':71.4,'BW':66.7,'BY':80.0,'BZ':100,'CW':100,'CY':66.7,'CZ':50.0,'YA':100,'YB':75.0,'YC':100,'ZA':100,'ZB':66.7,'ZC':100,
-'WW':50.0,'WY':100,'WZ':100,'YW':50.0,'YY':66.7,'YZ':66.7,'ZW':50.0,'ZY':100,'ZZ':0
+'WW':50.0,'WY':100,'WZ':100,'YW':50.0,'YY':66.7,'YZ':66.7,'ZW':50.0,'ZY':100,'ZZ':0,
+'da':70.0,'dh':90.0,'ah':50.0
 };
-function _v6StateLetter(c,payout,isHomeStrong){
-  var favs=[];
-  if(c.kelly_h<=payout)favs.push('h');
-  if(c.kelly_d<=payout)favs.push('d');
-  if(c.kelly_a<=payout)favs.push('a');
+function _v6StateLetterFromFavs(favs,isHomeStrong){
   if(favs.length===0)return 'X';
   if(favs.length===3)return 'D';
-  favs.sort();
   var key=favs.join('');
   if(isHomeStrong){
     if(key==='h')return 'A';
@@ -1000,12 +997,42 @@ function _v6StateLetter(c,payout,isHomeStrong){
   }
   return 'X';
 }
+function _v6StateLetter(c,payout,isHomeStrong){
+  var favs=[];
+  if(c.kelly_h<=payout)favs.push('h');
+  if(c.kelly_d<=payout)favs.push('d');
+  if(c.kelly_a<=payout)favs.push('a');
+  return _v6StateLetterFromFavs(favs,isHomeStrong);
+}
 function _classifyV6(c365,cW,oddsW,oddsD,oddsL){
   if(!c365||!cW)return null;
   var isHomeStrong=(oddsW<=oddsL);
   var s365=_v6StateLetter(c365,c365.payout,isHomeStrong);
   var sW=_v6StateLetter(cW,cW.payout,isHomeStrong);
-  if(s365==='D'||s365==='X'||sW==='D'||sW==='X')return null;
+  // D状态处理：某公司三个方向Kelly全部≤payout（全看好）
+  // 取Kelly值最高的方向为"不看好"，其余两个为"看好"，映射到A/B/C/W/Y/Z
+  var hasD=false;
+  // 两家同时D → 无法分类
+  if(s365==='D'&&sW==='D')return null;
+  // 单家D状态：转换（取Kelly最高的方向为不看好）
+  if(s365==='D'){
+    var maxDir='h',maxVal=c365.kelly_h;
+    if(c365.kelly_d>maxVal){maxDir='d';maxVal=c365.kelly_d;}
+    if(c365.kelly_a>maxVal){maxDir='a';maxVal=c365.kelly_a;}
+    var favs365=['h','d','a'].filter(function(d){return d!==maxDir;});
+    s365=_v6StateLetterFromFavs(favs365,isHomeStrong);
+    hasD=true;
+  }
+  if(sW==='D'){
+    var maxDir2='h',maxVal2=cW.kelly_h;
+    if(cW.kelly_d>maxVal2){maxDir2='d';maxVal2=cW.kelly_d;}
+    if(cW.kelly_a>maxVal2){maxDir2='a';maxVal2=cW.kelly_a;}
+    var favsW=['h','d','a'].filter(function(d){return d!==maxDir2;});
+    sW=_v6StateLetterFromFavs(favsW,isHomeStrong);
+    hasD=true;
+  }
+  // X状态排除（三个方向都不看好，无法分类）
+  if(s365==='X'||sW==='X')return null;
   var scenario=s365+sW;
   var cat=0,favorLevel='';
   var s365HasFav=!!_V6_FAVOR_DIRS[s365];
@@ -1019,7 +1046,7 @@ function _classifyV6(c365,cW,oddsW,oddsD,oddsL){
   if(hitRate>=80)confLevel='强信心';
   else if(hitRate>=70)confLevel='中等信心';
   else confLevel='弱信心待验证';
-  return{scenario:scenario,category:cat,favorLevel:favorLevel,confidenceLevel:confLevel,prediction:pred,hitRate:hitRate,s365:s365,sW:sW};
+  return{scenario:scenario,category:cat,favorLevel:favorLevel,confidenceLevel:confLevel,prediction:pred,hitRate:hitRate,s365:s365,sW:sW,hasD:hasD};
 }
 
 function _detectKellyScenario(c365,cW,baseProbs,oddsConf){
@@ -2039,10 +2066,10 @@ if(!hasKey){
     showToast('⚠️ Token不足（需5000，剩余'+_rem+'），本次预测不扣费');
   }
 }
-setTimeout(function(){_run(h,a)},600);
+setTimeout(async function(){await _run(h,a)},600);
 }
 
-function _run(h,a){
+async function _run(h,a){
 var hw=_gs(h),aw=_gs(a),d=hw-aw;
 var hf,df,af;
 var hasRealOdds=false;
@@ -2082,6 +2109,7 @@ if(_allMatches&&_allMatches.length>0){
 // 优先用_matchObj自带odds（和赛程卡片同源：schedule.json竞彩赔率），确保两入口一致
 // 找不到_matchObj时才回退到_realOddsCache的赔率
 var _judgeMatch=_matchObj||{home:h,away:a,odds:(hasRealOdds?{w:ow,d:od,l:ol}:null)};
+await _fetchKellyData();
 var _jr=_aiJudge(_judgeMatch,hf,df,af);
 
 var r=_jr.prediction;
@@ -2147,12 +2175,16 @@ if(_jr.v6){
   else if(v6.favorLevel==='分歧'){v6Bg='rgba(245,158,11,0.15)';v6Color='#f59e0b';}
   else{v6Bg='rgba(239,68,68,0.15)';v6Color='#ef4444';}
   var confIcon=v6.confidenceLevel==='强信心'?'🟢':(v6.confidenceLevel==='中等信心'?'🟡':'🔴');
+  var dBadge=v6.hasD?' <span style="font-size:10px;background:rgba(156,163,175,0.2);padding:1px 4px;border-radius:3px;color:#9ca3af">含D</span>':'';
   v6El.style.display='block';
   v6El.style.background=v6Bg;
   v6El.style.color=v6Color;
-  v6El.innerHTML='<span style="font-size:11px;opacity:0.8">V6场景</span> '+v6.scenario+' · '+v6.favorLevel+' · '+confIcon+v6.confidenceLevel+'<br><span style="font-size:11px;opacity:0.7">历史命中 '+v6.hitRate+'%</span>';
+  v6El.innerHTML='<span style="font-size:11px;opacity:0.8">V6场景</span> '+v6.scenario+dBadge+' · '+v6.favorLevel+' · '+confIcon+v6.confidenceLevel+'<br><span style="font-size:11px;opacity:0.7">历史命中 '+v6.hitRate+'%</span>';
 }else{
-  v6El.style.display='none';
+  v6El.style.display='block';
+  v6El.style.background='rgba(107,114,128,0.1)';
+  v6El.style.color='#9ca3af';
+  v6El.innerHTML='<span style="font-size:11px;opacity:0.7">V6 无Kelly数据，使用旧策略</span>';
 }
 var kellyNote=_jr.kellyLabel?(" · "+_jr.kellyLabel):"";
 var an=_jr.reason+kellyNote;
@@ -3508,6 +3540,21 @@ kellyDropped=[];
     }
   }
   
+  // === V6策略覆盖预测方向（V6优先） ===
+  if(v6Result && v6Result.prediction && v6Result.prediction.length===2){
+    var v6p1=v6Result.prediction.charAt(0);
+    var v6p2=v6Result.prediction.charAt(1);
+    prediction=v6p1+'+'+v6p2;
+    type='double';
+    doublePick=[v6p1,v6p2];
+    boSingle=null;
+    hedgePick=null;
+    noDraw=false;
+    reason='V6 '+v6Result.scenario+(v6Result.hasD?'(含D)':'')+'('+v6Result.favorLevel+' '+v6Result.confidenceLevel+' '+v6Result.hitRate+'%) → '+v6Result.prediction;
+  }else{
+    if(reason)reason+=' · [V6无数据]';
+  }
+  
   return{
     prediction:prediction,
     type:type,
@@ -3608,7 +3655,7 @@ function _renderAICard(rec){
   h+='<div class="ai-card-reason">'+rec.reason+(rec.skip?' · '+rec.skipReason:'')+'</div>';
   if(rec.noKellyData){h+='<div class="ai-no-kelly-warn">⚠️ 该场比赛预测未获得实时数据，谨慎参考</div>';}
   h+='<div class="ai-card-conf">置信度 '+rec.confidence+'%'+(rec.kellyLabel&&!rec.boSingle?'<span class="ai-kelly-tag">凯利:'+rec.kellyLabel+'</span>':'')+'</div>';
-  if(rec.v6){var v6=rec.v6;var v6Bg=v6.favorLevel==='强看好'?'#16a34a':v6.favorLevel==='看好'?'#3b82f6':v6.favorLevel==='分歧'?'#f59e0b':'#ef4444';var v6ConfIcon=v6.confidenceLevel==='强信心'?'🟢':v6.confidenceLevel==='中等信心'?'🟡':'🔴';h+='<div style="margin-top:4px;padding:3px 8px;border-radius:6px;font-size:10px;font-weight:600;background:'+v6Bg+'22;color:'+v6Bg+';display:inline-block">V6 '+v6.scenario+' · '+v6.favorLevel+' · '+v6ConfIcon+v6.confidenceLevel+' ('+v6.hitRate+'%)</div>';}
+  if(rec.v6){var v6=rec.v6;var v6Bg=v6.favorLevel==='强看好'?'#16a34a':v6.favorLevel==='看好'?'#3b82f6':v6.favorLevel==='分歧'?'#f59e0b':'#ef4444';var v6ConfIcon=v6.confidenceLevel==='强信心'?'🟢':v6.confidenceLevel==='中等信心'?'🟡':'🔴';var v6DBadge=v6.hasD?' <span style="font-size:9px;background:rgba(156,163,175,0.2);padding:1px 3px;border-radius:3px;color:#9ca3af">含D</span>':'';h+='<div style="margin-top:4px;padding:3px 8px;border-radius:6px;font-size:10px;font-weight:600;background:'+v6Bg+'22;color:'+v6Bg+';display:inline-block">V6 '+v6.scenario+v6DBadge+' · '+v6.favorLevel+' · '+v6ConfIcon+v6.confidenceLevel+' ('+v6.hitRate+'%)</div>';}else if(!rec.skip){h+='<div style="margin-top:4px;padding:3px 8px;border-radius:6px;font-size:10px;font-weight:400;background:rgba(107,114,128,0.15);color:#9ca3af;display:inline-block">V6 无Kelly数据</div>';}
   h+='</div>'+resultBadge+'</div></div>';
   h+='<span class="ai-card-arrow">›</span>';
   h+='</div>';
