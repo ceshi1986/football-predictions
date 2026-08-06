@@ -476,8 +476,10 @@ def scrape_all_matches_sync(match_ids, match_info):
             # 第一次WAF封锁：等待冷却后继续
             print(f"  ⏳ 等待 {WAF_COOLDOWN}s WAF冷却...")
             time.sleep(WAF_COOLDOWN)
-        elif result:
+        elif result and isinstance(result, dict) and result.get('companies'):
             waf_consecutive = 0
+            companies = result['companies']
+            asian_handicap = result.get('asian_handicap')
             results[mid] = {
                 'match_name': info.get('match_name', ''),
                 'league': info.get('league', ''),
@@ -486,10 +488,12 @@ def scrape_all_matches_sync(match_ids, match_info):
                 'beidan_id': info.get('beidan_id', ''),
                 'source': src,
                 'data_source': 'zgzcw',
-                'companies': result,
+                'companies': companies,
+                'asian_handicap': asian_handicap,
             }
-            target_keys = [k for k in TARGET_COMPANIES.values() if k in result]
-            print(f"  [{idx}/{len(match_ids)}] {label} ✓ {len(result)}家公司, 目标: {', '.join(target_keys)}")
+            target_keys = [k for k in TARGET_COMPANIES.values() if k in companies]
+            ah_info = f", 亚盘{len(asian_handicap)}家" if asian_handicap else ""
+            print(f"  [{idx}/{len(match_ids)}] {label} ✓ {len(companies)}家公司, 目标: {', '.join(target_keys)}{ah_info}")
             success += 1
             time.sleep(3)
         else:
@@ -546,6 +550,7 @@ async def scrape_all_matches(match_ids, match_info, dongqiudi_id_map=None, no_do
                                 'source': info.get('source', ''),
                                 'data_source': 'dongqiudi',
                                 'companies': companies,
+                                'asian_handicap': None,
                             }
                             fallback_count += 1
                             print(f"✓ {len(companies)}家公司")
@@ -564,9 +569,10 @@ async def scrape_all_matches(match_ids, match_info, dongqiudi_id_map=None, no_do
 
 def scrape_single_match(match_id):
     """用requests加载单场比赛的赔率页面并解析（通过Referer绕过WAF）
+    同时抓取亚盘数据（ypdb），失败不影响欧赔输出。
 
     返回:
-      - dict: 成功解析到公司数据
+      - dict: 成功解析到公司数据，格式为 {'companies': {...}, 'asian_handicap': [...]}
       - 'WAF_BLOCKED': WAF封锁（小响应体或特征内容）
       - None: 页面正常但无数据
     """
@@ -591,7 +597,18 @@ def scrape_single_match(match_id):
     if 'bf-tab-02' not in html:
         return None
 
-    return parse_odds_html(html)
+    companies = parse_odds_html(html)
+    if not companies:
+        return None
+
+    # 抓取亚盘数据（失败不影响欧赔数据输出，静默跳过）
+    asian_handicap = None
+    try:
+        asian_handicap = scrape_asian_handicap(match_id)
+    except Exception:
+        pass
+
+    return {'companies': companies, 'asian_handicap': asian_handicap}
 
 
 def parse_odds_html(html):
@@ -689,6 +706,115 @@ def match_company(raw_name):
         if clean.startswith(prefix) or clean == prefix:
             return key
     return None
+
+
+def match_asian_company(raw_name):
+    """将亚盘页面公司名匹配到标准key（使用全量公司映射 ALL_COMPANY_MAP）"""
+    clean = raw_name.rstrip('*').strip()
+    for prefix, key in ALL_COMPANY_MAP.items():
+        if clean.startswith(prefix) or clean == prefix:
+            return key
+    return None
+
+
+def parse_asian_handicap_html(html):
+    """解析亚盘页面HTML，提取所有公司的亚盘数据
+
+    亚盘表格结构 (table.bf-tab-02)，每行一个公司：
+    - td[0]: 序号/checkbox
+    - td[1]: 公司名（脱敏显示，如 "澳*", "36*", "立*", "威*" 等）
+    - td[2]: 初始主队水位（data属性=精确值）
+    - td[3]: 初始盘口（文字，如 "两球", "球半/两球", "半球/一球" 等）
+    - td[4]: 初始客队水位（data属性=精确值）
+    - td[5]: 最新主队水位（data属性=精确值）
+    - td[6]: 最新盘口（文字）
+    - td[7]: 最新客队水位（data属性=精确值）
+    - td[8-9]: 概率（主/客）
+    - td[10-11]: 凯利指数（主/客）
+    - td[12]: 赔付值
+    - td[13]: 历史链接
+    """
+    soup = BeautifulSoup(html, 'html.parser')
+
+    # 找主表格
+    table = soup.find('table', class_='bf-tab-02')
+    if not table:
+        data_main = soup.find(id='data-body')
+        if data_main:
+            table = data_main.find('table')
+    if not table:
+        return None
+
+    tbody = table.find('tbody')
+    trs = (tbody.find_all('tr') if tbody else table.find_all('tr'))
+
+    asian_handicap = []
+    for tr in trs:
+        tds = tr.find_all('td', recursive=False)
+        if len(tds) < 8:
+            continue
+
+        # 公司名
+        raw_name = tds[1].get_text(strip=True).strip()
+        if not raw_name:
+            continue
+
+        # 匹配公司名（使用全量公司映射）
+        company_key = match_asian_company(raw_name)
+
+        # 初始主队水位 td[2]
+        initial_home_water = _get_data_float(tds[2])
+        # 初始盘口 td[3]
+        initial_handicap = tds[3].get_text(strip=True).strip()
+        # 初始客队水位 td[4]
+        initial_away_water = _get_data_float(tds[4])
+
+        # 最新主队水位 td[5]
+        latest_home_water = _get_data_float(tds[5])
+        # 最新盘口 td[6]
+        latest_handicap = tds[6].get_text(strip=True).strip()
+        # 最新客队水位 td[7]
+        latest_away_water = _get_data_float(tds[7])
+
+        item = {
+            'company_name': raw_name,
+            'company_key': company_key or '',
+            'initial_handicap': initial_handicap,
+            'initial_home_water': round(initial_home_water, 4) if initial_home_water else 0.0,
+            'initial_away_water': round(initial_away_water, 4) if initial_away_water else 0.0,
+            'latest_handicap': latest_handicap,
+            'latest_home_water': round(latest_home_water, 4) if latest_home_water else 0.0,
+            'latest_away_water': round(latest_away_water, 4) if latest_away_water else 0.0,
+        }
+        asian_handicap.append(item)
+
+    return asian_handicap if asian_handicap else None
+
+
+def scrape_asian_handicap(match_id):
+    """用requests抓取单场比赛的亚盘数据（通过Referer绕过WAF）
+
+    返回:
+      - list: 成功解析到亚盘公司数据列表
+      - None: 失败或无数据
+    """
+    url = f'http://fenxi.zgzcw.com/{match_id}/ypdb'
+    try:
+        resp = requests.get(url, headers=HEADERS, timeout=6)
+        if resp.status_code == 418:
+            return None
+        resp.encoding = 'utf-8'
+        html = resp.text
+    except Exception:
+        return None
+
+    if len(html) < 20000:
+        return None
+
+    if 'bf-tab-02' not in html:
+        return None
+
+    return parse_asian_handicap_html(html)
 
 
 # === 懂球帝(dongqiudi.com) Fallback ===
