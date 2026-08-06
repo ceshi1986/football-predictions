@@ -2775,7 +2775,7 @@ var isMob=/Android|iPhone|iPad|iPod|Mobile/i.test(navigator.userAgent);
 var matchText=_last?_last.h+" 对阵 "+_last.a+" → "+_last.r:"AI足球预测 - 智能赛事分析";
 var shareText="推荐一个超准的AI足球预测网站，基于凯利指数+多源数据，世界杯回测命中率81.6%！\n\n👉 复制链接在电脑或手机浏览器打开，部分wifi下可能屏蔽网址";
 var shareUrl=location.href;
-if(isMob&&!/MicroMessenger/i.test(navigator.userAgent)&&navigator.share){navigator.share({title:"AI足球预测",text:matchText,url:shareUrl}).catch(function(){_sh()})}
+if(isMob&&!/MicroMessenger/i.test(navigator.userAgent)&&navigator.share){navigator.share({title:"AI足球预测",text:matchText,url:shareUrl}).catch(function(){})}
 else if(/MicroMessenger/i.test(navigator.userAgent)){document.getElementById("so").style.display="flex"}
 else{
 var overlay=document.createElement("div");
@@ -2807,6 +2807,7 @@ var isMobile=/Android|iPhone|iPad|iPod|Mobile/i.test(navigator.userAgent);
 if(isMobile&&!/MicroMessenger/i.test(navigator.userAgent)&&navigator.share){
 navigator.share({title:title,text:text,url:url}).catch(function(){});
 }else{
+if(document.getElementById("_share-overlay"))return;
 var overlay=document.createElement("div");
 overlay.id="_share-overlay";
 overlay.style.cssText="position:fixed;top:0;left:0;right:0;bottom:0;background:rgba(0,0,0,0.7);z-index:99999;display:flex;align-items:center;justify-content:center;";
@@ -2840,7 +2841,7 @@ document.body.removeChild(ta);
 };
 }
 }
-if(/MicroMessenger/i.test(navigator.userAgent)){document.addEventListener("click",function(e){if(e.target.tagName==="BUTTON"||e.target.tagName==="A")return;document.getElementById("so").style.display="flex"})}
+if(/MicroMessenger/i.test(navigator.userAgent)){document.addEventListener("click",function(e){if(e.target.tagName==="BUTTON"||e.target.tagName==="A"||e.target.closest("#_share-overlay")||e.target.closest("#so"))return;document.getElementById("so").style.display="flex"})}
 
 _renderSt();_renderHi();
 if(typeof fpUpdateLockState==="function")fpUpdateLockState();
