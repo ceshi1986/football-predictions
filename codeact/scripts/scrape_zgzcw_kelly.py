@@ -35,6 +35,7 @@ TARGET_COMPANIES = {
     '36': 'bet365',
     '韦': 'weide',
     '立': 'libo',
+    '威': 'william_hill',
 }
 
 # 全量公司映射（可扩展）

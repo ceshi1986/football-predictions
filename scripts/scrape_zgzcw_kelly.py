@@ -62,6 +62,7 @@ TARGET_COMPANIES = {
     '韦': 'weide',
     '立': 'libo',
     '澳': 'macau',
+    '威': 'william_hill',
 }
 
 # 全量公司映射（可扩展）
