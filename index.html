@@ -2684,26 +2684,10 @@ return null;
 }
 async function _getScore(home,away,lid,md){
 var ds=md.replace(/-/g,"");
-var hEN=_ge(home)||home,aEN=_ge(away)||away;
 try{
 var local=await _getScoreFromLocal(home,away,md);
 if(local) return local;
 }catch(e){console.log('Local score lookup failed:',e)}
-var enCode=_lc[lid]||({"mls":"usa.1","uefa.champions.qual":"uefa.champions","den.1":"den.1","sui.1":"sui.1","aut.1":"aut.1","bel.1":"bel.1","tur.1":"tur.1","pol.1":"pol.1","rou.1":"rou.1","isl.1":"isl.1","irl.1":"irl.1","fin.1":"fin.1","fin.2":"fin.2","nor.2":"nor.2","bra.2":"bra.2","kor.2":"kor.2","den.2":"den.2","sui.2":"sui.2"}[lid])||((lid&&lid.indexOf(".")>=0)?lid:null)||((lid&&lid.indexOf("fifa.")===0)?lid:null)||"eng.1";
-try{
-var url="https://site.api.espn.com/apis/site/v2/sports/soccer/"+enCode+"/scoreboard?dates="+ds;
-var resp=await fetch(url,{signal:AbortSignal.timeout(8000)});
-var data=await resp.json();
-if(data&&data.events){for(var i=0;i<data.events.length;i++){
-var ev=data.events[i],comp=ev.competitions[0];
-var c0=comp.competitors[0],c1=comp.competitors[1];
-var n0=c0.team.displayName||c0.team.shortDisplayName||"";
-var n1=c1.team.displayName||c1.team.shortDisplayName||"";
-var fwd=false,rev=false;
-if(_mt(n0,hEN,home)&&_mt(n1,aEN,away))fwd=true;
-else if(_mt(n0,aEN,away)&&_mt(n1,hEN,home))rev=true;
-else continue;
-if(comp.status.type.completed){var s0=parseInt(c0.score)||0,s1=parseInt(c1.score)||0;return fwd?{hs:s0,as:s1}:{hs:s1,as:s0}}
 return null;
 }}
 }catch(e){}
