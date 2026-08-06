@@ -2689,23 +2689,8 @@ var local=await _getScoreFromLocal(home,away,md);
 if(local) return local;
 }catch(e){console.log('Local score lookup failed:',e)}
 return null;
-}}
-}catch(e){}
-try{
-var url2="https://site.api.espn.com/apis/site/v2/sports/soccer/"+enCode+"/scoreboard";
-var resp2=await fetch(url2,{signal:AbortSignal.timeout(8000)});
-var data2=await resp2.json();
-if(data2&&data2.events){for(var i=0;i<data2.events.length;i++){
-var ev=data2.events[i],comp=ev.competitions[0];
-var c0=comp.competitors[0],c1=comp.competitors[1];
-var n0=c0.team.displayName||c0.team.shortDisplayName||"";
-var n1=c1.team.displayName||c1.team.shortDisplayName||"";
-if(_mt(n0,_ge(home),home)&&_mt(n1,_ge(away),away)&&comp.status.type.completed)return{hs:parseInt(c0.score)||0,as:parseInt(c1.score)||0};
-if(_mt(n0,_ge(away),away)&&_mt(n1,_ge(home),home)&&comp.status.type.completed)return{hs:parseInt(c1.score)||0,as:parseInt(c0.score)||0};
-}}
-}catch(e){}
-return null;
 }
+
 
 function _mt(a,b,c){if(!a)return false;var x=a.toLowerCase().replace(/[^a-z0-9]/g,"");var y=(b||"").toLowerCase().replace(/[^a-z0-9]/g,"");if(x===y)return true;if(y.length>=3&&(x.includes(y)||y.includes(x)))return true;if(y.length>=3&&x.includes(y.substring(0,Math.min(y.length,5))))return true;if(c&&a.includes(c))return true;return false}
 
