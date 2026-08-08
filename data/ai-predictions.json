@@ -1,5 +1,5 @@
 {
-  "lastUpdated": "2026-08-08T10:06:24.217Z",
+  "lastUpdated": "2026-08-08T10:57:48.044Z",
   "predictions": [
     {
       "prediction": "负",
@@ -16523,8 +16523,12 @@
       "skipReason": "结果太不确定，各方向概率接近",
       "stars": 1,
       "scenario": "",
-      "verified": false,
-      "source": "pipeline"
+      "verified": true,
+      "source": "pipeline",
+      "actualResult": "负",
+      "homeScore": 0,
+      "awayScore": 4,
+      "hit": false
     },
     {
       "matchId": "5d9109a95",
@@ -16571,8 +16575,12 @@
       "skipReason": "",
       "stars": 4,
       "scenario": "",
-      "verified": false,
-      "source": "pipeline"
+      "verified": true,
+      "source": "pipeline",
+      "actualResult": "平",
+      "homeScore": 1,
+      "awayScore": 1,
+      "hit": true
     },
     {
       "matchId": "4539681",
@@ -16691,8 +16699,12 @@
       "skipReason": "",
       "stars": 5,
       "scenario": "",
-      "verified": false,
-      "source": "pipeline"
+      "verified": true,
+      "source": "pipeline",
+      "actualResult": "胜",
+      "homeScore": 2,
+      "awayScore": 1,
+      "hit": true
     },
     {
       "matchId": "4555539",
@@ -20534,7 +20546,7 @@
   ],
   "stats": {
     "total": 806,
-    "verified": 95,
-    "accuracy": 73
+    "verified": 98,
+    "accuracy": 72
   }
 }
