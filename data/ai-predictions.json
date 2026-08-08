@@ -1,5 +1,5 @@
 {
-  "lastUpdated": "2026-08-08T09:12:11.125Z",
+  "lastUpdated": "2026-08-08T09:51:38.973Z",
   "predictions": [
     {
       "prediction": "负",
@@ -9607,28 +9607,28 @@
       "hit": null
     },
     {
-      "prediction": "负+平",
+      "prediction": "负+胜",
       "type": "double",
       "skip": false,
       "skipReason": "",
-      "confidence": 63,
-      "reason": "方向偏负(53%)，双选防冷",
+      "confidence": 76,
+      "reason": "方向偏负(76%)，双选防冷",
       "doublePick": [
         "负",
-        "平"
+        "胜"
       ],
-      "kellyLabel": "场景五-信号矛盾",
-      "boSingle": null,
       "matchId": "401841150",
       "home": "沙佩科恩斯",
       "away": "弗拉门戈",
       "league": "巴甲",
       "leagueCode": "bra.1",
-      "date": "2026-07-23T08:30:00+08:00",
+      "date": "20260723",
       "matchTime": "7/23 周四 08:30",
-      "verified": false,
-      "actualResult": null,
-      "hit": null
+      "verified": true,
+      "actualResult": "负",
+      "hit": true,
+      "homeScore": 0,
+      "awayScore": 4
     },
     {
       "prediction": "负+平",
@@ -9679,28 +9679,28 @@
       "hit": null
     },
     {
-      "prediction": "胜+平",
+      "prediction": "负+胜",
       "type": "double",
       "skip": false,
       "skipReason": "",
-      "confidence": 52,
-      "reason": "凯利信号推荐胜(52%)，双选覆盖",
+      "confidence": 47,
+      "reason": "方向不够明确，双选覆盖",
       "doublePick": [
-        "胜",
-        "平"
+        "负",
+        "胜"
       ],
-      "kellyLabel": "共同看好主胜/平局，主选主胜，防平局",
-      "boSingle": "胜",
       "matchId": "401841151",
       "home": "科林蒂安",
       "away": "雷莫",
       "league": "巴甲",
       "leagueCode": "bra.1",
-      "date": "2026-07-24T06:30:00+08:00",
+      "date": "20260724",
       "matchTime": "7/24 周五 06:30",
-      "verified": false,
-      "actualResult": null,
-      "hit": null
+      "verified": true,
+      "actualResult": "胜",
+      "hit": true,
+      "homeScore": 3,
+      "awayScore": 0
     },
     {
       "prediction": "负+平",
@@ -16212,11 +16212,252 @@
       "verified": false,
       "actualResult": null,
       "hit": null
+    },
+    {
+      "matchId": "401842761",
+      "home": "哈尔姆斯塔德",
+      "away": "哈根",
+      "league": "瑞典",
+      "leagueCode": "swe.1",
+      "date": "20260719",
+      "matchTime": "07/19 周日 22:30",
+      "prediction": "负",
+      "type": "single",
+      "doublePick": null,
+      "confidence": 50,
+      "reason": "模型预测客胜概率64%",
+      "kellyLabel": "",
+      "skip": false,
+      "skipReason": "",
+      "stars": 4,
+      "scenario": "",
+      "verified": false,
+      "source": "pipeline"
+    },
+    {
+      "matchId": "401842755",
+      "home": "埃尔夫斯堡",
+      "away": "西里乌斯",
+      "league": "瑞典",
+      "leagueCode": "swe.1",
+      "date": "20260719",
+      "matchTime": "07/19 周日 22:30",
+      "prediction": "负+胜",
+      "type": "double",
+      "doublePick": [
+        "负",
+        "胜"
+      ],
+      "confidence": 35,
+      "reason": "方向不够明确，双选覆盖",
+      "kellyLabel": "",
+      "skip": false,
+      "skipReason": "",
+      "stars": 2,
+      "scenario": "",
+      "verified": false,
+      "source": "pipeline"
+    },
+    {
+      "matchId": "401841435",
+      "home": "贝尔格拉诺",
+      "away": "罗萨里奥中央",
+      "league": "阿甲",
+      "leagueCode": "arg.1",
+      "date": "20260724",
+      "matchTime": "07/24 周五 06:30",
+      "prediction": "负+胜",
+      "type": "double",
+      "doublePick": [
+        "负",
+        "胜"
+      ],
+      "confidence": 36,
+      "reason": "方向不够明确，双选覆盖",
+      "kellyLabel": "",
+      "skip": false,
+      "skipReason": "",
+      "stars": 2,
+      "scenario": "",
+      "verified": false,
+      "source": "pipeline"
+    },
+    {
+      "matchId": "401841437",
+      "home": "萨米恩托",
+      "away": "阿根廷青年人",
+      "league": "阿甲",
+      "leagueCode": "arg.1",
+      "date": "20260724",
+      "matchTime": "07/24 周五 06:30",
+      "prediction": "负+胜",
+      "type": "double",
+      "doublePick": [
+        "负",
+        "胜"
+      ],
+      "confidence": 36,
+      "reason": "方向不够明确，双选覆盖",
+      "kellyLabel": "",
+      "skip": false,
+      "skipReason": "",
+      "stars": 2,
+      "scenario": "",
+      "verified": false,
+      "source": "pipeline"
+    },
+    {
+      "matchId": "401841448",
+      "home": "国防与司法",
+      "away": "阿尔多西维",
+      "league": "阿甲",
+      "leagueCode": "arg.1",
+      "date": "20260724",
+      "matchTime": "07/24 周五 08:45",
+      "prediction": "负+胜",
+      "type": "double",
+      "doublePick": [
+        "负",
+        "胜"
+      ],
+      "confidence": 36,
+      "reason": "方向不够明确，双选覆盖",
+      "kellyLabel": "",
+      "skip": false,
+      "skipReason": "",
+      "stars": 2,
+      "scenario": "",
+      "verified": false,
+      "source": "pipeline"
+    },
+    {
+      "matchId": "401841444",
+      "home": "门多萨体操",
+      "away": "圣地亚哥中央科尔多瓦",
+      "league": "阿甲",
+      "leagueCode": "arg.1",
+      "date": "20260725",
+      "matchTime": "07/25 周六 03:45",
+      "prediction": "负+胜",
+      "type": "double",
+      "doublePick": [
+        "负",
+        "胜"
+      ],
+      "confidence": 36,
+      "reason": "方向不够明确，双选覆盖",
+      "kellyLabel": "",
+      "skip": false,
+      "skipReason": "",
+      "stars": 2,
+      "scenario": "",
+      "verified": false,
+      "source": "pipeline"
+    },
+    {
+      "matchId": "401841439",
+      "home": "竞赛",
+      "away": "拉普拉塔体操",
+      "league": "阿甲",
+      "leagueCode": "arg.1",
+      "date": "20260725",
+      "matchTime": "07/25 周六 06:00",
+      "prediction": "负+胜",
+      "type": "double",
+      "doublePick": [
+        "负",
+        "胜"
+      ],
+      "confidence": 36,
+      "reason": "方向不够明确，双选覆盖",
+      "kellyLabel": "",
+      "skip": false,
+      "skipReason": "",
+      "stars": 2,
+      "scenario": "",
+      "verified": false,
+      "source": "pipeline"
+    },
+    {
+      "matchId": "401841436",
+      "home": "萨斯菲尔德",
+      "away": "科尔多瓦学院",
+      "league": "阿甲",
+      "leagueCode": "arg.1",
+      "date": "20260725",
+      "matchTime": "07/25 周六 06:00",
+      "prediction": "负+胜",
+      "type": "double",
+      "doublePick": [
+        "负",
+        "胜"
+      ],
+      "confidence": 36,
+      "reason": "方向不够明确，双选覆盖",
+      "kellyLabel": "",
+      "skip": false,
+      "skipReason": "",
+      "stars": 2,
+      "scenario": "",
+      "verified": false,
+      "source": "pipeline"
+    },
+    {
+      "matchId": "401841443",
+      "home": "飓风",
+      "away": "班菲尔德",
+      "league": "阿甲",
+      "leagueCode": "arg.1",
+      "date": "20260725",
+      "matchTime": "07/25 周六 08:15",
+      "prediction": "负+胜",
+      "type": "double",
+      "doublePick": [
+        "负",
+        "胜"
+      ],
+      "confidence": 36,
+      "reason": "方向不够明确，双选覆盖",
+      "kellyLabel": "",
+      "skip": false,
+      "skipReason": "",
+      "stars": 2,
+      "scenario": "",
+      "verified": true,
+      "source": "pipeline",
+      "actualResult": "胜",
+      "homeScore": 1,
+      "awayScore": 0,
+      "hit": true
+    },
+    {
+      "matchId": "401841440",
+      "home": "普拉滕斯",
+      "away": "圣菲联合",
+      "league": "阿甲",
+      "leagueCode": "arg.1",
+      "date": "20260725",
+      "matchTime": "07/25 周六 08:15",
+      "prediction": "负+胜",
+      "type": "double",
+      "doublePick": [
+        "负",
+        "胜"
+      ],
+      "confidence": 36,
+      "reason": "方向不够明确，双选覆盖",
+      "kellyLabel": "",
+      "skip": false,
+      "skipReason": "",
+      "stars": 2,
+      "scenario": "",
+      "verified": false,
+      "source": "pipeline"
     }
   ],
   "stats": {
-    "total": 624,
-    "verified": 92,
-    "accuracy": 72
+    "total": 634,
+    "verified": 95,
+    "accuracy": 73
   }
 }
