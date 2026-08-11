@@ -976,6 +976,8 @@ var _V6_HIT_RATE={
 'WW':50.0,'WY':100,'WZ':100,'YW':50.0,'YY':66.7,'YZ':66.7,'ZW':50.0,'ZY':100,'ZZ':0,
 'da':70.0,'dh':90.0,'ah':50.0
 };
+var _V6_SINGLE_PICK={'AA':['主胜',40.9],'AB':['客胜',37.0],'AC':['平',46.7],'AW':['主胜',55.6],'AY':['主胜',50.0],'AZ':['客胜',60.0],'BA':['平',37.3],'BB':['平',51.6],'BC':['主胜',38.9],'BW':['平',52.9],'BY':['主胜',50.0],'BZ':['主胜',45.5],'CA':['客胜',44.0],'CB':['平',57.1],'CC':['客胜',46.7],'CW':['客胜',50.0],'CY':['平',40.0],'CZ':['主胜',80.0],'WA':['平',44.4],'WB':['平',40.7],'WC':['客胜',45.5],'WW':['平',57.9],'WY':['主胜',100.0],'WZ':['主胜',47.4],'YA':['主胜',71.4],'YB':['平',75.0],'YC':['主胜',60.0],'YW':['平',66.7],'YY':['主胜',50.0],'YZ':['主胜',66.7],'ZA':['平',50.0],'ZB':['平',75.0],'ZC':['主胜',75.0],'ZW':['主胜',87.5],'ZY':['平',100.0],'ZZ':['主胜',66.7]};
+
 function _v6StateLetterFromFavs(favs,isHomeStrong){
   if(favs.length===0)return 'X';
   if(favs.length===3)return 'D';
@@ -1052,7 +1054,8 @@ function _classifyV6(c365,cW,oddsW,oddsD,oddsL){
   if(hitRate>=80)confLevel='强信心';
   else if(hitRate>=70)confLevel='中等信心';
   else confLevel='弱信心待验证';
-  return{scenario:scenario,category:cat,favorLevel:favorLevel,confidenceLevel:confLevel,prediction:pred,hitRate:hitRate,s365:s365,sW:sW,hasD:hasD};
+  var spData=_V6_SINGLE_PICK[scenario]||null;
+  return{scenario:scenario,category:cat,favorLevel:favorLevel,confidenceLevel:confLevel,prediction:pred,hitRate:hitRate,singlePick:spData?spData[0]:null,singlePickRate:spData?spData[1]:0,s365:s365,sW:sW,hasD:hasD};
 }
 
 function _detectKellyScenario(c365,cW,baseProbs,oddsConf){
@@ -2185,7 +2188,8 @@ if(_jr.v6){
   v6El.style.display='block';
   v6El.style.background=v6Bg;
   v6El.style.color=v6Color;
-  v6El.innerHTML='<span style="font-size:11px;opacity:0.8">V6场景</span> '+v6.scenario+dBadge+' · '+v6.favorLevel+' · '+confIcon+v6.confidenceLevel+'<br><span style="font-size:11px;opacity:0.7">历史命中 '+v6.hitRate+'%</span>';
+  var spHtml=v6.singlePick?'<br><span style="font-size:11px;opacity:0.7">单选 '+v6.singlePick+'('+v6.singlePickRate+'%)</span>':'';
+  v6El.innerHTML='<span style="font-size:11px;opacity:0.8">V6场景</span> '+v6.scenario+dBadge+' · '+v6.favorLevel+' · '+confIcon+v6.confidenceLevel+'<br><span style="font-size:11px;opacity:0.7">双选命中 '+v6.hitRate+'%</span>'+spHtml;
 }else{
   v6El.style.display='block';
   v6El.style.background='rgba(107,114,128,0.1)';
@@ -3633,7 +3637,7 @@ function _renderAICard(rec){
   h+='<div class="ai-card-reason">'+rec.reason+(rec.skip?' · '+rec.skipReason:'')+'</div>';
   if(rec.noKellyData){h+='<div class="ai-no-kelly-warn">⚠️ 该场比赛预测未获得实时数据，谨慎参考</div>';}
   h+='<div class="ai-card-conf">置信度 '+rec.confidence+'%'+(rec.kellyLabel&&!rec.boSingle?'<span class="ai-kelly-tag">凯利:'+rec.kellyLabel+'</span>':'')+'</div>';
-  if(rec.v6){var v6=rec.v6;var v6Bg=v6.favorLevel==='强看好'?'#16a34a':v6.favorLevel==='看好'?'#3b82f6':v6.favorLevel==='分歧'?'#f59e0b':'#ef4444';var v6ConfIcon=v6.confidenceLevel==='强信心'?'🟢':v6.confidenceLevel==='中等信心'?'🟡':'🔴';var v6DBadge=v6.hasD?' <span style="font-size:9px;background:rgba(156,163,175,0.2);padding:1px 3px;border-radius:3px;color:#9ca3af">含D</span>':'';h+='<div style="margin-top:4px;padding:3px 8px;border-radius:6px;font-size:10px;font-weight:600;background:'+v6Bg+'22;color:'+v6Bg+';display:inline-block">V6 '+v6.scenario+v6DBadge+' · '+v6.favorLevel+' · '+v6ConfIcon+v6.confidenceLevel+' ('+v6.hitRate+'%)</div>';}else if(!rec.skip){h+='<div style="margin-top:4px;padding:3px 8px;border-radius:6px;font-size:10px;font-weight:400;background:rgba(107,114,128,0.15);color:#9ca3af;display:inline-block">V6 无Kelly数据</div>';}
+  if(rec.v6){var v6=rec.v6;var v6Bg=v6.favorLevel==='强看好'?'#16a34a':v6.favorLevel==='看好'?'#3b82f6':v6.favorLevel==='分歧'?'#f59e0b':'#ef4444';var v6ConfIcon=v6.confidenceLevel==='强信心'?'🟢':v6.confidenceLevel==='中等信心'?'🟡':'🔴';var v6DBadge=v6.hasD?' <span style="font-size:9px;background:rgba(156,163,175,0.2);padding:1px 3px;border-radius:3px;color:#9ca3af">含D</span>':'';var v6SpHtml=v6.singlePick?'<span style="margin-left:6px;opacity:0.8">单选'+v6.singlePick+'('+v6.singlePickRate+'%)</span>':'';h+='<div style="margin-top:4px;padding:3px 8px;border-radius:6px;font-size:10px;font-weight:600;background:'+v6Bg+'22;color:'+v6Bg+';display:inline-block">V6 '+v6.scenario+v6DBadge+' · '+v6.favorLevel+' · '+v6ConfIcon+v6.confidenceLevel+' (双选'+v6.hitRate+'%)'+v6SpHtml+'</div>';}else if(!rec.skip){h+='<div style="margin-top:4px;padding:3px 8px;border-radius:6px;font-size:10px;font-weight:400;background:rgba(107,114,128,0.15);color:#9ca3af;display:inline-block">V6 无Kelly数据</div>';}
   h+='</div>'+resultBadge+'</div></div>';
   h+='<span class="ai-card-arrow">›</span>';
   h+='</div>';
