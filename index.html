@@ -518,13 +518,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;b
 <div class="pi"><div class="pn">平局</div><div class="pv" id="pd" style="color:#9ca3af"></div></div>
 <div class="pi"><div class="pn">客胜</div><div class="pv" id="pa" style="color:#60a5fa"></div></div>
 </div>
-<div class="rb" id="rq-section" style="display:none;margin-top:6px;padding-top:8px;border-top:1px solid rgba(255,255,255,0.08)">
-<div class="rb-title" id="rq-title">让球胜平负(让1球)</div>
-<div class="pi"><div class="pn">让球主胜</div><div class="pv" id="rqh" style="color:#4ade80"></div></div>
-<div class="pi"><div class="pn">让球平局</div><div class="pv" id="rqd" style="color:#9ca3af"></div></div>
-<div class="pi"><div class="pn">让球客胜</div><div class="pv" id="rqa" style="color:#60a5fa"></div></div>
-<div style="font-size:9px;color:#666;text-align:center;margin-top:4px;line-height:1.2">* 赔率直接换算，非本站预测</div>
-</div>
+
 <div class="cd" id="an"></div>
 <div class="buy-advice" id="ba" style="display:none">
 <div class="ba-title">💰 投注建议</div>
@@ -2145,25 +2139,11 @@ if(_regSP&&_regSP.w>1&&_regSP.d>1&&_regSP.l>1){
   document.getElementById("pd").textContent=Math.round(df*100)+"%";
   document.getElementById("pa").textContent=Math.round(af*100)+"%";
 }
-// 让球胜平负
-var rqSec=document.getElementById("rq-section");
-if(_rqSP&&_rqSP.w>1&&_rqSP.d>1&&_rqSP.l>1){
-  rqSec.style.display="block";
-  var _hLabel=_rqHandicap?(_rqHandicap<0?"(让"+Math.abs(_rqHandicap)+"球)":"(受让"+Math.abs(_rqHandicap)+"球)"):"";
-  document.getElementById("rq-title").textContent="让球胜平负"+_hLabel;
-  var _qw=_rqSP.w,_qd=_rqSP.d,_ql=_rqSP.l;
-  var _qt=1/_qw+1/_qd+1/_ql;var _qR=1/_qt;
-  document.getElementById("rqh").textContent=Math.round(_qR/_qw*100)+"%";
-  document.getElementById("rqd").textContent=Math.round(_qR/_qd*100)+"%";
-  document.getElementById("rqa").textContent=Math.round(_qR/_ql*100)+"%";
-}else{
-  rqSec.style.display="none";
-}
 var sh="";for(var i=1;i<=5;i++)sh+='<span class="s'+(i<=c?" on":"")+'">★</span>';
 if(_jr.type==="double")sh+='<span style="font-size:10px;color:#f59e0b;margin-left:4px">双选</span>';
 document.getElementById("st").innerHTML=sh;
 var ct=_jr.confidence;
-document.getElementById("cf").textContent="置信度 "+ct+"%"+(_jr.type==="double"?" (双选)":"");
+document.getElementById("cf").textContent="置信度 "+ct+(_jr.type==="double"?" (双选)":"");
 // V6 等级展示
 var v6El=document.getElementById("v6-badge");
 if(_jr.v6){
@@ -3141,7 +3121,7 @@ function _renderUpcoming(){
       var skipTag=rec.skip&&!rec.noKellyData?'<span class="upcoming-skip">（不建议投注）</span>':'';
       var noKellyTag=rec.noKellyData?'<span class="upcoming-no-kelly">⚠️无实时数据</span>':'';
       h+='<span class="upcoming-pick '+predClass+'">🎯 '+predText+skipTag+noKellyTag+'</span>';
-      if(rec.type!=="pending"){h+='<span class="upcoming-info">置信度'+rec.confidence+'%</span>';}
+      if(rec.type!=="pending"){h+='<span class="upcoming-info">置信度'+rec.confidence+'</span>';}
     }else{
       h+='<span class="upcoming-pick" style="color:#6b7280">预测生成中...</span>';
     }
@@ -3627,7 +3607,7 @@ function _renderAICard(rec){
   h+='<div class="ai-card-pred '+predClass+'">'+predText+hedgeText+boTag+noDrawTag+v2Tag+skipTag+'</div>';
   h+='<div class="ai-card-reason">'+rec.reason+(rec.skip?' · '+rec.skipReason:'')+'</div>';
   if(rec.noKellyData){h+='<div class="ai-no-kelly-warn">⚠️ 该场比赛预测未获得实时数据，谨慎参考</div>';}
-  h+='<div class="ai-card-conf">置信度 '+rec.confidence+'%'+(rec.kellyLabel&&!rec.boSingle?'<span class="ai-kelly-tag">凯利:'+rec.kellyLabel+'</span>':'')+'</div>';
+  h+='<div class="ai-card-conf">置信度 '+rec.confidence+(rec.kellyLabel&&!rec.boSingle?'<span class="ai-kelly-tag">凯利:'+rec.kellyLabel+'</span>':'')+'</div>';
   if(rec.v6){var v6=rec.v6;var v6Bg=v6.favorLevel==='强看好'?'#16a34a':v6.favorLevel==='看好'?'#3b82f6':v6.favorLevel==='分歧'?'#f59e0b':'#ef4444';var v6ConfIcon=v6.confidenceLevel==='强信心'?'🟢':v6.confidenceLevel==='中等信心'?'🟡':'🔴';var v6DBadge=v6.hasD?' <span style="font-size:9px;background:rgba(156,163,175,0.2);padding:1px 3px;border-radius:3px;color:#9ca3af">含D</span>':'';var v6SpHtml=v6.singlePick?'<span style="margin-left:6px;opacity:0.8">单选'+v6.singlePick+'('+v6.singlePickRate+'%)</span>':'';h+='<div style="margin-top:4px;padding:3px 8px;border-radius:6px;font-size:10px;font-weight:600;background:'+v6Bg+'22;color:'+v6Bg+';display:inline-block">V6 '+v6.scenario+v6DBadge+' · '+v6.favorLevel+' · '+v6ConfIcon+v6.confidenceLevel+' (双选'+v6.hitRate+'%)'+v6SpHtml+'</div>';}else if(!rec.skip){h+='<div style="margin-top:4px;padding:3px 8px;border-radius:6px;font-size:10px;font-weight:400;background:rgba(107,114,128,0.15);color:#9ca3af;display:inline-block">V6 无Kelly数据</div>';}
   h+='</div>'+resultBadge+'</div></div>';
   h+='<span class="ai-card-arrow">›</span>';
