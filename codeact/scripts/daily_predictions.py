@@ -894,52 +894,32 @@ def _calc_v2_strategy_tier(w, d, l, kelly_data=None):
 # 强队视角状态字母映射: frozenset(favored_directions) → (当强队是主队, 当强队是客队)
 _V6_STATE_MAP = {
     frozenset(['h']): ('A', 'Z'),
-    frozenset(['h', 'd']): ('B', 'C'),
-    frozenset(['h', 'a']): ('C', 'B'),
+    frozenset(['h', 'd']): ('B', 'W'),
+    frozenset(['h', 'a']): ('C', 'C'),
     frozenset(['d']): ('Y', 'Y'),
     frozenset(['a']): ('Z', 'A'),
-    frozenset(['d', 'a']): ('W', 'W'),
+    frozenset(['d', 'a']): ('W', 'B'),
     frozenset(['h', 'd', 'a']): ('D', 'D'),
     frozenset(): ('X', 'X'),
 }
 
-# V6.5 策略表（竞彩视角，64子组）: (scenario, is_home_strong) → (prediction, hit_rate%)
-_V65_TABLE = {
-    # 范畴一
-    ('AA', True): ('胜平', 81.0), ('AA', False): ('平负', 75.0),
-    ('AB', True): ('胜平', 84.6), ('AB', False): ('胜负', 84.6),
-    ('AC', True): ('胜平', 88.9), ('AC', False): ('胜平', 83.0),
-    ('AW', True): ('胜平', 70.0), ('AW', False): ('胜负', 76.0),
-    ('AZ', True): ('平负', 65.0), ('AZ', False): ('胜负', 72.0),
-    ('BA', True): ('胜负', 76.9), ('BA', False): ('平负', 70.0),
-    ('BB', True): ('胜平', 90.0), ('BB', False): ('胜负', 90.0),
-    ('BC', True): ('胜平', 78.0), ('BC', False): ('胜负', 80.0),
-    ('BW', True): ('胜平', 85.0), ('BW', False): ('平胜', 78.0),
-    ('BY', True): ('胜平', 82.0), ('BY', False): ('平胜', 80.0),
-    ('BZ', True): ('胜负', 80.0), ('BZ', False): ('胜平', 83.3),
-    # 范畴二
-    ('CA', True): ('胜负', 80.0), ('CA', False): ('平负', 100.0),
-    ('CB', True): ('胜平', 75.0), ('CB', False): ('平胜', 72.0),
-    ('CC', True): ('胜负', 85.7), ('CC', False): ('胜负', 78.0),
-    ('CW', True): ('平负', 83.3), ('CW', False): ('负平', 100.0),
-    ('CY', True): ('胜平', 100.0), ('CY', False): ('平胜', 85.0),
-    ('CZ', True): ('胜负', 100.0), ('CZ', False): ('胜负', 82.0),
-    ('WA', True): ('胜平', 89.5), ('WA', False): ('平胜', 80.0),
-    ('WB', True): ('胜负', 83.3), ('WB', False): ('平胜', 76.0),
-    ('WC', True): ('胜平', 76.5), ('WC', False): ('胜负', 72.0),
-    ('WW', True): ('胜平', 76.9), ('WW', False): ('平负', 90.9),
-    ('WY', True): ('胜平', 100.0), ('WY', False): ('胜负', 85.0),
-    ('WZ', True): ('胜负', 90.9), ('WZ', False): ('胜负', 82.0),
-    ('YA', True): ('胜负', 100.0), ('YA', False): ('胜负', 78.0),
-    ('YB', True): ('胜负', 83.3), ('YB', False): ('平胜', 75.0),
-    ('YC', True): ('胜负', 100.0), ('YC', False): ('胜负', 80.0),
-    ('YW', True): ('平负', 100.0), ('YW', False): ('平负', 80.0),
-    # 范畴三
-    ('ZA', True): ('胜负', 75.0), ('ZA', False): ('胜负', 72.0),
-    ('ZB', True): ('胜平', 80.0), ('ZB', False): ('平胜', 78.0),
-    ('ZC', True): ('胜负', 82.0), ('ZC', False): ('胜负', 76.0),
-    ('ZW', True): ('胜负', 90.9), ('ZW', False): ('胜负', 85.0),
-    ('ZZ', True): ('负胜', 65.0), ('ZZ', False): ('负胜', 60.0),
+# V6 36场景策略表: (365_state, weide_state) → (prediction, hit_rate%)
+_V6_SCENARIO_TABLE = {
+    # 范畴一（两家都含强队胜方向A/B/C）- V6.2 284场回测 78.8%
+    ('A','A'): ('胜平', 81.0), ('A','B'): ('胜平', 90.9), ('A','C'): ('胜平', 88.9),
+    ('B','A'): ('胜平', 69.0), ('B','B'): ('胜平', 81.8), ('B','C'): ('胜平', 73.9),
+    ('C','A'): ('胜负', 80.0), ('C','B'): ('胜平', 83.3), ('C','C'): ('胜负', 85.7),
+    # 范畴二（一家含A/B/C，另一家含W/Y/Z）- V6.2 88.2%
+    ('A','W'): ('胜平', 66.7), ('A','Y'): ('胜平', 66.7), ('A','Z'): ('胜负', 100.0),
+    ('B','W'): ('胜平', 100.0), ('B','Y'): ('胜平', 100.0), ('B','Z'): ('胜平', 88.9),
+    ('C','W'): ('平负', 83.3), ('C','Y'): ('胜平', 100.0), ('C','Z'): ('胜负', 100.0),
+    ('W','A'): ('胜平', 89.5), ('W','B'): ('胜平', 83.3), ('W','C'): ('胜负', 72.7),
+    ('Y','A'): ('胜负', 100.0), ('Y','B'): ('胜平', 100.0), ('Y','C'): ('胜负', 100.0),
+    ('Z','A'): ('胜负', 75.0), ('Z','B'): ('胜平', 100.0), ('Z','C'): ('胜负', 100.0),
+    # 范畴三（两家都不含强队胜方向）- V6.2 90.5%
+    ('W','W'): ('胜平', 76.9), ('W','Y'): ('胜负', 100.0), ('W','Z'): ('胜负', 90.9),
+    ('Y','W'): ('平负', 100.0), ('Y','Y'): ('平胜', 0.0), ('Y','Z'): ('胜负', 100.0),
+    ('Z','W'): ('胜负', 100.0), ('Z','Y'): ('平负', 100.0), ('Z','Z'): ('负胜', 100.0),
 }
 
 # 范畴一/二/三包含的状态字母（含强队胜方向A/B/C vs 不含Y/Z/W）
@@ -1056,17 +1036,32 @@ def classify_v6_scenario(kelly_data: dict, odds_365: dict = None, macau_data: di
     if state_365 == 'D' and state_weide == 'D':
         return None
     
-    # 单家D状态：转换（取Kelly最高的方向为不看好）
+    # 单家D状态：转换（对齐backtest_v6.py的d_new函数）
+    # 核心规则：移除所有Kelly值等于最大值的方向，保留剩余方向
     if state_365 == 'D':
-        max_kelly_dir = max(['h', 'd', 'a'], key=lambda d: b365_kelly.get(d, 0))
-        favored_365_d = favored_365 - {max_kelly_dir}
-        state_365 = _get_v6_state_letter(favored_365_d, is_home_strong)
+        # 获取365三个方向的Kelly值
+        kelly_vals = [b365_kelly.get(d, 0) for d in ['h', 'd', 'a']]
+        if all(k == kelly_vals[0] for k in kelly_vals):
+            # ①三值相等(h=d=a)：去掉强队负→B/W
+            state_365 = 'B'  # V6.2: 三值相等统一B（强队不败，无论主客）
+        else:
+            # ②③④：移除所有并列最大Kelly值的方向，保留剩余
+            max_val = max(kelly_vals)
+            favored_365_d = {d for d in ['h', 'd', 'a'] if b365_kelly.get(d, 0) != max_val}
+            state_365 = _get_v6_state_letter(favored_365_d, is_home_strong)
         has_d_state = True
     
     if state_weide == 'D':
-        max_kelly_dir = max(['h', 'd', 'a'], key=lambda d: bw_kelly.get(d, 0))
-        favored_weide_d = favored_weide - {max_kelly_dir}
-        state_weide = _get_v6_state_letter(favored_weide_d, is_home_strong)
+        # 获取韦德三个方向的Kelly值
+        kelly_vals = [bw_kelly.get(d, 0) for d in ['h', 'd', 'a']]
+        if all(k == kelly_vals[0] for k in kelly_vals):
+            # ①三值相等(h=d=a)：去掉强队负→B/W
+            state_weide = 'B'  # V6.2: 三值相等统一B（强队不败，无论主客）
+        else:
+            # ②③④：移除所有并列最大Kelly值的方向，保留剩余
+            max_val = max(kelly_vals)
+            favored_weide_d = {d for d in ['h', 'd', 'a'] if bw_kelly.get(d, 0) != max_val}
+            state_weide = _get_v6_state_letter(favored_weide_d, is_home_strong)
         has_d_state = True
     
     # X状态排除（X = 三个方向都不看好，无法分类）
@@ -1101,13 +1096,48 @@ def classify_v6_scenario(kelly_data: dict, odds_365: dict = None, macau_data: di
             "has_d_state": has_d_state,
         }
     
-    # V6.5 查表（竞彩视角，无需转换）
-    scenario_code = f"{state_365}{state_weide}"
-    v65_key = (scenario_code, is_home_strong)
-    v65_entry = _V65_TABLE.get(v65_key)
-    if not v65_entry:
+    # 查36场景策略表
+    scenario_key = (state_365, state_weide)
+    scenario_entry = _V6_SCENARIO_TABLE.get(scenario_key)
+    if not scenario_entry:
         return None
-    prediction, hit_rate = v65_entry
+    
+    prediction, hit_rate = scenario_entry
+    scenario_code = f"{state_365}{state_weide}"
+    
+    # V6.2 AA/WW 主客区分 + 强队视角→主队视角转换
+    # 策略表默认存强队=主队时的推荐，强队=客队时需转换
+    if scenario_code == 'AA':
+        if is_home_strong:
+            prediction = '胜平'
+        else:
+            prediction = '平胜'  # 强队=客, 强队平负→主队平胜
+    elif scenario_code == 'WW':
+        if is_home_strong:
+            prediction = '胜平'
+        else:
+            prediction = '负胜'  # 强队=客, 强队胜负→主队负胜
+    
+    # V6.5 手动修正覆盖（16个override，与V6.2策略表不一致的场景）
+    # 格式: (scenario_code, is_home_strong) → 竞彩视角prediction（主队视角）
+    _V65_OVERRIDES = {
+        ('ZA', True):  '平负',   ('AZ', True):  '平负',
+        ('WZ', False): '负平',   ('AW', False): '负胜',
+        ('CW', False): '平负',   ('WW', False): '胜平',
+        ('YC', False): '负平',   ('YZ', True):  '胜平',
+        ('AA', False): '负胜',   ('BZ', True):  '胜负',
+        ('WC', False): '胜平',   ('AC', False): '负平',
+        ('BC', False): '负胜',   ('BC', True):  '胜负',
+        ('BW', False): '胜平',   ('YW', True):  '胜平',  # V6.5修正：双选必须包含单选
+    }
+    override_key = (scenario_code, is_home_strong)
+    if override_key in _V65_OVERRIDES:
+        prediction = _V65_OVERRIDES[override_key]
+    
+    elif not is_home_strong:
+        # 强队=客队时，强队视角→主队视角转换
+        convert = {'胜平': '平负', '胜负': '负胜', '平胜': '平胜', '负胜': '胜负', '平负': '平胜'}
+        prediction = convert.get(prediction, prediction)
     
     # 范畴判定
     s365_in_fav = state_365 in _V6_FAV_DIRS
@@ -1499,6 +1529,50 @@ def predict_match(match: dict, teams: dict, kelly_data: dict = None,
             elif favor_level == '看好':
                 stars = min(5, max(stars, 3))  # 范畴一至少3星
             # 分歧和博冷不额外调星
+
+    # ===== V6.4 Kelly≥1.0 反向指标规则（三条，2026-08-12回测验证） =====
+    # 在V6场景预测之后执行，排除被反向指标标记的方向
+    if kelly_data and pred_type == 'double' and double_pick:
+        b365_k = kelly_data.get('bet365_kelly', {})
+        bw_k = kelly_data.get('weide_kelly', {})
+        _DIR_EN2CN = {'h': '胜', 'd': '平', 'a': '负'}
+        _DIR_CN2EN = {'胜': 'h', '平': 'd', '负': 'a'}
+        kelly_rule_applied = False
+        
+        # 规则一：韦德胜K≥1.0 → 铁排除"胜"
+        if bw_k.get('h', 0) >= 1.0 and '胜' in double_pick:
+            double_pick.remove('胜')
+            kelly_rule_applied = True
+        # 规则二：韦德负K≥1.0 → 铁排除"负"
+        if bw_k.get('a', 0) >= 1.0 and '负' in double_pick:
+            double_pick.remove('负')
+            kelly_rule_applied = True
+        # 规则三：两家同时≥1.0同方向 → 铁不中
+        for d_en, d_cn in _DIR_EN2CN.items():
+            if (b365_k.get(d_en, 0) >= 1.0 and bw_k.get(d_en, 0) >= 1.0 
+                    and d_cn in double_pick):
+                double_pick.remove(d_cn)
+                kelly_rule_applied = True
+        
+        if kelly_rule_applied and len(double_pick) >= 2:
+            prediction = f'{double_pick[0]}+{double_pick[1]}'
+            reason += ' | Kelly≥1.0反向排除'
+        elif kelly_rule_applied and len(double_pick) == 1:
+            # 排除后只剩一个方向，保持双选格式（补回概率最高的另一方向）
+            pred_type = 'double'
+            remaining_dir = double_pick[0]
+            # 从prob排序中找第二方向
+            other_dirs = [d for d, _ in sorted_probs if d != remaining_dir]
+            if other_dirs:
+                double_pick.append(other_dirs[0])
+                prediction = f'{double_pick[0]}+{double_pick[1]}'
+                reason += ' | Kelly≥1.0反向排除'
+            else:
+                # 降为单选
+                pred_type = 'single'
+                prediction = double_pick[0]
+                double_pick = None
+                reason += ' | Kelly≥1.0反向排除→单选'
 
     # 构建场景相关reason后缀
     if kelly_scenario and kelly_signal and '凯利场景' not in reason and 'V6场景' not in reason:
@@ -2953,7 +3027,7 @@ async def main():
             else:
                 raise RuntimeError("无法获取赛程数据")
 
-        schedule = json.loads(schedule_content)
+        schedule = json.loads(schedule_content, strict=False)
         all_matches = schedule.get("matches", [])
         # 队名映射修正：将占位名称替换为真实球队名
         _TEAM_NAME_FIX = {
@@ -2970,12 +3044,10 @@ async def main():
         print(f"[OK] 赛程: {len(all_matches)} 场比赛")
 
         # ===== 2.5 补充 schedule.json 中缺失的联赛赛程（从 Odds API 获取） =====
-        # ESPN API 可能不覆盖某些联赛（如 fin.1 芬超），导致 schedule.json 无该联赛数据
-        # 此处从 The Odds API /scores/ 端点获取缺失联赛的赛程并注入
+        # [已禁用] Odds API Key过期(401)，ESPN被屏蔽(403)。赛程数据以zgzcw+schedule.json为准。
         schedule_leagues = set(m.get("league", "") for m in all_matches)
-        missing_leagues = [lc for lc in ACTIVE_LEAGUE_CODES
-                           if lc not in schedule_leagues and lc in _ODDS_API_LEAGUE_MAP]
-        if missing_leagues:
+        missing_leagues = []  # disabled: Odds API key expired
+        if False:  # was: if missing_leagues:
             print(f"[INFO] schedule.json 缺失联赛: {missing_leagues}，尝试从 Odds API 补充...")
             # 芬超等小联赛球队中文映射
             _ODDS_TEAM_ZH = {
@@ -3130,19 +3202,11 @@ async def main():
         print(f"[INFO] 未开赛比赛: {len(upcoming)} 场（已过滤非竞彩联赛: {skipped_leagues}）")
 
         # ===== 6.5 获取多公司赔率（用于凯利场景分析） =====
-        print("[INFO] 获取多公司赔率数据（凯利场景分析）...")
-        odds_api_data = {}  # league_code -> [odds_event, ...]
-        # 收集有未开赛比赛的联赛
-        leagues_with_upcoming = set(m.get("league", "") for m in upcoming)
-        for lc in leagues_with_upcoming:
-            if lc not in _ODDS_API_LEAGUE_MAP:
-                continue
-            odds_data = await _fetch_odds_api_odds(lc)
-            if odds_data:
-                odds_api_data[lc] = odds_data
-                await asyncio.sleep(0.5)  # API配额保护，间隔0.5秒
-        total_odds_events = sum(len(v) for v in odds_api_data.values())
-        print(f"[OK] 多公司赔率: {len(odds_api_data)} 个联赛, {total_odds_events} 场比赛")
+        # [已禁用] Odds API Key过期(401)，改用zgzcw_kelly和beidan_odds
+        print("[INFO] Odds API已禁用(Key过期)，使用zgzcw/beidan赔率替代")
+        odds_api_data = {}  # disabled: Odds API key expired
+        total_odds_events = 0
+        print(f"[OK] 多公司赔率: 已跳过Odds API")
         
         # ===== 6.5.1 从500com_daily加载凯利数据（补充数据源） =====
         print("[INFO] 从500com_daily加载凯利数据...")
@@ -3176,6 +3240,12 @@ async def main():
             # 按联赛统计
             _beidan_leagues = set(m.get('league', '') for m in beidan_odds)
             print(f"[BEIDAN] 覆盖联赛: {', '.join(sorted(_beidan_leagues))}")
+
+        # ===== 6.5.4 加载zgzcw实时赔率数据（第5级fallback） =====
+        print("[INFO] 加载zgzcw实时赔率数据...")
+        zgzcw_live_odds = _load_zgzcw_live_odds()
+        if zgzcw_live_odds:
+            print(f"[OK] zgzcw实时赔率: {len(zgzcw_live_odds)} 场比赛")
 
         # ===== 6.6 获取竞彩网赔率（备选数据源 fallback） =====
         print("[INFO] 获取竞彩网赔率（备选数据源）...")
@@ -3392,7 +3462,7 @@ async def main():
             # 从北单投注页面获取欧赔作为最后备选
             # 北单覆盖竞彩以外的联赛（罗甲、波兰甲、丹麦甲/超、瑞士超/挑、
             # 爱甲/爱超、冰岛超、芬甲/超、智利甲、墨西超、巴西甲/乙、阿甲、捷甲等）
-            if not m.get("odds") and not kelly_data and beidan_odds:
+            if not m.get("odds") and beidan_odds:
                 beidan_match = _match_beidan_odds(_home, _away, beidan_odds)
                 if beidan_match:
                     odds_data = {
@@ -3404,17 +3474,40 @@ async def main():
                     m["odds"] = odds_data
                     print(f"[FALLBACK-BEIDAN] {_home} vs {_away}: 北单欧赔 {beidan_match['w']:.2f}/{beidan_match['d']:.2f}/{beidan_match['l']:.2f}")
 
+            # ===== zgzcw实时赔率 fallback（第5级） =====
+            if not m.get("odds") and zgzcw_live_odds:
+                zlive_match = _match_zgzcw_live_odds(_home, _away, zgzcw_live_odds)
+                if zlive_match:
+                    odds_data = {
+                        "source": "zgzcw_live",
+                        "w": zlive_match["w"],
+                        "d": zlive_match["d"],
+                        "l": zlive_match["l"],
+                    }
+                    m["odds"] = odds_data
+                    print(f"[FALLBACK-ZGZCW] {_home} vs {_away}: zgzcw实时赔率 {zlive_match['w']:.2f}/{zlive_match['d']:.2f}/{zlive_match['l']:.2f}")
+
             # ===== 实时数据铁律：Kelly数据缺失检查 =====
             _no_kelly = kelly_data is None
             if _no_kelly:
                 if existing and not existing.get("verified") and not existing.get("noKellyData"):
                     # 情况A：已有旧预测且无实时Kelly数据 → 沿用上次预测
                     keep_count += 1
+                    # 即使沿用旧预测，也要更新赔率数据（如果schedule中有赔率但旧记录没有）
+                    if m.get("odds") and not existing.get("odds"):
+                        pred_map[match_id]["odds"] = m["odds"]
+                        pred_map[match_id]["odds_source"] = m["odds"].get("source", "unknown")
+                        pred_map[match_id]["hasOdds"] = True
                     print(f"[KEEP-PREV] {_home} vs {_away}: 无实时Kelly数据，沿用上次预测")
                     continue
                 elif existing and existing.get("noKellyData"):
                     # 情况A2：已有占位记录，仍拉不到 → 保持占位不变，持续重试
                     keep_count += 1
+                    # 即使保持占位，也要更新赔率数据
+                    if m.get("odds") and not existing.get("odds"):
+                        pred_map[match_id]["odds"] = m["odds"]
+                        pred_map[match_id]["odds_source"] = m["odds"].get("source", "unknown")
+                        pred_map[match_id]["hasOdds"] = True
                     print(f"[KEEP-PENDING] {_home} vs {_away}: 仍无Kelly数据，保持等待")
                     continue
                 else:
@@ -3436,7 +3529,7 @@ async def main():
                         "reason": "等待实时Kelly数据",
                         "doublePick": [],
                         "stars": 0,
-                        "hasOdds": False,
+                        "hasOdds": bool(m.get("odds")),
                         "spread": 0,
                         "handicapDir": None,
                         "noKellyData": True,
@@ -3512,6 +3605,7 @@ async def main():
             if m.get("odds"):
                 pred_map[match_id]["odds"] = m["odds"]
                 pred_map[match_id]["odds_source"] = m["odds"].get("source", "unknown")
+                pred_map[match_id]["hasOdds"] = True  # 确保hasOdds与实际数据一致
 
         # ===== 8. 组装最终预测列表 =====
         # 只保留昨天、今天、明天的预测（不提前预测太远，不保留太久）
@@ -3542,11 +3636,23 @@ async def main():
         _preds_with_jc = [p for p in final_predictions if p.get("odds_source") == "竞彩网"]
         print(f"[DEBUG] final_predictions 中有赔率: {len(_preds_with_odds)} 场, 竞彩网: {len(_preds_with_jc)} 场")
 
-        # ===== 8.1 赔率覆盖率监控 =====
+        # ===== 8.1 赔率覆盖率监控（仅统计今天和明天的预测） =====
         _no_odds_matches = []
+        today_str = datetime.now(timezone(timedelta(hours=8))).strftime("%Y%m%d")
+        tomorrow_str = (datetime.now(timezone(timedelta(hours=8))) + timedelta(days=1)).strftime("%Y%m%d")
+        allowed_dates = {today_str, tomorrow_str}
+        
         for p in final_predictions:
             if not p.get("hasOdds") and not p.get("verified"):
-                _no_odds_matches.append(f"{p.get('home','')} vs {p.get('away','')}")
+                # 只统计今天和明天的预测，不算旧数据
+                p_date = p.get("date", "")
+                if len(p_date) >= 8:
+                    if "-" in p_date:
+                        p_date_str = p_date[:10].replace("-", "")
+                    else:
+                        p_date_str = p_date[:8]
+                    if p_date_str[:8] in allowed_dates:
+                        _no_odds_matches.append(f"{p.get('home','')} vs {p.get('away','')}")
         if _no_odds_matches:
             print(f"\n[WARNING] 赔率缺失！{len(_no_odds_matches)} 场比赛无赔率数据（将退化为纯Elo模型，预测可靠性大幅降低）:")
             for m_name in _no_odds_matches:
@@ -3709,7 +3815,19 @@ async def main():
         )
         # 赔率覆盖率告警
         _no_odds_count = len(_no_odds_matches)
-        _total_unverified = len([p for p in final_predictions if not p.get("verified")])
+        # 只统计今天和明天的未验证预测
+        _today_unverified = []
+        for p in final_predictions:
+            if not p.get("verified"):
+                p_date = p.get("date", "")
+                if len(p_date) >= 8:
+                    if "-" in p_date:
+                        p_date_str = p_date[:10].replace("-", "")
+                    else:
+                        p_date_str = p_date[:8]
+                    if p_date_str[:8] in allowed_dates:
+                        _today_unverified.append(p)
+        _total_unverified = len(_today_unverified)
         if _no_odds_count > 0:
             stats_info += f"\n⚠️ 赔率缺失: {_no_odds_count}/{_total_unverified} 场（降级为纯Elo，可靠性低）"
         print(stats_info)
@@ -3815,8 +3933,64 @@ async def main():
         )
 
 
-asyncio.run(main())
 
+def _load_zgzcw_live_odds() -> list:
+    """加载zgzcw实时赔率数据（由浏览器抓取zgzcw页面生成）
+    
+    数据格式: [{league, time, status, home, away, score, odds_win, odds_draw, odds_loss}]
+    覆盖290场北单比赛，含完整欧赔三值。
+    """
+    today = datetime.now().strftime("%Y%m%d")
+    tomorrow = (datetime.now() + timedelta(days=1)).strftime("%Y%m%d")
+    yesterday = (datetime.now() - timedelta(days=1)).strftime("%Y%m%d")
+    script_dir = os.path.dirname(os.path.abspath(__file__))
+    base_dir = os.path.dirname(script_dir)
+
+    all_matches = []
+    for date_str in [yesterday, today, tomorrow]:
+        path = os.path.join(base_dir, "data", "500com_daily", date_str, "zgzcw_live_odds.json")
+        if os.path.exists(path):
+            try:
+                with open(path, "r", encoding="utf-8") as f:
+                    data = json.load(f)
+                if isinstance(data, list):
+                    all_matches.extend(data)
+                    print(f"[ZGZCW-LIVE] 加载{date_str}实时赔率: {len(data)}场比赛")
+            except Exception as e:
+                print(f"[ZGZCW-LIVE] 加载{date_str}数据异常: {e}")
+
+    if all_matches:
+        seen = set()
+        unique = []
+        for m in all_matches:
+            key = (m.get("home", ""), m.get("away", ""))
+            if key not in seen:
+                seen.add(key)
+                unique.append(m)
+        return unique
+    print("[ZGZCW-LIVE] 未找到实时赔率数据")
+    return []
+
+
+def _match_zgzcw_live_odds(home_cn: str, away_cn: str, zgzcw_matches: list) -> dict:
+    """在zgzcw实时赔率中查找匹配的比赛"""
+    if not zgzcw_matches or not home_cn or not away_cn:
+        return None
+    # 精确匹配
+    for m in zgzcw_matches:
+        mh = m.get("home", "").strip()
+        ma = m.get("away", "").strip()
+        if mh == home_cn and ma == away_cn:
+            return {"w": m["odds_win"], "d": m["odds_draw"], "l": m["odds_loss"]}
+    # 包含匹配
+    for m in zgzcw_matches:
+        mh = m.get("home", "").strip()
+        ma = m.get("away", "").strip()
+        if (home_cn in mh or mh in home_cn) and (away_cn in ma or ma in away_cn):
+            return {"w": m["odds_win"], "d": m["odds_draw"], "l": m["odds_loss"]}
+        if (home_cn in ma or ma in home_cn) and (away_cn in mh or mh in away_cn):
+            return {"w": m["odds_win"], "d": m["odds_draw"], "l": m["odds_loss"]}
+    return None
 
 
 def _load_beidan_odds() -> list:
@@ -4016,3 +4190,8 @@ def _match_beidan_odds(home_cn: str, away_cn: str, beidan_matches: list) -> dict
         return best_match
 
     return None
+
+
+
+
+asyncio.run(main())
