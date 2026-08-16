@@ -964,19 +964,9 @@ function _kNormAdj(base,adj){var hf=Math.max(0.01,base.hf+(adj.hf||0)),df=Math.m
 
 // ===== V6 36场景分类 =====
 var _V6_FAVOR_DIRS={'A':1,'B':1,'C':1}; // 含强队胜方向
-var _V6_STRATEGY={
-'AA':'胜平','AB':'胜平','AC':'胜负','BA':'胜平','BB':'胜平','BC':'胜平','CA':'胜负','CB':'胜平','CC':'胜负',
-'WA':'胜平','WB':'平胜','WC':'负胜','AW':'胜平','AY':'胜平','AZ':'胜负','BW':'平胜','BY':'胜平','BZ':'胜平','CW':'负胜','CY':'胜平','CZ':'胜负','YA':'胜平','YB':'胜平','YC':'胜平','ZA':'胜负','ZB':'胜平','ZC':'胜负',
-'WW':'平负','WY':'平负','WZ':'平负','YW':'平负','YY':'平胜','YZ':'平负','ZW':'平负','ZY':'平负','ZZ':'负胜',
-'da':'胜平','dh':'胜平','ah':'胜负'
-};
-var _V6_HIT_RATE={
-'AA':61.9,'AB':90.0,'AC':50.0,'BA':71.4,'BB':87.5,'BC':75.0,'CA':78.6,'CB':83.3,'CC':85.7,
-'WA':92.9,'WB':66.7,'WC':50.0,'AW':70.0,'AY':60.0,'AZ':71.4,'BW':66.7,'BY':80.0,'BZ':100,'CW':100,'CY':66.7,'CZ':50.0,'YA':100,'YB':75.0,'YC':100,'ZA':100,'ZB':66.7,'ZC':100,
-'WW':50.0,'WY':100,'WZ':100,'YW':50.0,'YY':66.7,'YZ':66.7,'ZW':50.0,'ZY':100,'ZZ':0,
-'da':70.0,'dh':90.0,'ah':50.0
-};
-var _V6_SINGLE_PICK={'AA':['主胜',40.9],'AB':['客胜',37.0],'AC':['平',46.7],'AW':['主胜',55.6],'AY':['主胜',50.0],'AZ':['客胜',60.0],'BA':['平',37.3],'BB':['平',51.6],'BC':['主胜',38.9],'BW':['平',52.9],'BY':['主胜',50.0],'BZ':['主胜',45.5],'CA':['客胜',44.0],'CB':['平',57.1],'CC':['客胜',46.7],'CW':['客胜',50.0],'CY':['平',40.0],'CZ':['主胜',80.0],'WA':['平',44.4],'WB':['平',40.7],'WC':['客胜',45.5],'WW':['平',57.9],'WY':['主胜',100.0],'WZ':['主胜',47.4],'YA':['主胜',71.4],'YB':['平',75.0],'YC':['主胜',60.0],'YW':['平',66.7],'YY':['主胜',50.0],'YZ':['主胜',66.7],'ZA':['平',50.0],'ZB':['平',75.0],'ZC':['主胜',75.0],'ZW':['主胜',87.5],'ZY':['平',100.0],'ZZ':['主胜',66.7]};
+var _V65_STRATEGY={'AA客':'平负','AA主':'胜平','AB客':'胜负','AB主':'胜平','AC客':'胜平','AC主':'胜平','AW客':'胜负','AW主':'胜平','AZ客':'胜负','AZ主':'平负','BA客':'平负','BA主':'胜负','BB客':'胜负','BB主':'胜平','BC客':'胜负','BC主':'胜平','BW客':'平胜','BW主':'胜平','BY客':'平胜','BY主':'胜平','BZ客':'胜平','BZ主':'胜负','CA客':'平负','CA主':'胜负','CB客':'平胜','CB主':'胜平','CC客':'胜负','CC主':'胜负','CW客':'负平','CW主':'平负','CY客':'平胜','CY主':'胜平','CZ客':'胜负','CZ主':'胜负','WA客':'平胜','WA主':'胜平','WB客':'平胜','WB主':'胜负','WC客':'胜负','WC主':'胜平','WW客':'平负','WW主':'胜平','WY客':'胜负','WY主':'胜平','WZ客':'胜负','WZ主':'胜负','YA客':'胜负','YA主':'胜负','YB客':'平胜','YB主':'胜负','YC客':'胜负','YC主':'胜负','YW客':'平负','YW主':'平负','ZA客':'胜负','ZA主':'胜负','ZB客':'平胜','ZB主':'胜平','ZC客':'胜负','ZC主':'胜负','ZW客':'胜负','ZW主':'胜负','ZZ客':'负胜','ZZ主':'负胜'};
+var _V65_HIT_RATE={'AA客':75.0,'AA主':81.0,'AB客':84.6,'AB主':84.6,'AC客':83.0,'AC主':88.9,'AW客':76.0,'AW主':70.0,'AZ客':72.0,'AZ主':65.0,'BA客':70.0,'BA主':76.9,'BB客':90.0,'BB主':90.0,'BC客':80.0,'BC主':78.0,'BW客':78.0,'BW主':85.0,'BY客':80.0,'BY主':82.0,'BZ客':83.3,'BZ主':80.0,'CA客':100.0,'CA主':80.0,'CB客':72.0,'CB主':75.0,'CC客':78.0,'CC主':85.7,'CW客':100.0,'CW主':83.3,'CY客':85.0,'CY主':100.0,'CZ客':82.0,'CZ主':100.0,'WA客':80.0,'WA主':89.5,'WB客':76.0,'WB主':83.3,'WC客':72.0,'WC主':76.5,'WW客':90.9,'WW主':76.9,'WY客':85.0,'WY主':100.0,'WZ客':82.0,'WZ主':90.9,'YA客':78.0,'YA主':100.0,'YB客':75.0,'YB主':83.3,'YC客':80.0,'YC主':100.0,'YW客':80.0,'YW主':100.0,'ZA客':72.0,'ZA主':75.0,'ZB客':78.0,'ZB主':80.0,'ZC客':76.0,'ZC主':82.0,'ZW客':85.0,'ZW主':90.9,'ZZ客':60.0,'ZZ主':65.0};
+var _V65_SINGLE_PICK={'AA客':['负',41.2],'AA主':['胜',44.0],'AB客':['负',61.5],'AB主':['胜',46.7],'AC客':['平',60.0],'AC主':['胜',50.0],'AW客':['胜',50.0],'AW主':['胜',50.0],'AZ客':['负',100.0],'AZ主':['负',100.0],'BA客':['负',40.0],'BA主':['胜',40.4],'BB客':['负',50.0],'BB主':['胜',46.2],'BC客':['负',64.3],'BC主':['胜',52.0],'BW客':['胜',66.7],'BW主':['胜',72.7],'BY客':['平',100.0],'BY主':['胜',100.0],'BZ客':['平',50.0],'BZ主':['胜',60.0],'CA客':['负',80.0],'CA主':['胜',64.7],'CB客':['负',57.1],'CB主':['胜',50.0],'CC客':['负',66.7],'CC主':['胜',81.8],'CW客':['负',75.0],'CW主':['负',50.0],'CY客':['胜',100.0],'CY主':['负',40.0],'CZ客':['负',100.0],'CZ主':['胜',100.0],'WA客':['平',53.8],'WA主':['胜',56.0],'WB客':['负',42.9],'WB主':['胜',55.6],'WC客':['负',57.1],'WC主':['胜',41.2],'WW客':['平',63.6],'WW主':['胜',38.9],'WY客':['负',100.0],'WY主':['胜',83.3],'WZ客':['胜',60.0],'WZ主':['胜',50.0],'YA客':['负',66.7],'YA主':['胜',71.4],'YB客':['负',50.0],'YB主':['负',50.0],'YC客':['负',50.0],'YC主':['胜',60.0],'YW客':['胜',66.7],'YW主':['胜',100.0],'ZA客':['负',66.7],'ZA主':['胜',50.0],'ZB客':['负',60.0],'ZB主':['胜',60.0],'ZC客':['负',50.0],'ZC主':['胜',75.0],'ZW客':['胜',75.0],'ZW主':['胜',100.0],'ZZ客':['负',100.0],'ZZ主':['胜',66.7]};
 
 function _v6StateLetterFromFavs(favs,isHomeStrong){
   if(favs.length===0)return 'X';
@@ -1048,13 +1038,13 @@ function _classifyV6(c365,cW,oddsW,oddsD,oddsL){
   if(s365HasFav&&sWHasFav){cat=1;favorLevel='看好';}
   else if(s365HasFav||sWHasFav){cat=2;favorLevel='分歧';}
   else{cat=3;favorLevel='博冷';}
-  var pred=_V6_STRATEGY[scenario]||'';
-  var hitRate=_V6_HIT_RATE[scenario]||0;
+  var key=scenario+(isHomeStrong?'主':'客');var pred=_V65_STRATEGY[key]||'';
+  var hitRate=_V65_HIT_RATE[key]||0;
   var confLevel='';
   if(hitRate>=80)confLevel='强信心';
   else if(hitRate>=70)confLevel='中等信心';
   else confLevel='弱信心待验证';
-  var spData=_V6_SINGLE_PICK[scenario]||null;
+  var spData=_V65_SINGLE_PICK[key]||null;
   return{scenario:scenario,category:cat,favorLevel:favorLevel,confidenceLevel:confLevel,prediction:pred,hitRate:hitRate,singlePick:spData?spData[0]:null,singlePickRate:spData?spData[1]:0,s365:s365,sW:sW,hasD:hasD};
 }
 
@@ -1108,8 +1098,8 @@ function _detectKellyScenario(c365,cW,baseProbs,oddsConf){
       function _isND(f,b){return f.length===2&&f.indexOf('h')>=0&&f.indexOf('a')>=0&&b.indexOf('d')>=0;}
       function _udDir(f){if(f.indexOf('h')>=0&&f.indexOf('d')>=0&&f.indexOf('a')<0)return'h';if(f.indexOf('d')>=0&&f.indexOf('a')>=0&&f.indexOf('h')<0)return'a';return null;}
       var nd365=_isND(f365,b365),ndW=_isND(fW,bW);
-      if(nd365&&!ndW){var ud=_udDir(fW);if(ud){r.scenarios.push('5');r.scenarios=r.scenarios.filter(function(s){return s!=='0';});r.pick=ud;r.adjustments[_K_DK[ud]]+=0.15;r.label='场景五-分胜负+不败→'+_K_DN[ud];return;}}
-      if(ndW&&!nd365){var ud=_udDir(f365);if(ud){r.scenarios.push('5');r.scenarios=r.scenarios.filter(function(s){return s!=='0';});r.pick=ud;r.adjustments[_K_DK[ud]]+=0.15;r.label='场景五-分胜负+不败→'+_K_DN[ud];return;}}
+      if(nd365&&!ndW){var ud=_udDir(fW);if(ud){r.scenarios.push('5');r.scenarios=r.scenarios.filter(function(s){return s!=='0';});r.pick=ud;r.adjustments[_K_DK[ud]]+=0.15;r.label='';return;}}
+      if(ndW&&!nd365){var ud=_udDir(f365);if(ud){r.scenarios.push('5');r.scenarios=r.scenarios.filter(function(s){return s!=='0';});r.pick=ud;r.adjustments[_K_DK[ud]]+=0.15;r.label='';return;}}
     })();
     // 非主选的commonFavor方向作为补防(cover)，额外+0.05
     for(var j=0;j<commonFavor.length;j++){
@@ -1182,7 +1172,7 @@ function _detectKellyScenario(c365,cW,baseProbs,oddsConf){
     if(udDir){
       r.scenarios.push('5');r.pick=udDir;
       r.adjustments[_K_DK[udDir]]+=0.15;
-      r.label='场景五-分胜负+不败→'+_K_DN[udDir];
+      r.label='';
       r._finalProbs=_kNormAdj(baseProbs,r.adjustments);return r;
     }
   })();
@@ -3533,6 +3523,7 @@ kellyDropped=[];
     hedgePick=null;
     noDraw=false;
     reason='V6 '+v6Result.scenario+(v6Result.hasD?'(含D)':'')+'('+v6Result.favorLevel+' '+v6Result.confidenceLevel+' '+v6Result.hitRate+'%) → '+v6Result.prediction;
+    kellyLabel=""; // V6已覆盖，清除旧Kelly场景标签避免误导
   }else{
     if(reason)reason+=' · [V6无数据]';
   }
