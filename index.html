@@ -152,6 +152,11 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;b
 .match-status.finished{background:#1a2a1a;color:#4ade80}
 .match-arrow{color:#2a2f45;font-size:16px;flex-shrink:0}
 
+/* 归类筛选下拉框 */
+.cat-select{background:#0d1117;color:#c9d1d9;border:1px solid #30363d;border-radius:6px;padding:4px 8px;font-size:11px;cursor:pointer;outline:none;min-width:140px}
+.cat-select:focus{border-color:#58a6ff}
+.cat-select option{background:#161b22;color:#c9d1d9}
+
 /* 联赛筛选标签 */
 .league-filter{display:flex;gap:4px;margin-bottom:10px;flex-wrap:wrap}
 .lf-tag{padding:4px 8px;border-radius:6px;font-size:10px;font-weight:600;cursor:pointer;background:#0d1117;color:#6b7280;border:1px solid #2a2f45;transition:all .15s;white-space:nowrap}
@@ -533,6 +538,10 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;b
 <button class="refresh-btn" onclick="_loadSchedule()">🔄 刷新</button>
 </div>
 <div class="league-filter" id="lf"></div>
+<div class="category-filter-row" style="display:flex;align-items:center;gap:8px;margin-bottom:10px;flex-wrap:wrap">
+<span style="font-size:10px;color:#6b7280;white-space:nowrap">归类：</span>
+<select id="cat-filter" class="cat-select" onchange="_filterCategory()"></select>
+</div>
 <div id="sl-body">
 <div class="sl-loading"><span class="spinner"></span>加载赛程中...</div>
 </div>
@@ -1041,7 +1050,17 @@ function _classifyV6(c365,cW,oddsW,oddsD,oddsL){
   else confLevel='弱信心待验证';
   var spData=_V65_SINGLE_PICK[key]||null;
   var wdlData=_V65_WDL[key]||null;
-  return{scenario:scenario,subgroupKey:key,category:cat,favorLevel:favorLevel,confidenceLevel:confLevel,prediction:pred,hitRate:hitRate,singlePick:spData?spData[0]:null,singlePickRate:spData?spData[1]:0,s365:s365,sW:sW,hasD:hasD,wdl:wdlData};
+  // Kelly≥1.0 排除规则（2026-08-17 加入）
+  // 规则一：韦德胜K≥1.0 → 排除"胜"（13次→0%命中）
+  // 规则二：韦德负K≥1.0 → 排除"负"（42次→2.4%命中）
+  // 规则三：两家同时≥1.0同方向 → 排除该方向（20次→5%命中）
+  // 注意：韦德平K≥1.0命中率40%，不纳入排除规则
+  var exclusions=[];
+  if(cW.kelly_h>=1.0)exclusions.push('韦德胜K≥1.0→排除胜');
+  if(cW.kelly_a>=1.0)exclusions.push('韦德负K≥1.0→排除负');
+  if(c365.kelly_h>=1.0&&cW.kelly_h>=1.0)exclusions.push('两家胜K≥1.0→排除胜');
+  if(c365.kelly_a>=1.0&&cW.kelly_a>=1.0)exclusions.push('两家负K≥1.0→排除负');
+  return{scenario:scenario,subgroupKey:key,category:cat,favorLevel:favorLevel,confidenceLevel:confLevel,prediction:pred,hitRate:hitRate,singlePick:spData?spData[0]:null,singlePickRate:spData?spData[1]:0,s365:s365,sW:sW,hasD:hasD,wdl:wdlData,exclusions:exclusions};
 }
 
 function _detectKellyScenario(c365,cW,baseProbs,oddsConf){
@@ -1830,13 +1849,13 @@ function _renderLeagueFilter(matches){
     h+='<span class="lf-tag'+(_activeFilter===lk?" on":"")+'" onclick="_filterLeague(\''+lk+'\')">'+info.short+' '+info.count+'</span>';
   }
   document.getElementById("lf").innerHTML=h;
+  _populateCatDropdown();
 }
 
 
 function _filterLeague(league){
   _activeFilter=league;
-  var filtered=_activeFilter==="all"?_allMatches:_allMatches.filter(function(m){return m.league===league});
-  _renderSchedule(filtered);
+  _applyFilters();
   
   var tags=document.querySelectorAll(".lf-tag");
   tags.forEach(function(t){
@@ -1844,6 +1863,72 @@ function _filterLeague(league){
     if(code){
       t.className="lf-tag"+(code[1]===_activeFilter?" on":"");
     }
+
+var _activeCategory="all";
+
+function _populateCatDropdown(){
+  var sel=document.getElementById("cat-filter");
+  if(!sel)return;
+  sel.innerHTML='<option value="all">全部</option>'+
+    '<option value="high">强信心(≥80%)</option>'+
+    '<option value="mid">中等信心(70-80%)</option>'+
+    '<option value="low">弱信心(<70%)</option>'+
+    '<option value="sep">── 双选类型 ──</option>'+
+    '<option value="cat_sp">胜平</option>'+
+    '<option value="cat_ps">平胜</option>'+
+    '<option value="cat_fs">负胜</option>'+
+    '<option value="cat_fp">平负</option>'+
+    '<option value="cat_sf">胜负</option>';
+  sel.value=_activeCategory;
+}
+
+function _filterCategory(){
+  var sel=document.getElementById("cat-filter");
+  if(!sel)return;
+  _activeCategory=sel.value;
+  _applyFilters();
+}
+
+function _applyFilters(){
+  var filtered=_allMatches;
+  // League filter
+  if(_activeFilter!=="all"){
+    filtered=filtered.filter(function(m){return m.league===_activeFilter});
+  }
+  // Category filter
+  if(_activeCategory!=="all"&&_activeCategory.indexOf("cat_")!==0){
+    var recs=JSON.parse(localStorage.getItem(_AI_KEY)||"[]");
+    var recMap={};
+    for(var i=0;i<recs.length;i++){recMap[recs[i].matchId]=recs[i];}
+    filtered=filtered.filter(function(m){
+      var r=recMap[m.id];
+      if(!r||!r.hitRate)return true; // no prediction data, show all
+      var hr=r.hitRate;
+      if(_activeCategory==="high")return hr>=80;
+      if(_activeCategory==="mid")return hr>=70&&hr<80;
+      if(_activeCategory==="low")return hr<70;
+      return true;
+    });
+  }else if(_activeCategory.indexOf("cat_")===0){
+    var recs2=JSON.parse(localStorage.getItem(_AI_KEY)||"[]");
+    var recMap2={};
+    for(var i=0;i<recs2.length;i++){recMap2[recs2[i].matchId]=recs2[i];}
+    var catType=_activeCategory.replace("cat_","");
+    filtered=filtered.filter(function(m){
+      var r=recMap2[m.id];
+      if(!r||!r.prediction)return true;
+      return r.prediction===catType;
+    });
+  }
+  _renderSchedule(filtered);
+  // Update league tag active state
+  var tags=document.querySelectorAll(".lf-tag");
+  tags.forEach(function(t){
+    var code=t.getAttribute("onclick").match(/'([^']+)'/);
+    if(code){t.className="lf-tag"+(code[1]===_activeFilter?" on":"");}
+  });
+}
+
   });
 }
 
@@ -2152,7 +2237,7 @@ document.getElementById("st").innerHTML=sh;
 var ct=_jr.confidence;
 var hitRateDisplay=(_jr.v6&&_jr.v6.hitRate)?_jr.v6.hitRate:ct;
 document.getElementById("cf").textContent="命中率 "+hitRateDisplay+(_jr.type==="double"?" (双选)":"");
-// V6 等级展示
+// V6.5 等级展示
 var v6El=document.getElementById("v6-badge");
 if(_jr.v6){
   var v6=_jr.v6;
@@ -2172,7 +2257,7 @@ if(_jr.v6){
   v6El.style.display='block';
   v6El.style.background='rgba(107,114,128,0.1)';
   v6El.style.color='#9ca3af';
-  v6El.innerHTML='<span style="font-size:11px;opacity:0.7">V6 无Kelly数据，使用旧策略</span>';
+  v6El.innerHTML='<span style="font-size:11px;opacity:0.7">V6.5 无Kelly数据，使用旧策略</span>';
 }
 var kellyNote=_jr.kellyLabel?(" · "+_jr.kellyLabel):"";
 var an=_jr.reason+kellyNote;
@@ -3485,7 +3570,7 @@ kellyDropped=[];
     if(usedOdds)reason+=" · 竞彩网赔率";
   }
   
-  // === V6 场景分类 ===
+  // === V6.5 场景分类 ===
   var v6Result=null;
   if(c365&&cW){
     var _v6oddsW=usedOdds?m.odds.w:(minOdds||99);
@@ -3510,7 +3595,11 @@ kellyDropped=[];
     boSingle=null;
     hedgePick=null;
     noDraw=false;
-    reason='V6 '+v6Result.scenario+(v6Result.hasD?'(含D)':'')+'('+v6Result.favorLevel+' '+v6Result.confidenceLevel+' '+v6Result.hitRate+'%) → '+v6Result.prediction;
+    reason='V6.5 '+v6Result.scenario+(v6Result.hasD?'(含D)':'')+'('+v6Result.favorLevel+' '+v6Result.confidenceLevel+' '+v6Result.hitRate+'%) → '+v6Result.prediction;
+    // Kelly≥1.0排除规则标注
+    if(v6Result.exclusions&&v6Result.exclusions.length>0){
+      reason+=' · ⚠️'+v6Result.exclusions.join('；');
+    }
     kellyLabel=""; // V6已覆盖，清除旧Kelly场景标签避免误导
   }else{
     if(reason)reason+=' · [V6无数据]';
@@ -3617,7 +3706,7 @@ function _renderAICard(rec){
   if(rec.noKellyData){h+='<div class="ai-no-kelly-warn">⚠️ 该场比赛预测未获得实时数据，谨慎参考</div>';}
 var _cardHr=(rec.v6&&rec.v6.hitRate)?rec.v6.hitRate:rec.confidence;
   h+='<div class="ai-card-conf">命中率 '+_cardHr+(rec.kellyLabel&&!rec.boSingle?'<span class="ai-kelly-tag">凯利:'+rec.kellyLabel+'</span>':'')+'</div>';
-  if(rec.v6){var v6=rec.v6;var v6Bg=v6.favorLevel==='强看好'?'#16a34a':v6.favorLevel==='看好'?'#3b82f6':v6.favorLevel==='分歧'?'#f59e0b':'#ef4444';var v6ConfIcon=v6.confidenceLevel==='强信心'?'🟢':v6.confidenceLevel==='中等信心'?'🟡':'🔴';var v6DBadge=v6.hasD?' <span style="font-size:9px;background:rgba(156,163,175,0.2);padding:1px 3px;border-radius:3px;color:#9ca3af">含D</span>':'';var v6SpHtml=v6.singlePick?'<span style="margin-left:6px;opacity:0.8">单选'+v6.singlePick+'('+v6.singlePickRate+'%)</span>':'';h+='<div style="margin-top:4px;padding:3px 8px;border-radius:6px;font-size:10px;font-weight:600;background:'+v6Bg+'22;color:'+v6Bg+';display:inline-block">V6 '+v6.scenario+v6DBadge+' · '+v6.favorLevel+' · '+v6ConfIcon+v6.confidenceLevel+' (双选'+v6.hitRate+'%)'+v6SpHtml+'</div>';}else if(!rec.skip){h+='<div style="margin-top:4px;padding:3px 8px;border-radius:6px;font-size:10px;font-weight:400;background:rgba(107,114,128,0.15);color:#9ca3af;display:inline-block">V6 无Kelly数据</div>';}
+  if(rec.v6){var v6=rec.v6;var v6Bg=v6.favorLevel==='强看好'?'#16a34a':v6.favorLevel==='看好'?'#3b82f6':v6.favorLevel==='分歧'?'#f59e0b':'#ef4444';var v6ConfIcon=v6.confidenceLevel==='强信心'?'🟢':v6.confidenceLevel==='中等信心'?'🟡':'🔴';var v6DBadge=v6.hasD?' <span style="font-size:9px;background:rgba(156,163,175,0.2);padding:1px 3px;border-radius:3px;color:#9ca3af">含D</span>':'';var v6SpHtml=v6.singlePick?'<span style="margin-left:6px;opacity:0.8">单选'+v6.singlePick+'('+v6.singlePickRate+'%)</span>':'';h+='<div style="margin-top:4px;padding:3px 8px;border-radius:6px;font-size:10px;font-weight:600;background:'+v6Bg+'22;color:'+v6Bg+';display:inline-block">V6.5 '+v6.scenario+v6DBadge+' · '+v6.favorLevel+' · '+v6ConfIcon+v6.confidenceLevel+' (双选'+v6.hitRate+'%)'+v6SpHtml+'</div>';}else if(!rec.skip){h+='<div style="margin-top:4px;padding:3px 8px;border-radius:6px;font-size:10px;font-weight:400;background:rgba(107,114,128,0.15);color:#9ca3af;display:inline-block">V6.5 无Kelly数据</div>';}
   h+='</div>'+resultBadge+'</div></div>';
   h+='<span class="ai-card-arrow">›</span>';
   h+='</div>';
