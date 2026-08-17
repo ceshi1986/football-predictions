@@ -833,7 +833,7 @@ async function _fetchKellyData(){
   var dk=now.getFullYear()+String(now.getMonth()+1).padStart(2,'0')+String(now.getDate()).padStart(2,'0');
   if(_kellyCache&&_kellyCacheDate===dk)return _kellyCache;
   try{
-    var r0=await fetch('data/500com_daily/'+dk+'/zgzcw_kelly_data.json?t='+Date.now(),{cache:'no-cache'});
+    var r0=await fetch('data/500com_daily/'+dk+'/zgzcw_kelly_optimal.json?t='+Date.now(),{cache:'no-cache'});
     if(r0.ok){
       var d0=await r0.json();
       if(d0&&d0.matches){
@@ -865,7 +865,7 @@ async function _fetchKellyData(){
   var yk=y.getFullYear()+String(y.getMonth()+1).padStart(2,'0')+String(y.getDate()).padStart(2,'0');
   if(yk!==dk){
     try{
-      var rz=await fetch('data/500com_daily/'+yk+'/zgzcw_kelly_data.json?t='+Date.now(),{cache:'no-cache'});
+      var rz=await fetch('data/500com_daily/'+yk+'/zgzcw_kelly_optimal.json?t='+Date.now(),{cache:'no-cache'});
       if(rz.ok){
         var dz=await rz.json();
         if(dz&&dz.matches){

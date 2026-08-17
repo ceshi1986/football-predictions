@@ -25,7 +25,7 @@ import sys
 import argparse
 import time
 import requests
-from datetime import datetime
+from datetime import datetime, timedelta
 from bs4 import BeautifulSoup
 
 # === 配置 ===
@@ -1378,7 +1378,7 @@ async def run():
     # Step 1: 获取比赛列表
     if args.match_ids:
         match_ids = [m.strip() for m in args.match_ids.split(',') if m.strip()]
-        print(f"[1/3] 使用指定的 {len(match_ids)} 场比赛ID")
+        print(f"[1/4] 使用指定的 {len(match_ids)} 场比赛ID")
         match_info = {}
         for mid in match_ids:
             match_info[mid] = {'match_name': '', 'home': '', 'away': '',
@@ -1393,14 +1393,14 @@ async def run():
 
     # Step 1.2: 提取比分并更新 match_results.json（在获取比赛列表时顺便完成）
     if match_info and not args.match_ids:
-        print(f"\n[1.2/3] 提取比赛比分...")
+        print(f"\n[1.2/4] 提取比赛比分...")
         score_added, score_checked = update_match_results(match_info, today)
         print(f"  检查{score_checked}场有比分数据, 新增/更新{score_added}条记录")
 
     # Step 1.5: 构建懂球帝ID映射（如果未禁用fallback）
     dongqiudi_id_map = {}
     if not args.no_dongqiudi and match_info:
-        print(f"\n[1.5/3] 构建懂球帝ID映射...")
+        print(f"\n[1.5/4] 构建懂球帝ID映射...")
         from playwright.async_api import async_playwright
 
         async with async_playwright() as p:
@@ -1425,7 +1425,7 @@ async def run():
             await browser.close()
 
     # Step 2: Playwright抓取每场比赛的赔率数据
-    print(f"\n[2/3] 启动Playwright抓取赔率数据 ({len(match_ids)}场)...")
+    print(f"\n[2/4] 启动Playwright抓取赔率数据 ({len(match_ids)}场)...")
     results = await scrape_all_matches(
         match_ids, match_info,
         dongqiudi_id_map=dongqiudi_id_map,
@@ -1433,7 +1433,7 @@ async def run():
     )
 
     # Step 3: 合并旧数据（未抓到的比赛保留上次数据）
-    print(f"\n[3/3] 保存数据...")
+    print(f"\n[3/4] 保存数据...")
     merged_results = dict(results)  # 本次抓到的比赛
     kept_count = 0
     if os.path.exists(out_path):
@@ -1486,6 +1486,11 @@ async def run():
     print(f"  ✅ {len(results)}场新数据 + {kept_count}场旧数据 = {len(merged_results)}场 → {out_path}")
     save_snapshot(out_path, today)
 
+    # Step 4: 生成锁定版 optimal 数据（赛前1-2小时冻结）
+    print(f"\n[4/4] 生成锁定版数据...")
+    optimal_path = os.path.join(os.path.dirname(out_path), 'zgzcw_kelly_optimal.json')
+    generate_optimal_json(output, optimal_path)
+
     # 统计
     total_companies = sum(len(m['companies']) for m in results.values())
     target_count = sum(1 for m in results.values()
@@ -1498,6 +1503,127 @@ async def run():
     if dongqiudi_count > 0:
         print(f"懂球帝fallback: {dongqiudi_count}场比赛从懂球帝获取Kelly数据")
     return output
+
+
+# === Kelly锁定版数据（方案B） ===
+
+FREEZE_THRESHOLD_MINUTES = 90  # 距开赛不足90分钟则冻结
+
+
+def _parse_match_time_to_datetime(match_time_str):
+    """将 match_time 字段解析为北京时间 datetime
+
+    支持格式: "MM-DD HH:MM" 或 "M-D HH:MM"
+    年份推断: 基于当前北京时间，若月份差距>6个月则调整年份
+    """
+    if not match_time_str:
+        return None
+    try:
+        mt_match = re.match(r'(\d{1,2})-(\d{1,2})\s+(\d{1,2}):(\d{2})', match_time_str.strip())
+        if not mt_match:
+            return None
+        month = int(mt_match.group(1))
+        day = int(mt_match.group(2))
+        hour = int(mt_match.group(3))
+        minute = int(mt_match.group(4))
+
+        # 推断年份（基于北京时间）
+        now_bj = datetime.utcnow() + timedelta(hours=8)
+        year = now_bj.year
+        current_month = now_bj.month
+        if month > current_month + 6:
+            year -= 1
+        elif month < current_month - 6:
+            year += 1
+
+        return datetime(year, month, day, hour, minute)
+    except (ValueError, TypeError):
+        return None
+
+
+def generate_optimal_json(new_data, optimal_path):
+    """生成锁定版 Kelly 数据
+
+    逻辑:
+    - 距开赛 >= 90分钟: 用最新抓取数据更新
+    - 距开赛 < 90分钟: 冻结不更新（保留已有的 optimal 数据）
+    - 首次运行（optimal不存在）: 直接用最新数据初始化
+
+    Args:
+        new_data: 本次抓取的实时版数据（dict，即 output 变量）
+        optimal_path: optimal 文件输出路径
+    """
+    now_bj = datetime.utcnow() + timedelta(hours=8)
+
+    # 读取已有的 optimal 数据
+    existing_optimal = None
+    if os.path.exists(optimal_path):
+        try:
+            with open(optimal_path, 'r', encoding='utf-8') as f:
+                existing_optimal = json.load(f)
+            print(f"  📖 已有锁定版数据，进行增量更新")
+        except Exception as e:
+            print(f"  ⚠️ 读取锁定版数据失败: {e}")
+            existing_optimal = None
+    else:
+        print(f"  🆕 首次生成锁定版数据")
+
+    existing_matches = existing_optimal.get('matches', {}) if existing_optimal else {}
+    new_matches = new_data.get('matches', {})
+
+    optimal_matches = {}
+    frozen_count = 0
+    updated_count = 0
+    new_count = 0
+
+    all_match_ids = set(list(new_matches.keys()) + list(existing_matches.keys()))
+
+    for mid in all_match_ids:
+        new_match = new_matches.get(mid)
+        old_match = existing_matches.get(mid)
+
+        if not new_match:
+            # 本次没抓到这场比赛，保留旧数据
+            if old_match:
+                optimal_matches[mid] = old_match
+            continue
+
+        # 判断距开赛时间
+        match_time_str = new_match.get('match_time', '')
+        match_dt = _parse_match_time_to_datetime(match_time_str)
+
+        if match_dt and (match_dt - now_bj).total_seconds() < FREEZE_THRESHOLD_MINUTES * 60:
+            # 距开赛 < 90分钟 → 冻结
+            if old_match:
+                optimal_matches[mid] = old_match
+                frozen_count += 1
+            else:
+                # 首次运行且已接近开赛，直接用当前数据
+                optimal_matches[mid] = new_match
+                new_count += 1
+        else:
+            # 距开赛 >= 90分钟 → 更新
+            optimal_matches[mid] = new_match
+            updated_count += 1
+
+    # 构建输出
+    optimal_output = {
+        'date': new_data.get('date', ''),
+        'scrape_time': new_data.get('scrape_time', ''),
+        'optimal_update_time': now_bj.strftime('%Y-%m-%d %H:%M:%S'),
+        'source': 'zgzcw.com',
+        'version': '2.2-optimal',
+        'freeze_threshold_minutes': FREEZE_THRESHOLD_MINUTES,
+        'dongqiudi_fallback_count': new_data.get('dongqiudi_fallback_count', 0),
+        'total_matches': len(optimal_matches),
+        'matches': optimal_matches,
+    }
+
+    with open(optimal_path, 'w', encoding='utf-8') as f:
+        json.dump(optimal_output, f, ensure_ascii=False, indent=2)
+
+    print(f"  🔒 锁定版: {updated_count}场更新, {frozen_count}场冻结, "
+          f"{new_count}场新增 → {optimal_path}")
 
 
 if __name__ == '__main__':
