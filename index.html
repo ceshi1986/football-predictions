@@ -152,6 +152,11 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;b
 .match-status.finished{background:#1a2a1a;color:#4ade80}
 .match-arrow{color:#2a2f45;font-size:16px;flex-shrink:0}
 
+/* 归类筛选下拉框 */
+.cat-select{background:#0d1117;color:#c9d1d9;border:1px solid #30363d;border-radius:6px;padding:4px 8px;font-size:11px;cursor:pointer;outline:none;min-width:140px}
+.cat-select:focus{border-color:#58a6ff}
+.cat-select option{background:#161b22;color:#c9d1d9}
+
 /* 联赛筛选标签 */
 .league-filter{display:flex;gap:4px;margin-bottom:10px;flex-wrap:wrap}
 .lf-tag{padding:4px 8px;border-radius:6px;font-size:10px;font-weight:600;cursor:pointer;background:#0d1117;color:#6b7280;border:1px solid #2a2f45;transition:all .15s;white-space:nowrap}
@@ -533,6 +538,10 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;b
 <button class="refresh-btn" onclick="_loadSchedule()">🔄 刷新</button>
 </div>
 <div class="league-filter" id="lf"></div>
+<div class="category-filter-row" style="display:flex;align-items:center;gap:8px;margin-bottom:10px;flex-wrap:wrap">
+<span style="font-size:10px;color:#6b7280;white-space:nowrap">归类：</span>
+<select id="cat-filter" class="cat-select" onchange="_filterCategory()"></select>
+</div>
 <div id="sl-body">
 <div class="sl-loading"><span class="spinner"></span>加载赛程中...</div>
 </div>
@@ -1830,13 +1839,13 @@ function _renderLeagueFilter(matches){
     h+='<span class="lf-tag'+(_activeFilter===lk?" on":"")+'" onclick="_filterLeague(\''+lk+'\')">'+info.short+' '+info.count+'</span>';
   }
   document.getElementById("lf").innerHTML=h;
+  _populateCatDropdown();
 }
 
 
 function _filterLeague(league){
   _activeFilter=league;
-  var filtered=_activeFilter==="all"?_allMatches:_allMatches.filter(function(m){return m.league===league});
-  _renderSchedule(filtered);
+  _applyFilters();
   
   var tags=document.querySelectorAll(".lf-tag");
   tags.forEach(function(t){
@@ -1844,6 +1853,72 @@ function _filterLeague(league){
     if(code){
       t.className="lf-tag"+(code[1]===_activeFilter?" on":"");
     }
+
+var _activeCategory="all";
+
+function _populateCatDropdown(){
+  var sel=document.getElementById("cat-filter");
+  if(!sel)return;
+  sel.innerHTML='<option value="all">全部</option>'+
+    '<option value="high">强信心(≥80%)</option>'+
+    '<option value="mid">中等信心(70-80%)</option>'+
+    '<option value="low">弱信心(<70%)</option>'+
+    '<option value="sep">── 双选类型 ──</option>'+
+    '<option value="cat_sp">胜平</option>'+
+    '<option value="cat_ps">平胜</option>'+
+    '<option value="cat_fs">负胜</option>'+
+    '<option value="cat_fp">平负</option>'+
+    '<option value="cat_sf">胜负</option>';
+  sel.value=_activeCategory;
+}
+
+function _filterCategory(){
+  var sel=document.getElementById("cat-filter");
+  if(!sel)return;
+  _activeCategory=sel.value;
+  _applyFilters();
+}
+
+function _applyFilters(){
+  var filtered=_allMatches;
+  // League filter
+  if(_activeFilter!=="all"){
+    filtered=filtered.filter(function(m){return m.league===_activeFilter});
+  }
+  // Category filter
+  if(_activeCategory!=="all"&&_activeCategory.indexOf("cat_")!==0){
+    var recs=JSON.parse(localStorage.getItem(_AI_KEY)||"[]");
+    var recMap={};
+    for(var i=0;i<recs.length;i++){recMap[recs[i].matchId]=recs[i];}
+    filtered=filtered.filter(function(m){
+      var r=recMap[m.id];
+      if(!r||!r.hitRate)return true; // no prediction data, show all
+      var hr=r.hitRate;
+      if(_activeCategory==="high")return hr>=80;
+      if(_activeCategory==="mid")return hr>=70&&hr<80;
+      if(_activeCategory==="low")return hr<70;
+      return true;
+    });
+  }else if(_activeCategory.indexOf("cat_")===0){
+    var recs2=JSON.parse(localStorage.getItem(_AI_KEY)||"[]");
+    var recMap2={};
+    for(var i=0;i<recs2.length;i++){recMap2[recs2[i].matchId]=recs2[i];}
+    var catType=_activeCategory.replace("cat_","");
+    filtered=filtered.filter(function(m){
+      var r=recMap2[m.id];
+      if(!r||!r.prediction)return true;
+      return r.prediction===catType;
+    });
+  }
+  _renderSchedule(filtered);
+  // Update league tag active state
+  var tags=document.querySelectorAll(".lf-tag");
+  tags.forEach(function(t){
+    var code=t.getAttribute("onclick").match(/'([^']+)'/);
+    if(code){t.className="lf-tag"+(code[1]===_activeFilter?" on":"");}
+  });
+}
+
   });
 }
 
