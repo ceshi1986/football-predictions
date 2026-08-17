@@ -246,6 +246,25 @@ def _parse_jz_match_list(html):
         if not away and len(tds) > 7:
             away = tds[7].get_text(strip=True)
 
+        # 比分 (td[6], class=boldbf)
+        score = ''
+        if len(tds) > 6:
+            score_text = tds[6].get_text(strip=True)
+            if score_text and score_text != '-':
+                score = score_text
+
+        # 半场比分 (td[8])
+        half_score = ''
+        if len(tds) > 8:
+            half_text = tds[8].get_text(strip=True)
+            if half_text and half_text != '-':
+                half_score = half_text
+
+        # 状态 (td[4], class=matchStatus)
+        status = ''
+        if len(tds) > 4:
+            status = tds[4].get_text(strip=True)
+
         matches[match_id] = {
             'match_name': f'{home} vs {away}',
             'home': home,
@@ -254,6 +273,9 @@ def _parse_jz_match_list(html):
             'match_time': match_time,
             'jingcai_id': jingcai_id,
             'source': 'jz',
+            'score': score,
+            'half_score': half_score,
+            'status': status,
         }
 
     return matches
@@ -339,6 +361,25 @@ def _parse_bd_match_list(html):
         if not away and len(tds) > 7:
             away = tds[7].get_text(strip=True)
 
+        # 比分 (td[6], class=boldbf)
+        score = ''
+        if len(tds) > 6:
+            score_text = tds[6].get_text(strip=True)
+            if score_text and score_text != '-':
+                score = score_text
+
+        # 半场比分 (td[8])
+        half_score = ''
+        if len(tds) > 8:
+            half_text = tds[8].get_text(strip=True)
+            if half_text and half_text != '-':
+                half_score = half_text
+
+        # 状态 (td[4])
+        status = ''
+        if len(tds) > 4:
+            status = tds[4].get_text(strip=True)
+
         matches[match_id] = {
             'match_name': f'{home} vs {away}',
             'home': home,
@@ -348,6 +389,9 @@ def _parse_bd_match_list(html):
             'jingcai_id': '',  # 北单无竞彩编号
             'beidan_id': beidan_id,
             'source': 'bd',
+            'score': score,
+            'half_score': half_score,
+            'status': status,
         }
 
     return matches
@@ -426,6 +470,106 @@ async def fetch_match_list_playwright(source='all'):
     print(f"\n  合计: {len(all_matches)} 场比赛 (竞彩{jz_count}场含{both_count}场兼北单, 纯北单{bd_only_count}场)")
 
     return all_matches
+
+
+# === 赛果提取与更新 ===
+
+RESULTS_FILE = os.path.join(BASE_DIR, "data", "match_results.json")
+
+def update_match_results(match_info, today_str):
+    """从比赛列表数据中提取比分，更新 match_results.json
+    在 Kelly 抓取比赛列表时顺便完成，无需额外请求。
+    """
+    if not match_info:
+        return 0, 0
+
+    # 加载现有结果
+    try:
+        with open(RESULTS_FILE, 'r', encoding='utf-8') as f:
+            results = json.load(f)
+    except (FileNotFoundError, json.JSONDecodeError):
+        results = []
+
+    # 构建已有结果的索引 (date, home, away)
+    existing_keys = set()
+    for r in results:
+        existing_keys.add((r['date'], r['home'], r['away']))
+
+    added = 0
+    checked = 0
+
+    for mid, info in match_info.items():
+        score_str = info.get('score', '')
+        if not score_str or score_str == '-':
+            continue  # 无比分或比赛未开始
+
+        # 解析比分 "X-Y"
+        score_match = re.match(r'(\d+)\s*[-:]\s*(\d+)', score_str)
+        if not score_match:
+            continue
+
+        score_h = int(score_match.group(1))
+        score_a = int(score_match.group(2))
+        checked += 1
+
+        home = info.get('home', '')
+        away = info.get('away', '')
+        if not home or not away:
+            continue
+
+        # 解析日期：match_time 格式 "08-17 23:00" 或 "8-17 23:00"
+        match_time = info.get('match_time', '')
+        date_str = today_str  # 默认用今天
+        mt_match = re.match(r'(\d{1,2})-(\d{1,2})', match_time)
+        if mt_match:
+            month = int(mt_match.group(1))
+            day = int(mt_match.group(2))
+            # 推断年份
+            year = int(today_str[:4])
+            # 如果月份比当前月大很多或小很多，可能需要调整年份
+            current_month = int(today_str[4:6])
+            if month > current_month + 6:
+                year -= 1
+            elif month < current_month - 6:
+                year += 1
+            date_str = f"{year}{month:02d}{day:02d}"
+
+        key = (date_str, home, away)
+        if key in existing_keys:
+            # 已有记录，检查是否需要更新比分（比如之前没比分现在有）
+            for r in results:
+                if (r['date'], r['home'], r['away']) == key:
+                    if r.get('score_h') != score_h or r.get('score_a') != score_a:
+                        old_s = f"{r.get('score_h','?')}-{r.get('score_a','?')}"
+                        r['score_h'] = score_h
+                        r['score_a'] = score_a
+                        added += 1
+                        print(f"  🔄 更新比分: {date_str} {home} vs {away}: {old_s} → {score_h}-{score_a}")
+                    break
+            continue
+
+        # 新增结果
+        entry = {
+            'date': date_str,
+            'home': home,
+            'away': away,
+            'score_h': score_h,
+            'score_a': score_a,
+        }
+        # 补充联赛信息
+        if info.get('league'):
+            entry['league'] = info['league']
+
+        results.append(entry)
+        existing_keys.add(key)
+        added += 1
+        print(f"  📝 新增比分: {date_str} {home} vs {away}: {score_h}-{score_a}")
+
+    if added > 0:
+        with open(RESULTS_FILE, 'w', encoding='utf-8') as f:
+            json.dump(results, f, ensure_ascii=False, indent=2)
+
+    return added, checked
 
 
 # === Step 2: 批量抓取赔率数据 ===
@@ -1247,6 +1391,12 @@ async def run():
             sys.exit(1)
         match_ids = list(match_info.keys())
 
+    # Step 1.2: 提取比分并更新 match_results.json（在获取比赛列表时顺便完成）
+    if match_info and not args.match_ids:
+        print(f"\n[1.2/3] 提取比赛比分...")
+        score_added, score_checked = update_match_results(match_info, today)
+        print(f"  检查{score_checked}场有比分数据, 新增/更新{score_added}条记录")
+
     # Step 1.5: 构建懂球帝ID映射（如果未禁用fallback）
     dongqiudi_id_map = {}
     if not args.no_dongqiudi and match_info:
@@ -1303,11 +1453,28 @@ async def run():
     dongqiudi_count = sum(1 for m in results.values()
                           if m.get('data_source') == 'dongqiudi')
 
+    # 从 match_info 中提取比分数据，附加到每场比赛的 output 中
+    score_map = {}
+    for mid, info in match_info.items():
+        s = info.get('score', '')
+        if s and s != '-':
+            score_map[mid] = {
+                'score': s,
+                'half_score': info.get('half_score', ''),
+                'status': info.get('status', ''),
+            }
+    # 将比分写入每场 match 数据
+    for mid in merged_results:
+        if mid in score_map:
+            merged_results[mid]['score'] = score_map[mid]['score']
+            merged_results[mid]['half_score'] = score_map[mid].get('half_score', '')
+            merged_results[mid]['status'] = score_map[mid].get('status', '')
+
     output = {
         'date': today,
         'scrape_time': now_str,
         'source': 'zgzcw.com',
-        'version': '2.1',
+        'version': '2.2',
         'dongqiudi_fallback_count': dongqiudi_count,
         'total_matches': len(merged_results),
         'matches': merged_results,

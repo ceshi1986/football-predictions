@@ -837,6 +837,7 @@ async function _fetchKellyData(){
     if(r0.ok){
       var d0=await r0.json();
       if(d0&&d0.matches){
+        _kellyData=d0;
         if(Array.isArray(d0.matches)){_kellyCache=d0.matches;}
         else{_kellyCache=_convertZgzcwKelly(d0);}
         if(_kellyCache&&_kellyCache.length>0){
@@ -868,6 +869,7 @@ async function _fetchKellyData(){
       if(rz.ok){
         var dz=await rz.json();
         if(dz&&dz.matches){
+          _kellyData=dz;
           if(Array.isArray(dz.matches)){_kellyCache=dz.matches;}
           else{_kellyCache=_convertZgzcwKelly(dz);}
           if(_kellyCache&&_kellyCache.length>0){
@@ -2751,6 +2753,17 @@ return null;
 }
 async function _getScore(home,away,lid,md){
 var ds=md.replace(/-/g,"");
+// 优先从已加载的Kelly数据中获取比分（v2.2+含比分）
+try{
+if(_kellyData&&_kellyData.matches){
+var ms=Object.values(_kellyData.matches);
+for(var i=0;i<ms.length;i++){
+var m=ms[i];
+if(m.score&&m.score!=='-'&&_mt(m.home||'',home)&&_mt(m.away||'',away)) return {hs:parseInt(m.score.split(/[-:]/)[0]),as:parseInt(m.score.split(/[-:]/)[1]),source:'kelly'};
+if(m.score&&m.score!=='-'&&_mt(m.home||'',away)&&_mt(m.away||'',home)) return {hs:parseInt(m.score.split(/[-:]/)[1]),as:parseInt(m.score.split(/[-:]/)[0]),source:'kelly'};
+}
+}
+}catch(e){}
 try{
 var local=await _getScoreFromLocal(home,away,md);
 if(local) return local;
