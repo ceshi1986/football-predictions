@@ -969,7 +969,7 @@ function _kNormAdj(base,adj){var hf=Math.max(0.01,base.hf+(adj.hf||0)),df=Math.m
 
 // ===== V6 36场景分类 =====
 var _V6_FAVOR_DIRS={'A':1,'B':1,'C':1}; // 含强队胜方向
-var _V65_STRATEGY={"AA主":"胜平","AA客":"负平","AB主":"平胜","AB客":"负平","AC主":"胜平","AC客":"平负","AW主":"胜负","AW客":"负胜","AY主":"胜平","AZ主":"负平","AZ客":"负胜","BA主":"胜负","BA客":"平负","BB主":"胜平","BB客":"负胜","BC主":"胜平","BC客":"负胜","BW主":"胜平","BW客":"胜平","BY主":"胜平","BY客":"平负","BZ主":"胜负","BZ客":"胜平","CA主":"胜负","CA客":"负胜","CB主":"胜平","CB客":"平负","CC主":"胜负","CC客":"胜负","CW主":"胜负","CW客":"负平","CY客":"平负","CZ主":"胜负","CZ客":"胜负","WA主":"胜平","WA客":"平负","WB主":"胜平","WB客":"平负","WC主":"胜平","WC客":"负胜","WW主":"胜平","WW客":"平负","WY主":"胜平","WY客":"负胜","WZ主":"胜负","WZ客":"胜平","YA主":"胜负","YA客":"胜负","YB主":"胜负","YB客":"平负","YC主":"胜负","YC客":"负平","YW主":"胜平","YW客":"胜平","YY主":"胜平","YZ主":"胜平","ZA主":"胜负","ZA客":"负胜","ZB主":"胜平","ZB客":"平负","ZC主":"胜负","ZC客":"胜负","ZW主":"胜平","ZW客":"胜负","ZY客":"胜平","ZZ主":"胜负","ZZ客":"胜负"};
+var _V66_STRATEGY={"AA主":"胜平","AA客":"负平","AB主":"平胜","AB客":"负平","AC主":"胜平","AC客":"平负","AW主":"胜负","AW客":"平负","AY主":"胜平","AZ主":"负平","AZ客":"负胜","BA主":"胜负","BA客":"平负","BB主":"胜平","BB客":"负胜","BC主":"胜平","BC客":"负胜","BW主":"胜平","BW客":"胜平","BY主":"胜平","BY客":"平负","BZ主":"胜负","BZ客":"胜平","CA主":"胜负","CA客":"负胜","CB主":"胜平","CB客":"平负","CC主":"胜负","CC客":"胜负","CW主":"胜负","CW客":"负平","CY客":"平负","CZ主":"胜负","CZ客":"胜负","WA主":"胜平","WA客":"平负","WB主":"胜平","WB客":"平负","WC主":"胜平","WC客":"负胜","WW主":"胜平","WW客":"平负","WY主":"胜平","WY客":"负胜","WZ主":"胜负","WZ客":"胜平","YA主":"胜负","YA客":"胜负","YB主":"胜平","YB客":"平负","YC主":"胜负","YC客":"负平","YW主":"胜平","YW客":"胜平","YY主":"胜平","YZ主":"胜平","ZA主":"胜负","ZA客":"负胜","ZB主":"胜平","ZB客":"平负","ZC主":"胜负","ZC客":"胜负","ZW主":"胜平","ZW客":"胜负","ZY客":"胜平","ZZ主":"胜负","ZZ客":"胜负"};
 var _V65_HIT_RATE={"AA主":81.5,"AA客":72.2,"AB主":92.9,"AB客":78.6,"AC主":100.0,"AC客":66.7,"AW主":100.0,"AW客":83.3,"AY主":83.3,"AZ主":100.0,"AZ客":100.0,"BA主":76.9,"BA客":72.2,"BB主":69.2,"BB客":85.7,"BC主":88.5,"BC客":93.3,"BW主":100.0,"BW客":75.0,"BY主":100.0,"BY客":100.0,"BZ主":91.7,"BZ客":80.0,"CA主":87.5,"CA客":80.0,"CB主":80.0,"CB客":80.0,"CC主":90.9,"CC客":60.0,"CW主":66.7,"CW客":100.0,"CY客":80.0,"CZ主":100.0,"CZ客":100.0,"WA主":88.0,"WA客":100.0,"WB主":78.9,"WB客":85.7,"WC主":71.4,"WC客":83.3,"WW主":84.2,"WW客":90.0,"WY主":100.0,"WY客":100.0,"WZ主":92.3,"WZ客":75.0,"YA主":100.0,"YA客":66.7,"YB主":80.0,"YB客":100.0,"YC主":100.0,"YC客":66.7,"YW主":100.0,"YW客":100.0,"YY主":0.0,"YZ主":66.7,"ZA主":71.4,"ZA客":100.0,"ZB主":100.0,"ZB客":100.0,"ZC主":75.0,"ZC客":66.7,"ZW主":100.0,"ZW客":100.0,"ZY客":100.0,"ZZ主":100.0,"ZZ客":100.0};
 var _V65_SINGLE_PICK={"AA主":{"pick":"胜","rate":44.4},"AA客":{"pick":"负","rate":38.9},"AB主":{"pick":"平","rate":57.1},"AB客":{"pick":"负","rate":50.0},"AC主":{"pick":"胜","rate":50.0},"AC客":{"pick":"平","rate":50.0},"AW主":{"pick":"胜","rate":75.0},"AW客":{"pick":"负","rate":50.0},"AY主":{"pick":"胜","rate":50.0},"AZ主":{"pick":"负","rate":100.0},"AZ客":{"pick":"负","rate":100.0},"BA主":{"pick":"胜","rate":44.2},"BA客":{"pick":"平","rate":38.9},"BB主":{"pick":"胜","rate":46.2},"BB客":{"pick":"负","rate":57.1},"BC主":{"pick":"胜","rate":50.0},"BC客":{"pick":"负","rate":66.7},"BW主":{"pick":"胜","rate":77.8},"BW客":{"pick":"胜","rate":50.0},"BY主":{"pick":"胜","rate":100.0},"BY客":{"pick":"平","rate":100.0},"BZ主":{"pick":"胜","rate":66.7},"BZ客":{"pick":"胜","rate":40.0},"CA主":{"pick":"胜","rate":62.5},"CA客":{"pick":"负","rate":60.0},"CB主":{"pick":"胜","rate":40.0},"CB客":{"pick":"平","rate":40.0},"CC主":{"pick":"胜","rate":72.7},"CC客":{"pick":"胜","rate":40.0},"CW主":{"pick":"胜","rate":33.3},"CW客":{"pick":"负","rate":66.7},"CY客":{"pick":"平","rate":40.0},"CZ主":{"pick":"胜","rate":100.0},"CZ客":{"pick":"胜","rate":50.0},"WA主":{"pick":"胜","rate":56.0},"WA客":{"pick":"平","rate":55.6},"WB主":{"pick":"胜","rate":57.9},"WB客":{"pick":"平","rate":42.9},"WC主":{"pick":"胜","rate":42.9},"WC客":{"pick":"负","rate":50.0},"WW主":{"pick":"胜","rate":42.1},"WW客":{"pick":"平","rate":50.0},"WY主":{"pick":"胜","rate":83.3},"WY客":{"pick":"负","rate":100.0},"WZ主":{"pick":"胜","rate":53.8},"WZ客":{"pick":"胜","rate":37.5},"YA主":{"pick":"胜","rate":83.3},"YA客":{"pick":"胜","rate":33.3},"YB主":{"pick":"胜","rate":40.0},"YB客":{"pick":"平","rate":50.0},"YC主":{"pick":"胜","rate":66.7},"YC客":{"pick":"负","rate":66.7},"YW主":{"pick":"胜","rate":100.0},"YW客":{"pick":"胜","rate":66.7},"YY主":{"pick":"负","rate":100.0},"YZ主":{"pick":"胜","rate":33.3},"ZA主":{"pick":"胜","rate":42.9},"ZA客":{"pick":"负","rate":66.7},"ZB主":{"pick":"胜","rate":50.0},"ZB客":{"pick":"平","rate":50.0},"ZC主":{"pick":"胜","rate":50.0},"ZC客":{"pick":"胜","rate":33.3},"ZW主":{"pick":"胜","rate":66.7},"ZW客":{"pick":"胜","rate":75.0},"ZY客":{"pick":"胜","rate":50.0},"ZZ主":{"pick":"胜","rate":66.7},"ZZ客":{"pick":"胜","rate":50.0}};
 var _V65_WDL={"AA主":{"w":44.4,"d":37.0,"l":18.5},"AA客":{"w":27.8,"d":33.3,"l":38.9},"AB主":{"w":35.7,"d":57.1,"l":7.1},"AB客":{"w":21.4,"d":28.6,"l":50.0},"BA主":{"w":44.2,"d":23.1,"l":32.7},"BA客":{"w":27.8,"d":38.9,"l":33.3},"BB主":{"w":46.2,"d":23.1,"l":30.8},"BB客":{"w":28.6,"d":14.3,"l":57.1},"AC主":{"w":50.0,"d":50.0,"l":0.0},"AC客":{"w":33.3,"d":50.0,"l":16.7},"AW主":{"w":75.0,"d":0.0,"l":25.0},"AW客":{"w":33.3,"d":16.7,"l":50.0},"AY主":{"w":50.0,"d":33.3,"l":16.7},"AZ主":{"w":0.0,"d":0.0,"l":100.0},"AZ客":{"w":0.0,"d":0.0,"l":100.0},"BC主":{"w":50.0,"d":38.5,"l":11.5},"BC客":{"w":26.7,"d":6.7,"l":66.7},"BW主":{"w":77.8,"d":22.2,"l":0.0},"BW客":{"w":50.0,"d":25.0,"l":25.0},"BY主":{"w":100.0,"d":0.0,"l":0.0},"BY客":{"w":0.0,"d":100.0,"l":0.0},"BZ主":{"w":66.7,"d":8.3,"l":25.0},"BZ客":{"w":40.0,"d":40.0,"l":20.0},"CA主":{"w":62.5,"d":12.5,"l":25.0},"CA客":{"w":20.0,"d":20.0,"l":60.0},"CB主":{"w":40.0,"d":40.0,"l":20.0},"CB客":{"w":20.0,"d":40.0,"l":40.0},"WA主":{"w":56.0,"d":32.0,"l":12.0},"WA客":{"w":0.0,"d":55.6,"l":44.4},"WB主":{"w":57.9,"d":21.1,"l":21.1},"WB客":{"w":14.3,"d":42.9,"l":42.9},"YA主":{"w":83.3,"d":0.0,"l":16.7},"YA客":{"w":33.3,"d":33.3,"l":33.3},"YB主":{"w":40.0,"d":20.0,"l":40.0},"YB客":{"w":0.0,"d":50.0,"l":50.0},"ZA主":{"w":42.9,"d":28.6,"l":28.6},"ZA客":{"w":33.3,"d":0.0,"l":66.7},"ZB主":{"w":50.0,"d":50.0,"l":0.0},"ZB客":{"w":0.0,"d":50.0,"l":50.0},"CC主":{"w":72.7,"d":9.1,"l":18.2},"CC客":{"w":40.0,"d":40.0,"l":20.0},"CW主":{"w":33.3,"d":33.3,"l":33.3},"CW客":{"w":0.0,"d":33.3,"l":66.7},"CY客":{"w":20.0,"d":40.0,"l":40.0},"CZ主":{"w":100.0,"d":0.0,"l":0.0},"CZ客":{"w":50.0,"d":0.0,"l":50.0},"WC主":{"w":42.9,"d":28.6,"l":28.6},"WC客":{"w":33.3,"d":16.7,"l":50.0},"WW主":{"w":42.1,"d":42.1,"l":15.8},"WW客":{"w":10.0,"d":50.0,"l":40.0},"WY主":{"w":83.3,"d":16.7,"l":0.0},"WY客":{"w":0.0,"d":0.0,"l":100.0},"WZ主":{"w":53.8,"d":7.7,"l":38.5},"WZ客":{"w":37.5,"d":37.5,"l":25.0},"YC主":{"w":66.7,"d":0.0,"l":33.3},"YC客":{"w":33.3,"d":0.0,"l":66.7},"YW主":{"w":100.0,"d":0.0,"l":0.0},"YW客":{"w":66.7,"d":33.3,"l":0.0},"YY主":{"w":0.0,"d":0.0,"l":100.0},"YZ主":{"w":33.3,"d":33.3,"l":33.3},"ZC主":{"w":50.0,"d":25.0,"l":25.0},"ZC客":{"w":33.3,"d":33.3,"l":33.3},"ZW主":{"w":66.7,"d":33.3,"l":0.0},"ZW客":{"w":75.0,"d":0.0,"l":25.0},"ZY客":{"w":50.0,"d":50.0,"l":0.0},"ZZ主":{"w":66.7,"d":0.0,"l":33.3},"ZZ客":{"w":50.0,"d":0.0,"l":50.0}};
@@ -1044,7 +1044,7 @@ function _classifyV6(c365,cW,oddsW,oddsD,oddsL){
   if(s365HasFav&&sWHasFav){cat=1;favorLevel='看好';}
   else if(s365HasFav||sWHasFav){cat=2;favorLevel='分歧';}
   else{cat=3;favorLevel='博冷';}
-  var key=scenario+(isHomeStrong?'主':'客');var pred=_V65_STRATEGY[key]||'';
+  var key=scenario+(isHomeStrong?'主':'客');var pred=_V66_STRATEGY[key]||'';
   var hitRate=_V65_HIT_RATE[key]||0;
   var confLevel='';
   if(hitRate>=80)confLevel='强信心';
@@ -2239,7 +2239,7 @@ document.getElementById("st").innerHTML=sh;
 var ct=_jr.confidence;
 var hitRateDisplay=(_jr.v6&&_jr.v6.hitRate)?_jr.v6.hitRate:ct;
 document.getElementById("cf").textContent="命中率 "+hitRateDisplay+(_jr.type==="double"?" (双选)":"");
-// V6.5 等级展示
+// V6.6 等级展示
 var v6El=document.getElementById("v6-badge");
 if(_jr.v6){
   var v6=_jr.v6;
@@ -2259,7 +2259,7 @@ if(_jr.v6){
   v6El.style.display='block';
   v6El.style.background='rgba(107,114,128,0.1)';
   v6El.style.color='#9ca3af';
-  v6El.innerHTML='<span style="font-size:11px;opacity:0.7">V6.5 无Kelly数据，使用旧策略</span>';
+  v6El.innerHTML='<span style="font-size:11px;opacity:0.7">V6.6 无Kelly数据，使用旧策略</span>';
 }
 var kellyNote=_jr.kellyLabel?(" · "+_jr.kellyLabel):"";
 var an=_jr.reason+kellyNote;
@@ -3583,7 +3583,7 @@ kellyDropped=[];
     if(usedOdds)reason+=" · 竞彩网赔率";
   }
   
-  // === V6.5 场景分类 ===
+  // === V6.6 场景分类 ===
   var v6Result=null;
   if(c365&&cW){
     var _v6oddsW=usedOdds?m.odds.w:(minOdds||99);
@@ -3608,7 +3608,7 @@ kellyDropped=[];
     boSingle=null;
     hedgePick=null;
     noDraw=false;
-    reason='V6.5 '+v6Result.scenario+(v6Result.hasD?'(含D)':'')+'('+v6Result.favorLevel+' '+v6Result.confidenceLevel+' '+v6Result.hitRate+'%) → '+v6Result.prediction;
+    reason='V6.6 '+v6Result.scenario+(v6Result.hasD?'(含D)':'')+'('+v6Result.favorLevel+' '+v6Result.confidenceLevel+' '+v6Result.hitRate+'%) → '+v6Result.prediction;
     // Kelly≥1.0排除规则标注
     if(v6Result.exclusions&&v6Result.exclusions.length>0){
       reason+=' · ⚠️'+v6Result.exclusions.join('；');
@@ -3719,7 +3719,7 @@ function _renderAICard(rec){
   if(rec.noKellyData){h+='<div class="ai-no-kelly-warn">⚠️ 该场比赛预测未获得实时数据，谨慎参考</div>';}
 var _cardHr=(rec.v6&&rec.v6.hitRate)?rec.v6.hitRate:rec.confidence;
   h+='<div class="ai-card-conf">命中率 '+_cardHr+(rec.kellyLabel&&!rec.boSingle?'<span class="ai-kelly-tag">凯利:'+rec.kellyLabel+'</span>':'')+'</div>';
-  if(rec.v6){var v6=rec.v6;var v6Bg=v6.favorLevel==='强看好'?'#16a34a':v6.favorLevel==='看好'?'#3b82f6':v6.favorLevel==='分歧'?'#f59e0b':'#ef4444';var v6ConfIcon=v6.confidenceLevel==='强信心'?'🟢':v6.confidenceLevel==='中等信心'?'🟡':'🔴';var v6DBadge=v6.hasD?' <span style="font-size:9px;background:rgba(156,163,175,0.2);padding:1px 3px;border-radius:3px;color:#9ca3af">含D</span>':'';var v6SpHtml=v6.singlePick?'<span style="margin-left:6px;opacity:0.8">单选'+v6.singlePick+'('+v6.singlePickRate+'%)</span>':'';h+='<div style="margin-top:4px;padding:3px 8px;border-radius:6px;font-size:10px;font-weight:600;background:'+v6Bg+'22;color:'+v6Bg+';display:inline-block">V6.5 '+v6.scenario+v6DBadge+' · '+v6.favorLevel+' · '+v6ConfIcon+v6.confidenceLevel+' (双选'+v6.hitRate+'%)'+v6SpHtml+'</div>';}else if(!rec.skip){h+='<div style="margin-top:4px;padding:3px 8px;border-radius:6px;font-size:10px;font-weight:400;background:rgba(107,114,128,0.15);color:#9ca3af;display:inline-block">V6.5 无Kelly数据</div>';}
+  if(rec.v6){var v6=rec.v6;var v6Bg=v6.favorLevel==='强看好'?'#16a34a':v6.favorLevel==='看好'?'#3b82f6':v6.favorLevel==='分歧'?'#f59e0b':'#ef4444';var v6ConfIcon=v6.confidenceLevel==='强信心'?'🟢':v6.confidenceLevel==='中等信心'?'🟡':'🔴';var v6DBadge=v6.hasD?' <span style="font-size:9px;background:rgba(156,163,175,0.2);padding:1px 3px;border-radius:3px;color:#9ca3af">含D</span>':'';var v6SpHtml=v6.singlePick?'<span style="margin-left:6px;opacity:0.8">单选'+v6.singlePick+'('+v6.singlePickRate+'%)</span>':'';h+='<div style="margin-top:4px;padding:3px 8px;border-radius:6px;font-size:10px;font-weight:600;background:'+v6Bg+'22;color:'+v6Bg+';display:inline-block">V6.6 '+v6.scenario+v6DBadge+' · '+v6.favorLevel+' · '+v6ConfIcon+v6.confidenceLevel+' (双选'+v6.hitRate+'%)'+v6SpHtml+'</div>';}else if(!rec.skip){h+='<div style="margin-top:4px;padding:3px 8px;border-radius:6px;font-size:10px;font-weight:400;background:rgba(107,114,128,0.15);color:#9ca3af;display:inline-block">V6.6 无Kelly数据</div>';}
   h+='</div>'+resultBadge+'</div></div>';
   h+='<span class="ai-card-arrow">›</span>';
   h+='</div>';
