@@ -1,6 +1,6 @@
 {
   "date": "20260819",
-  "scrape_time": "2026-08-19 18:01:43",
+  "scrape_time": "2026-08-19 18:31:18",
   "source": "zgzcw.com",
   "version": "2.2",
   "dongqiudi_fallback_count": 0,
@@ -23,21 +23,21 @@
             2.7
           ],
           "latest_odds": [
-            2.8,
-            3.0,
-            2.3
+            2.5,
+            3.25,
+            2.45
           ],
           "probability": [
-            31.74,
-            29.62,
-            38.64
+            35.85,
+            27.57,
+            36.58
           ],
           "kelly": [
-            0.92,
-            0.84,
-            0.9
+            0.9,
+            0.9,
+            0.89
           ],
-          "payout": 0.89
+          "payout": 0.9
         },
         "weide": {
           "name": "韦*",
@@ -47,18 +47,18 @@
             2.45
           ],
           "latest_odds": [
-            2.5,
+            2.3,
             3.0,
-            2.15
+            2.3
           ],
           "probability": [
-            33.38,
-            27.81,
-            38.81
+            36.14,
+            27.71,
+            36.14
           ],
           "kelly": [
-            0.82,
-            0.84,
+            0.83,
+            0.83,
             0.84
           ],
           "payout": 0.83
@@ -71,19 +71,19 @@
             2.45
           ],
           "latest_odds": [
-            2.63,
+            2.45,
             3.4,
-            2.3
+            2.45
           ],
           "probability": [
-            34.28,
-            26.52,
-            39.2
+            36.76,
+            26.49,
+            36.76
           ],
           "kelly": [
-            0.86,
-            0.95,
-            0.9
+            0.88,
+            0.94,
+            0.89
           ],
           "payout": 0.9
         },
@@ -95,21 +95,21 @@
             2.4
           ],
           "latest_odds": [
-            2.7,
+            2.5,
             3.2,
-            2.3
+            2.5
           ],
           "probability": [
-            33.14,
-            27.96,
-            38.9
+            35.96,
+            28.09,
+            35.96
           ],
           "kelly": [
-            0.89,
             0.9,
-            0.9
+            0.88,
+            0.91
           ],
-          "payout": 0.89
+          "payout": 0.9
         },
         "macau": {
           "name": "澳*",
@@ -119,24 +119,488 @@
             2.2
           ],
           "latest_odds": [
-            2.52,
-            3.08,
-            2.2
+            2.51,
+            3.0,
+            2.25
           ],
           "probability": [
-            33.74,
-            27.61,
-            38.65
+            33.87,
+            28.34,
+            37.79
           ],
           "kelly": [
+            0.9,
             0.83,
-            0.86,
-            0.86
+            0.82
           ],
           "payout": 0.85
         }
       },
-      "asian_handicap": null
+      "asian_handicap": [
+        {
+          "company_name": "平均*",
+          "company_key": "",
+          "initial_handicap": "平手",
+          "initial_home_water": 0.93,
+          "initial_away_water": 0.83,
+          "latest_handicap": "平手",
+          "latest_home_water": 0.87,
+          "latest_away_water": 0.88
+        },
+        {
+          "company_name": "平*",
+          "company_key": "",
+          "initial_handicap": "平手",
+          "initial_home_water": 0.83,
+          "initial_away_water": 0.95,
+          "latest_handicap": "平手",
+          "latest_home_water": 0.94,
+          "latest_away_water": 0.91
+        },
+        {
+          "company_name": "威*",
+          "company_key": "william_hill",
+          "initial_handicap": "半球",
+          "initial_home_water": 1.5,
+          "initial_away_water": 0.44,
+          "latest_handicap": "平手",
+          "latest_home_water": 0.87,
+          "latest_away_water": 0.85
+        },
+        {
+          "company_name": "韦*",
+          "company_key": "weide",
+          "initial_handicap": "平手",
+          "initial_home_water": 0.62,
+          "initial_away_water": 0.72,
+          "latest_handicap": "平手",
+          "latest_home_water": 0.68,
+          "latest_away_water": 0.66
+        },
+        {
+          "company_name": "36*",
+          "company_key": "bet365",
+          "initial_handicap": "平手",
+          "initial_home_water": 0.95,
+          "initial_away_water": 0.85,
+          "latest_handicap": "受平/半",
+          "latest_home_water": 0.78,
+          "latest_away_water": 1.03
+        },
+        {
+          "company_name": "澳*",
+          "company_key": "macau",
+          "initial_handicap": "平手",
+          "initial_home_water": 0.98,
+          "initial_away_water": 0.72,
+          "latest_handicap": "平手",
+          "latest_home_water": 0.86,
+          "latest_away_water": 0.84
+        },
+        {
+          "company_name": "ＳＢ/*",
+          "company_key": "",
+          "initial_handicap": "平手",
+          "initial_home_water": 1.01,
+          "initial_away_water": 0.75,
+          "latest_handicap": "平手",
+          "latest_home_water": 0.9,
+          "latest_away_water": 0.92
+        },
+        {
+          "company_name": "香港马*",
+          "company_key": "",
+          "initial_handicap": "平手",
+          "initial_home_water": 0.88,
+          "initial_away_water": 0.88,
+          "latest_handicap": "平手",
+          "latest_home_water": 0.88,
+          "latest_away_water": 0.88
+        },
+        {
+          "company_name": "*陞",
+          "company_key": "",
+          "initial_handicap": "平手",
+          "initial_home_water": 1.04,
+          "initial_away_water": 0.8,
+          "latest_handicap": "平手",
+          "latest_home_water": 0.93,
+          "latest_away_water": 0.91
+        },
+        {
+          "company_name": "one*",
+          "company_key": "",
+          "initial_handicap": "平手",
+          "initial_home_water": 0.84,
+          "initial_away_water": 0.96,
+          "latest_handicap": "平手",
+          "latest_home_water": 0.84,
+          "latest_away_water": 0.83
+        },
+        {
+          "company_name": "Int*en",
+          "company_key": "",
+          "initial_handicap": "平手",
+          "initial_home_water": 0.95,
+          "initial_away_water": 0.75,
+          "latest_handicap": "平手",
+          "latest_home_water": 0.9,
+          "latest_away_water": 0.8
+        },
+        {
+          "company_name": "易*",
+          "company_key": "ysb",
+          "initial_handicap": "平手",
+          "initial_home_water": 0.81,
+          "initial_away_water": 0.98,
+          "latest_handicap": "平手",
+          "latest_home_water": 0.97,
+          "latest_away_water": 0.92
+        },
+        {
+          "company_name": "12b*t",
+          "company_key": "",
+          "initial_handicap": "平手",
+          "initial_home_water": 1.04,
+          "initial_away_water": 0.8,
+          "latest_handicap": "平手",
+          "latest_home_water": 0.9,
+          "latest_away_water": 0.94
+        },
+        {
+          "company_name": "利*",
+          "company_key": "",
+          "initial_handicap": "平手",
+          "initial_home_water": 0.89,
+          "initial_away_water": 0.93,
+          "latest_handicap": "平手",
+          "latest_home_water": 0.94,
+          "latest_away_water": 0.96
+        },
+        {
+          "company_name": "盈*",
+          "company_key": "",
+          "initial_handicap": "平手",
+          "initial_home_water": 0.85,
+          "initial_away_water": 0.97,
+          "latest_handicap": "平手",
+          "latest_home_water": 0.9,
+          "latest_away_water": 0.92
+        },
+        {
+          "company_name": "18B*t",
+          "company_key": "",
+          "initial_handicap": "平手",
+          "initial_home_water": 0.78,
+          "initial_away_water": 0.92,
+          "latest_handicap": "平手",
+          "latest_home_water": 0.86,
+          "latest_away_water": 0.88
+        }
+      ]
+    },
+    "4565317": {
+      "match_name": "马竞 vs 马拉加",
+      "league": "西甲",
+      "match_time": "08-20 03:00",
+      "jingcai_id": "周三002",
+      "beidan_id": "20",
+      "source": "jz+bd",
+      "data_source": "zgzcw",
+      "companies": {
+        "william_hill": {
+          "name": "威*",
+          "initial_odds": [
+            1.3,
+            5.0,
+            9.5
+          ],
+          "latest_odds": [
+            1.33,
+            4.8,
+            9.0
+          ],
+          "probability": [
+            70.18,
+            19.45,
+            10.37
+          ],
+          "kelly": [
+            0.95,
+            0.88,
+            0.93
+          ],
+          "payout": 0.93
+        },
+        "weide": {
+          "name": "韦*",
+          "initial_odds": [
+            1.25,
+            5.0,
+            10.5
+          ],
+          "latest_odds": [
+            1.33,
+            5.25,
+            9.5
+          ],
+          "probability": [
+            71.77,
+            18.18,
+            10.05
+          ],
+          "kelly": [
+            0.95,
+            0.97,
+            0.98
+          ],
+          "payout": 0.95
+        },
+        "bet365": {
+          "name": "36*",
+          "initial_odds": [
+            1.25,
+            5.5,
+            12.0
+          ],
+          "latest_odds": [
+            1.33,
+            4.75,
+            9.5
+          ],
+          "probability": [
+            70.42,
+            19.72,
+            9.86
+          ],
+          "kelly": [
+            0.95,
+            0.87,
+            0.98
+          ],
+          "payout": 0.94
+        },
+        "libo": {
+          "name": "立*",
+          "initial_odds": [
+            1.33,
+            5.0,
+            10.0
+          ],
+          "latest_odds": [
+            1.35,
+            5.25,
+            8.0
+          ],
+          "probability": [
+            70.13,
+            18.03,
+            11.83
+          ],
+          "kelly": [
+            0.96,
+            0.97,
+            0.83
+          ],
+          "payout": 0.95
+        },
+        "macau": {
+          "name": "澳*",
+          "initial_odds": [
+            1.25,
+            4.9,
+            8.6
+          ],
+          "latest_odds": [
+            1.28,
+            4.85,
+            8.0
+          ],
+          "probability": [
+            70.23,
+            18.53,
+            11.24
+          ],
+          "kelly": [
+            0.91,
+            0.89,
+            0.83
+          ],
+          "payout": 0.9
+        }
+      },
+      "asian_handicap": [
+        {
+          "company_name": "平均*",
+          "company_key": "",
+          "initial_handicap": "球半",
+          "initial_home_water": 0.98,
+          "initial_away_water": 0.86,
+          "latest_handicap": "球半",
+          "latest_home_water": 0.97,
+          "latest_away_water": 0.89
+        },
+        {
+          "company_name": "平*",
+          "company_key": "",
+          "initial_handicap": "球半",
+          "initial_home_water": 0.96,
+          "initial_away_water": 0.89,
+          "latest_handicap": "球半",
+          "latest_home_water": 1.01,
+          "latest_away_water": 0.92
+        },
+        {
+          "company_name": "威*",
+          "company_key": "william_hill",
+          "initial_handicap": "球半",
+          "initial_home_water": 0.95,
+          "initial_away_water": 0.8,
+          "latest_handicap": "一/球半↓",
+          "latest_home_water": 0.7,
+          "latest_away_water": 0.95
+        },
+        {
+          "company_name": "韦*",
+          "company_key": "weide",
+          "initial_handicap": "球半",
+          "initial_home_water": 0.96,
+          "initial_away_water": 0.91,
+          "latest_handicap": "球半",
+          "latest_home_water": 1.0,
+          "latest_away_water": 0.87
+        },
+        {
+          "company_name": "36*",
+          "company_key": "bet365",
+          "initial_handicap": "球半",
+          "initial_home_water": 0.92,
+          "initial_away_water": 0.92,
+          "latest_handicap": "球半",
+          "latest_home_water": 1.0,
+          "latest_away_water": 0.85
+        },
+        {
+          "company_name": "立*",
+          "company_key": "libo",
+          "initial_handicap": "球半",
+          "initial_home_water": 0.91,
+          "initial_away_water": 0.8,
+          "latest_handicap": "球半",
+          "latest_home_water": 0.83,
+          "latest_away_water": 0.85
+        },
+        {
+          "company_name": "澳*",
+          "company_key": "macau",
+          "initial_handicap": "球半",
+          "initial_home_water": 0.93,
+          "initial_away_water": 0.91,
+          "latest_handicap": "球半",
+          "latest_home_water": 0.98,
+          "latest_away_water": 0.86
+        },
+        {
+          "company_name": "ＳＢ/*",
+          "company_key": "",
+          "initial_handicap": "球半/两",
+          "initial_home_water": 1.0,
+          "initial_away_water": 0.82,
+          "latest_handicap": "球半",
+          "latest_home_water": 1.01,
+          "latest_away_water": 0.88
+        },
+        {
+          "company_name": "香港马*",
+          "company_key": "",
+          "initial_handicap": "一/球半",
+          "initial_home_water": 0.71,
+          "initial_away_water": 1.08,
+          "latest_handicap": "一/球半",
+          "latest_home_water": 0.73,
+          "latest_away_water": 1.12
+        },
+        {
+          "company_name": "*陞",
+          "company_key": "",
+          "initial_handicap": "球半/两",
+          "initial_home_water": 1.29,
+          "initial_away_water": 0.65,
+          "latest_handicap": "球半",
+          "latest_home_water": 1.04,
+          "latest_away_water": 0.89
+        },
+        {
+          "company_name": "one*",
+          "company_key": "",
+          "initial_handicap": "球半",
+          "initial_home_water": 0.97,
+          "initial_away_water": 0.97,
+          "latest_handicap": "球半",
+          "latest_home_water": 1.01,
+          "latest_away_water": 0.92
+        },
+        {
+          "company_name": "Int*en",
+          "company_key": "",
+          "initial_handicap": "球半",
+          "initial_home_water": 0.85,
+          "initial_away_water": 0.9,
+          "latest_handicap": "球半",
+          "latest_home_water": 1.05,
+          "latest_away_water": 0.7
+        },
+        {
+          "company_name": "易*",
+          "company_key": "ysb",
+          "initial_handicap": "球半",
+          "initial_home_water": 0.9,
+          "initial_away_water": 0.94,
+          "latest_handicap": "球半",
+          "latest_home_water": 1.01,
+          "latest_away_water": 0.86
+        },
+        {
+          "company_name": "12b*t",
+          "company_key": "",
+          "initial_handicap": "球半/两",
+          "initial_home_water": 1.29,
+          "initial_away_water": 0.65,
+          "latest_handicap": "球半",
+          "latest_home_water": 1.05,
+          "latest_away_water": 0.88
+        },
+        {
+          "company_name": "利*",
+          "company_key": "",
+          "initial_handicap": "球半",
+          "initial_home_water": 1.02,
+          "initial_away_water": 0.88,
+          "latest_handicap": "球半",
+          "latest_home_water": 1.05,
+          "latest_away_water": 0.88
+        },
+        {
+          "company_name": "盈*",
+          "company_key": "",
+          "initial_handicap": "球半",
+          "initial_home_water": 1.05,
+          "initial_away_water": 0.83,
+          "latest_handicap": "球半",
+          "latest_home_water": 1.01,
+          "latest_away_water": 0.89
+        },
+        {
+          "company_name": "18B*t",
+          "company_key": "",
+          "initial_handicap": "球半",
+          "initial_home_water": 0.92,
+          "initial_away_water": 0.84,
+          "latest_handicap": "球半",
+          "latest_home_water": 0.97,
+          "latest_away_water": 0.84
+        }
+      ]
     },
     "4592470": {
       "match_name": "波特诺 vs 帕梅拉斯",
@@ -190,7 +654,7 @@
           ],
           "kelly": [
             0.98,
-            0.94,
+            0.95,
             0.93
           ],
           "payout": 0.94
@@ -214,7 +678,7 @@
           ],
           "kelly": [
             0.98,
-            0.94,
+            0.95,
             0.93
           ],
           "payout": 0.94
@@ -239,7 +703,7 @@
           "kelly": [
             0.85,
             0.92,
-            0.91
+            0.9
           ],
           "payout": 0.9
         },
@@ -276,8 +740,8 @@
           "initial_home_water": 0.91,
           "initial_away_water": 0.83,
           "latest_handicap": "受半球",
-          "latest_home_water": 0.98,
-          "latest_away_water": 0.84
+          "latest_home_water": 0.97,
+          "latest_away_water": 0.85
         },
         {
           "company_name": "平*",
@@ -286,7 +750,7 @@
           "initial_home_water": 0.88,
           "initial_away_water": 0.92,
           "latest_handicap": "受半球",
-          "latest_home_water": 1.06,
+          "latest_home_water": 1.07,
           "latest_away_water": 0.83
         },
         {
@@ -306,7 +770,7 @@
           "initial_home_water": 0.92,
           "initial_away_water": 0.87,
           "latest_handicap": "受半球",
-          "latest_home_water": 1.03,
+          "latest_home_water": 1.02,
           "latest_away_water": 0.78
         },
         {
@@ -326,8 +790,8 @@
           "initial_home_water": 0.91,
           "initial_away_water": 0.8,
           "latest_handicap": "受半球",
-          "latest_home_water": 1.0,
-          "latest_away_water": 0.73
+          "latest_home_water": 0.95,
+          "latest_away_water": 0.75
         },
         {
           "company_name": "澳*",
@@ -366,8 +830,8 @@
           "initial_home_water": 0.83,
           "initial_away_water": 1.03,
           "latest_handicap": "受半球",
-          "latest_home_water": 1.05,
-          "latest_away_water": 0.85
+          "latest_home_water": 1.04,
+          "latest_away_water": 0.86
         },
         {
           "company_name": "one*",
@@ -377,7 +841,7 @@
           "initial_away_water": 1.14,
           "latest_handicap": "受半/一",
           "latest_home_water": 0.76,
-          "latest_away_water": 1.11
+          "latest_away_water": 1.1
         },
         {
           "company_name": "Int*en",
@@ -396,8 +860,8 @@
           "initial_home_water": 0.77,
           "initial_away_water": 1.06,
           "latest_handicap": "受半球",
-          "latest_home_water": 1.06,
-          "latest_away_water": 0.77
+          "latest_home_water": 1.03,
+          "latest_away_water": 0.8
         },
         {
           "company_name": "12b*t",
@@ -406,8 +870,8 @@
           "initial_home_water": 1.07,
           "initial_away_water": 0.79,
           "latest_handicap": "受半球",
-          "latest_home_water": 1.05,
-          "latest_away_water": 0.85
+          "latest_home_water": 1.04,
+          "latest_away_water": 0.86
         },
         {
           "company_name": "利*",
@@ -415,9 +879,9 @@
           "initial_handicap": "受半/一",
           "initial_home_water": 0.78,
           "initial_away_water": 1.08,
-          "latest_handicap": "受半球↓",
-          "latest_home_water": 1.09,
-          "latest_away_water": 0.79
+          "latest_handicap": "受半球",
+          "latest_home_water": 1.06,
+          "latest_away_water": 0.82
         },
         {
           "company_name": "盈*",
@@ -426,8 +890,8 @@
           "initial_home_water": 1.0,
           "initial_away_water": 0.86,
           "latest_handicap": "受半球",
-          "latest_home_water": 1.04,
-          "latest_away_water": 0.84
+          "latest_home_water": 1.03,
+          "latest_away_water": 0.85
         },
         {
           "company_name": "18B*t",
@@ -438,6 +902,309 @@
           "latest_handicap": "受半球",
           "latest_home_water": 1.01,
           "latest_away_water": 0.8
+        }
+      ]
+    },
+    "4460463": {
+      "match_name": "纽约红牛 vs 纳什威尔",
+      "league": "美职联",
+      "match_time": "08-20 07:30",
+      "jingcai_id": "周三004",
+      "beidan_id": "30",
+      "source": "jz+bd",
+      "data_source": "zgzcw",
+      "companies": {
+        "william_hill": {
+          "name": "威*",
+          "initial_odds": [
+            2.7,
+            3.6,
+            2.2
+          ],
+          "latest_odds": [
+            2.63,
+            3.75,
+            2.2
+          ],
+          "probability": [
+            34.52,
+            24.21,
+            41.27
+          ],
+          "kelly": [
+            0.89,
+            0.94,
+            0.9
+          ],
+          "payout": 0.91
+        },
+        "weide": {
+          "name": "韦*",
+          "initial_odds": [
+            2.88,
+            3.7,
+            2.1
+          ],
+          "latest_odds": [
+            2.75,
+            3.7,
+            2.3
+          ],
+          "probability": [
+            34.03,
+            25.29,
+            40.68
+          ],
+          "kelly": [
+            0.93,
+            0.93,
+            0.94
+          ],
+          "payout": 0.94
+        },
+        "bet365": {
+          "name": "36*",
+          "initial_odds": [
+            2.8,
+            3.7,
+            2.2
+          ],
+          "latest_odds": [
+            2.8,
+            3.8,
+            2.35
+          ],
+          "probability": [
+            34.15,
+            25.16,
+            40.69
+          ],
+          "kelly": [
+            0.95,
+            0.95,
+            0.97
+          ],
+          "payout": 0.96
+        },
+        "libo": {
+          "name": "立*",
+          "initial_odds": [
+            2.6,
+            3.7,
+            2.15
+          ],
+          "latest_odds": [
+            2.62,
+            3.5,
+            2.25
+          ],
+          "probability": [
+            34.33,
+            25.7,
+            39.97
+          ],
+          "kelly": [
+            0.89,
+            0.88,
+            0.92
+          ],
+          "payout": 0.9
+        },
+        "macau": {
+          "name": "澳*",
+          "initial_odds": [
+            2.63,
+            3.61,
+            2.15
+          ],
+          "latest_odds": [
+            2.63,
+            3.61,
+            2.15
+          ],
+          "probability": [
+            33.88,
+            24.68,
+            41.44
+          ],
+          "kelly": [
+            0.89,
+            0.9,
+            0.88
+          ],
+          "payout": 0.89
+        }
+      },
+      "asian_handicap": [
+        {
+          "company_name": "平均*",
+          "company_key": "",
+          "initial_handicap": "受平/半",
+          "initial_home_water": 0.76,
+          "initial_away_water": 0.95,
+          "latest_handicap": "受平/半",
+          "latest_home_water": 0.78,
+          "latest_away_water": 1.11
+        },
+        {
+          "company_name": "平*",
+          "company_key": "",
+          "initial_handicap": "平手",
+          "initial_home_water": 1.03,
+          "initial_away_water": 0.8,
+          "latest_handicap": "受平/半",
+          "latest_home_water": 0.82,
+          "latest_away_water": 1.09
+        },
+        {
+          "company_name": "威*",
+          "company_key": "william_hill",
+          "initial_handicap": "受平/半",
+          "initial_home_water": 0.78,
+          "initial_away_water": 0.94,
+          "latest_handicap": "受平/半",
+          "latest_home_water": 0.73,
+          "latest_away_water": 0.91
+        },
+        {
+          "company_name": "韦*",
+          "company_key": "weide",
+          "initial_handicap": "受平/半",
+          "initial_home_water": 0.94,
+          "initial_away_water": 0.89,
+          "latest_handicap": "受平/半",
+          "latest_home_water": 0.81,
+          "latest_away_water": 1.03
+        },
+        {
+          "company_name": "36*",
+          "company_key": "bet365",
+          "initial_handicap": "受平/半",
+          "initial_home_water": 0.82,
+          "initial_away_water": 0.97,
+          "latest_handicap": "受平/半",
+          "latest_home_water": 0.85,
+          "latest_away_water": 0.95
+        },
+        {
+          "company_name": "立*",
+          "company_key": "libo",
+          "initial_handicap": "受半球",
+          "initial_home_water": 0.61,
+          "initial_away_water": 1.2,
+          "latest_handicap": "受半球",
+          "latest_home_water": 0.61,
+          "latest_away_water": 1.2
+        },
+        {
+          "company_name": "澳*",
+          "company_key": "macau",
+          "initial_handicap": "受平/半",
+          "initial_home_water": 0.83,
+          "initial_away_water": 0.95,
+          "latest_handicap": "受平/半",
+          "latest_home_water": 0.83,
+          "latest_away_water": 0.95
+        },
+        {
+          "company_name": "ＳＢ/*",
+          "company_key": "",
+          "initial_handicap": "受平/半",
+          "initial_home_water": 0.88,
+          "initial_away_water": 1.0,
+          "latest_handicap": "受平/半",
+          "latest_home_water": 0.82,
+          "latest_away_water": 1.07
+        },
+        {
+          "company_name": "香港马*",
+          "company_key": "",
+          "initial_handicap": "受平/半",
+          "initial_home_water": 0.88,
+          "initial_away_water": 0.88,
+          "latest_handicap": "受平/半",
+          "latest_home_water": 0.84,
+          "latest_away_water": 0.92
+        },
+        {
+          "company_name": "*陞",
+          "company_key": "",
+          "initial_handicap": "受平/半",
+          "initial_home_water": 0.84,
+          "initial_away_water": 1.02,
+          "latest_handicap": "受平/半",
+          "latest_home_water": 0.82,
+          "latest_away_water": 1.11
+        },
+        {
+          "company_name": "one*",
+          "company_key": "",
+          "initial_handicap": "受平/半",
+          "initial_home_water": 0.76,
+          "initial_away_water": 0.95,
+          "latest_handicap": "受一/球半↑",
+          "latest_home_water": 0.25,
+          "latest_away_water": 2.52
+        },
+        {
+          "company_name": "Int*en",
+          "company_key": "",
+          "initial_handicap": "平手",
+          "initial_home_water": 1.05,
+          "initial_away_water": 0.7,
+          "latest_handicap": "平手",
+          "latest_home_water": 1.05,
+          "latest_away_water": 0.7
+        },
+        {
+          "company_name": "易*",
+          "company_key": "ysb",
+          "initial_handicap": "受平/半",
+          "initial_home_water": 0.84,
+          "initial_away_water": 0.97,
+          "latest_handicap": "受平/半",
+          "latest_home_water": 0.82,
+          "latest_away_water": 1.03
+        },
+        {
+          "company_name": "12b*t",
+          "company_key": "",
+          "initial_handicap": "受平/半",
+          "initial_home_water": 0.83,
+          "initial_away_water": 1.03,
+          "latest_handicap": "受平/半",
+          "latest_home_water": 0.82,
+          "latest_away_water": 1.11
+        },
+        {
+          "company_name": "利*",
+          "company_key": "",
+          "initial_handicap": "受平/半",
+          "initial_home_water": 0.88,
+          "initial_away_water": 1.02,
+          "latest_handicap": "受平/半",
+          "latest_home_water": 0.86,
+          "latest_away_water": 1.06
+        },
+        {
+          "company_name": "盈*",
+          "company_key": "",
+          "initial_handicap": "受平/半",
+          "initial_home_water": 0.87,
+          "initial_away_water": 1.01,
+          "latest_handicap": "受平/半↑",
+          "latest_home_water": 0.82,
+          "latest_away_water": 1.08
+        },
+        {
+          "company_name": "18B*t",
+          "company_key": "",
+          "initial_handicap": "受平/半",
+          "initial_home_water": 0.81,
+          "initial_away_water": 0.94,
+          "latest_handicap": "受平/半",
+          "latest_home_water": 0.78,
+          "latest_away_water": 1.04
         }
       ]
     },
@@ -459,18 +1226,18 @@
           ],
           "latest_odds": [
             2.5,
-            3.5,
+            3.6,
             2.4
           ],
           "probability": [
-            36.29,
-            25.92,
-            37.8
+            36.55,
+            25.38,
+            38.07
           ],
           "kelly": [
-            0.87,
-            0.92,
-            0.93
+            0.9,
+            0.95,
+            0.91
           ],
           "payout": 0.91
         },
@@ -482,21 +1249,21 @@
             2.38
           ],
           "latest_odds": [
-            2.63,
-            3.6,
-            2.45
+            2.55,
+            3.5,
+            2.55
           ],
           "probability": [
-            35.66,
-            26.05,
-            38.28
+            36.65,
+            26.7,
+            36.65
           ],
           "kelly": [
+            0.91,
             0.92,
-            0.95,
-            0.95
+            0.96
           ],
-          "payout": 0.94
+          "payout": 0.93
         },
         "bet365": {
           "name": "36*",
@@ -506,21 +1273,21 @@
             2.3
           ],
           "latest_odds": [
-            2.7,
+            2.6,
             3.6,
-            2.5
+            2.6
           ],
           "probability": [
-            35.34,
-            26.5,
-            38.16
+            36.73,
+            26.53,
+            36.73
           ],
           "kelly": [
-            0.94,
+            0.93,
             0.95,
-            0.97
+            0.98
           ],
-          "payout": 0.95
+          "payout": 0.96
         },
         "libo": {
           "name": "立*",
@@ -530,21 +1297,21 @@
             2.2
           ],
           "latest_odds": [
-            2.6,
+            2.5,
             3.3,
-            2.3
+            2.45
           ],
           "probability": [
-            34.27,
-            27.0,
-            38.74
+            36.0,
+            27.27,
+            36.73
           ],
           "kelly": [
-            0.91,
+            0.9,
             0.87,
-            0.89
+            0.93
           ],
-          "payout": 0.89
+          "payout": 0.9
         },
         "macau": {
           "name": "澳*",
@@ -554,19 +1321,19 @@
             2.27
           ],
           "latest_odds": [
-            2.53,
+            2.5,
             3.45,
-            2.27
+            2.3
           ],
           "probability": [
-            35.11,
-            25.75,
-            39.14
+            35.57,
+            25.77,
+            38.66
           ],
           "kelly": [
-            0.89,
+            0.9,
             0.91,
-            0.88
+            0.87
           ],
           "payout": 0.89
         }
@@ -579,8 +1346,8 @@
           "initial_home_water": 1.09,
           "initial_away_water": 0.8,
           "latest_handicap": "平手",
-          "latest_home_water": 0.9,
-          "latest_away_water": 0.98
+          "latest_home_water": 0.84,
+          "latest_away_water": 1.06
         },
         {
           "company_name": "平*",
@@ -589,8 +1356,8 @@
           "initial_home_water": 0.9,
           "initial_away_water": 0.92,
           "latest_handicap": "平手",
-          "latest_home_water": 1.02,
-          "latest_away_water": 0.88
+          "latest_home_water": 0.9,
+          "latest_away_water": 0.98
         },
         {
           "company_name": "威*",
@@ -599,8 +1366,8 @@
           "initial_home_water": 0.74,
           "initial_away_water": 0.99,
           "latest_handicap": "平手",
-          "latest_home_water": 0.86,
-          "latest_away_water": 0.75
+          "latest_home_water": 0.84,
+          "latest_away_water": 0.77
         },
         {
           "company_name": "韦*",
@@ -609,8 +1376,8 @@
           "initial_home_water": 1.02,
           "initial_away_water": 0.82,
           "latest_handicap": "平手",
-          "latest_home_water": 0.99,
-          "latest_away_water": 0.84
+          "latest_home_water": 0.9,
+          "latest_away_water": 0.93
         },
         {
           "company_name": "36*",
@@ -639,8 +1406,8 @@
           "initial_home_water": 1.0,
           "initial_away_water": 0.78,
           "latest_handicap": "平手",
-          "latest_home_water": 1.0,
-          "latest_away_water": 0.78
+          "latest_home_water": 0.92,
+          "latest_away_water": 0.86
         },
         {
           "company_name": "ＳＢ/*",
@@ -649,8 +1416,8 @@
           "initial_home_water": 1.05,
           "initial_away_water": 0.83,
           "latest_handicap": "平手",
-          "latest_home_water": 1.04,
-          "latest_away_water": 0.85
+          "latest_home_water": 0.92,
+          "latest_away_water": 0.97
         },
         {
           "company_name": "香港马*",
@@ -669,8 +1436,8 @@
           "initial_home_water": 1.03,
           "initial_away_water": 0.85,
           "latest_handicap": "平手",
-          "latest_home_water": 1.02,
-          "latest_away_water": 0.9
+          "latest_home_water": 0.93,
+          "latest_away_water": 0.99
         },
         {
           "company_name": "one*",
@@ -679,8 +1446,8 @@
           "initial_home_water": 1.09,
           "initial_away_water": 0.8,
           "latest_handicap": "受一球",
-          "latest_home_water": 0.24,
-          "latest_away_water": 2.57
+          "latest_home_water": 0.21,
+          "latest_away_water": 2.76
         },
         {
           "company_name": "Int*en",
@@ -689,8 +1456,8 @@
           "initial_home_water": 1.05,
           "initial_away_water": 0.7,
           "latest_handicap": "平手",
-          "latest_home_water": 0.95,
-          "latest_away_water": 0.75
+          "latest_home_water": 0.9,
+          "latest_away_water": 0.8
         },
         {
           "company_name": "易*",
@@ -699,8 +1466,8 @@
           "initial_home_water": 1.0,
           "initial_away_water": 0.81,
           "latest_handicap": "平手",
-          "latest_home_water": 1.0,
-          "latest_away_water": 0.85
+          "latest_home_water": 0.91,
+          "latest_away_water": 0.94
         },
         {
           "company_name": "12b*t",
@@ -709,8 +1476,8 @@
           "initial_home_water": 1.03,
           "initial_away_water": 0.83,
           "latest_handicap": "平手",
-          "latest_home_water": 1.02,
-          "latest_away_water": 0.9
+          "latest_home_water": 0.93,
+          "latest_away_water": 0.99
         },
         {
           "company_name": "利*",
@@ -719,8 +1486,8 @@
           "initial_home_water": 1.08,
           "initial_away_water": 0.82,
           "latest_handicap": "平手",
-          "latest_home_water": 1.04,
-          "latest_away_water": 0.88
+          "latest_home_water": 0.95,
+          "latest_away_water": 0.97
         },
         {
           "company_name": "盈*",
@@ -729,8 +1496,8 @@
           "initial_home_water": 0.82,
           "initial_away_water": 1.06,
           "latest_handicap": "平手",
-          "latest_home_water": 1.02,
-          "latest_away_water": 0.88
+          "latest_home_water": 0.93,
+          "latest_away_water": 0.97
         },
         {
           "company_name": "18B*t",
@@ -739,8 +1506,8 @@
           "initial_home_water": 0.75,
           "initial_away_water": 1.01,
           "latest_handicap": "平手",
-          "latest_home_water": 0.97,
-          "latest_away_water": 0.82
+          "latest_home_water": 0.88,
+          "latest_away_water": 0.91
         }
       ]
     },
@@ -761,21 +1528,21 @@
             5.0
           ],
           "latest_odds": [
-            1.65,
-            3.75,
-            4.75
+            1.7,
+            3.6,
+            4.33
           ],
           "probability": [
-            55.95,
-            24.62,
-            19.43
+            53.62,
+            25.32,
+            21.05
           ],
           "kelly": [
-            0.91,
-            0.9,
-            0.98
+            0.93,
+            0.87,
+            0.92
           ],
-          "payout": 0.92
+          "payout": 0.91
         },
         "weide": {
           "name": "韦*",
@@ -785,21 +1552,21 @@
             5.25
           ],
           "latest_odds": [
-            1.7,
+            1.73,
             4.0,
-            4.5
+            4.4
           ],
           "probability": [
-            55.47,
-            23.57,
-            20.96
+            54.77,
+            23.69,
+            21.54
           ],
           "kelly": [
             0.94,
-            0.96,
+            0.97,
             0.93
           ],
-          "payout": 0.94
+          "payout": 0.95
         },
         "bet365": {
           "name": "36*",
@@ -809,17 +1576,17 @@
             4.33
           ],
           "latest_odds": [
-            1.67,
+            1.7,
             3.8,
-            4.2
+            4.1
           ],
           "probability": [
-            54.43,
-            23.92,
-            21.64
+            53.71,
+            24.03,
+            22.27
           ],
           "kelly": [
-            0.92,
+            0.93,
             0.92,
             0.87
           ],
@@ -833,14 +1600,14 @@
             5.25
           ],
           "latest_odds": [
-            1.73,
+            1.75,
             3.9,
-            4.33
+            4.2
           ],
           "probability": [
-            54.26,
-            24.07,
-            21.68
+            53.61,
+            24.05,
+            22.34
           ],
           "kelly": [
             0.96,
@@ -867,9 +1634,9 @@
             22.49
           ],
           "kelly": [
-            0.92,
+            0.91,
             0.89,
-            0.81
+            0.84
           ],
           "payout": 0.89
         }
@@ -882,8 +1649,8 @@
           "initial_home_water": 0.79,
           "initial_away_water": 0.99,
           "latest_handicap": "半/一",
-          "latest_home_water": 0.88,
-          "latest_away_water": 0.94
+          "latest_home_water": 0.9,
+          "latest_away_water": 0.93
         },
         {
           "company_name": "平*",
@@ -892,8 +1659,8 @@
           "initial_home_water": 1.07,
           "initial_away_water": 0.78,
           "latest_handicap": "半/一",
-          "latest_home_water": 0.93,
-          "latest_away_water": 0.95
+          "latest_home_water": 0.98,
+          "latest_away_water": 0.91
         },
         {
           "company_name": "威*",
@@ -902,8 +1669,8 @@
           "initial_home_water": 0.69,
           "initial_away_water": 0.95,
           "latest_handicap": "半/一",
-          "latest_home_water": 0.75,
-          "latest_away_water": 0.86
+          "latest_home_water": 0.84,
+          "latest_away_water": 0.77
         },
         {
           "company_name": "韦*",
@@ -912,8 +1679,8 @@
           "initial_home_water": 0.75,
           "initial_away_water": 1.0,
           "latest_handicap": "半/一",
-          "latest_home_water": 0.93,
-          "latest_away_water": 0.92
+          "latest_home_water": 0.96,
+          "latest_away_water": 0.89
         },
         {
           "company_name": "36*",
@@ -952,8 +1719,8 @@
           "initial_home_water": 1.01,
           "initial_away_water": 0.81,
           "latest_handicap": "半/一",
-          "latest_home_water": 0.98,
-          "latest_away_water": 0.91
+          "latest_home_water": 0.96,
+          "latest_away_water": 0.93
         },
         {
           "company_name": "香港马*",
@@ -982,8 +1749,8 @@
           "initial_home_water": 0.73,
           "initial_away_water": 1.07,
           "latest_handicap": "半/一",
-          "latest_home_water": 0.88,
-          "latest_away_water": 0.88
+          "latest_home_water": 0.9,
+          "latest_away_water": 0.86
         },
         {
           "company_name": "Int*en",
@@ -1002,8 +1769,8 @@
           "initial_home_water": 1.04,
           "initial_away_water": 0.8,
           "latest_handicap": "半/一",
-          "latest_home_water": 0.93,
-          "latest_away_water": 0.91
+          "latest_home_water": 0.95,
+          "latest_away_water": 0.9
         },
         {
           "company_name": "12b*t",
@@ -1012,8 +1779,8 @@
           "initial_home_water": 0.79,
           "initial_away_water": 1.05,
           "latest_handicap": "半/一",
-          "latest_home_water": 0.97,
-          "latest_away_water": 0.95
+          "latest_home_water": 1.0,
+          "latest_away_water": 0.92
         },
         {
           "company_name": "利*",
@@ -1042,8 +1809,8 @@
           "initial_home_water": 0.94,
           "initial_away_water": 0.79,
           "latest_handicap": "半/一",
-          "latest_home_water": 0.9,
-          "latest_away_water": 0.87
+          "latest_home_water": 0.92,
+          "latest_away_water": 0.85
         }
       ]
     },
@@ -1074,9 +1841,9 @@
             37.8
           ],
           "kelly": [
-            0.91,
-            0.88,
-            0.92
+            0.9,
+            0.89,
+            0.93
           ],
           "payout": 0.91
         },
@@ -1089,18 +1856,18 @@
           ],
           "latest_odds": [
             2.63,
-            4.0,
-            2.38
+            3.9,
+            2.4
           ],
           "probability": [
-            36.2,
-            23.8,
-            40.0
+            36.1,
+            24.34,
+            39.56
           ],
           "kelly": [
             0.95,
-            1.01,
-            0.92
+            0.99,
+            0.93
           ],
           "payout": 0.95
         },
@@ -1124,7 +1891,7 @@
           "kelly": [
             0.94,
             0.91,
-            0.88
+            0.89
           ],
           "payout": 0.91
         },
@@ -1146,8 +1913,8 @@
             37.37
           ],
           "kelly": [
-            0.91,
-            0.93,
+            0.9,
+            0.94,
             0.96
           ],
           "payout": 0.93
@@ -1171,7 +1938,7 @@
           ],
           "kelly": [
             0.87,
-            0.93,
+            0.94,
             0.88
           ],
           "payout": 0.89
@@ -1185,8 +1952,8 @@
           "initial_home_water": 1.04,
           "initial_away_water": 0.78,
           "latest_handicap": "平手",
-          "latest_home_water": 1.01,
-          "latest_away_water": 0.83
+          "latest_home_water": 1.03,
+          "latest_away_water": 0.8
         },
         {
           "company_name": "平*",
@@ -1195,8 +1962,8 @@
           "initial_home_water": 0.85,
           "initial_away_water": 0.98,
           "latest_handicap": "平手",
-          "latest_home_water": 1.05,
-          "latest_away_water": 0.85
+          "latest_home_water": 1.08,
+          "latest_away_water": 0.83
         },
         {
           "company_name": "威*",
@@ -1215,8 +1982,8 @@
           "initial_home_water": 0.98,
           "initial_away_water": 0.77,
           "latest_handicap": "平手",
-          "latest_home_water": 1.03,
-          "latest_away_water": 0.83
+          "latest_home_water": 1.04,
+          "latest_away_water": 0.82
         },
         {
           "company_name": "36*",
@@ -1255,8 +2022,8 @@
           "initial_home_water": 1.12,
           "initial_away_water": 0.71,
           "latest_handicap": "平手",
-          "latest_home_water": 1.12,
-          "latest_away_water": 0.78
+          "latest_home_water": 1.09,
+          "latest_away_water": 0.8
         },
         {
           "company_name": "香港马*",
@@ -1304,9 +2071,9 @@
           "initial_handicap": "平手",
           "initial_home_water": 0.92,
           "initial_away_water": 0.86,
-          "latest_handicap": "受平/半↑",
-          "latest_home_water": 0.72,
-          "latest_away_water": 1.14
+          "latest_handicap": "平手",
+          "latest_home_water": 1.03,
+          "latest_away_water": 0.82
         },
         {
           "company_name": "12b*t",
@@ -1315,8 +2082,8 @@
           "initial_home_water": 1.2,
           "initial_away_water": 0.67,
           "latest_handicap": "平手",
-          "latest_home_water": 1.07,
-          "latest_away_water": 0.85
+          "latest_home_water": 1.08,
+          "latest_away_water": 0.84
         },
         {
           "company_name": "利*",
@@ -1325,8 +2092,8 @@
           "initial_home_water": 1.04,
           "initial_away_water": 0.8,
           "latest_handicap": "平手",
-          "latest_home_water": 1.08,
-          "latest_away_water": 0.84
+          "latest_home_water": 1.06,
+          "latest_away_water": 0.86
         },
         {
           "company_name": "盈*",
@@ -1346,7 +2113,7 @@
           "initial_away_water": 0.75,
           "latest_handicap": "平手",
           "latest_home_water": 1.01,
-          "latest_away_water": 0.77
+          "latest_away_water": 0.76
         }
       ]
     },
@@ -1379,7 +2146,7 @@
           "kelly": [
             0.93,
             0.89,
-            0.88
+            0.89
           ],
           "payout": 0.91
         },
@@ -1391,19 +2158,19 @@
             4.6
           ],
           "latest_odds": [
-            1.75,
-            3.9,
-            4.4
+            1.8,
+            3.8,
+            4.33
           ],
           "probability": [
-            54.16,
-            24.3,
-            21.54
+            52.93,
+            25.07,
+            22.0
           ],
           "kelly": [
-            0.93,
-            0.97,
-            0.97
+            0.95,
+            0.94,
+            0.96
           ],
           "payout": 0.95
         },
@@ -1449,7 +2216,7 @@
             22.46
           ],
           "kelly": [
-            0.96,
+            0.95,
             0.93,
             0.93
           ],
@@ -1474,7 +2241,7 @@
           ],
           "kelly": [
             0.89,
-            0.92,
+            0.93,
             0.84
           ],
           "payout": 0.89
@@ -1488,8 +2255,8 @@
           "initial_home_water": 0.86,
           "initial_away_water": 0.92,
           "latest_handicap": "半/一",
-          "latest_home_water": 0.95,
-          "latest_away_water": 0.87
+          "latest_home_water": 0.96,
+          "latest_away_water": 0.86
         },
         {
           "company_name": "平*",
@@ -1497,9 +2264,9 @@
           "initial_handicap": "半/一",
           "initial_home_water": 1.0,
           "initial_away_water": 0.84,
-          "latest_handicap": "半/一",
-          "latest_home_water": 1.0,
-          "latest_away_water": 0.88
+          "latest_handicap": "半/一↑",
+          "latest_home_water": 1.06,
+          "latest_away_water": 0.84
         },
         {
           "company_name": "威*",
@@ -1508,8 +2275,8 @@
           "initial_home_water": 0.86,
           "initial_away_water": 0.79,
           "latest_handicap": "半/一",
-          "latest_home_water": 0.93,
-          "latest_away_water": 0.74
+          "latest_home_water": 0.94,
+          "latest_away_water": 0.73
         },
         {
           "company_name": "韦*",
@@ -1518,8 +2285,8 @@
           "initial_home_water": 0.87,
           "initial_away_water": 0.87,
           "latest_handicap": "半/一",
-          "latest_home_water": 1.0,
-          "latest_away_water": 0.85
+          "latest_home_water": 1.03,
+          "latest_away_water": 0.83
         },
         {
           "company_name": "36*",
@@ -1558,8 +2325,8 @@
           "initial_home_water": 0.94,
           "initial_away_water": 0.94,
           "latest_handicap": "半/一",
-          "latest_home_water": 1.07,
-          "latest_away_water": 0.82
+          "latest_home_water": 1.06,
+          "latest_away_water": 0.83
         },
         {
           "company_name": "香港马*",
@@ -1588,8 +2355,8 @@
           "initial_home_water": 1.4,
           "initial_away_water": 0.53,
           "latest_handicap": "半/一",
-          "latest_home_water": 0.87,
-          "latest_away_water": 0.79
+          "latest_home_water": 0.92,
+          "latest_away_water": 0.75
         },
         {
           "company_name": "Int*en",
@@ -1608,8 +2375,8 @@
           "initial_home_water": 0.94,
           "initial_away_water": 0.9,
           "latest_handicap": "半/一",
-          "latest_home_water": 1.02,
-          "latest_away_water": 0.83
+          "latest_home_water": 1.04,
+          "latest_away_water": 0.81
         },
         {
           "company_name": "12b*t",
@@ -1618,8 +2385,8 @@
           "initial_home_water": 0.88,
           "initial_away_water": 0.96,
           "latest_handicap": "半/一",
-          "latest_home_water": 1.05,
-          "latest_away_water": 0.87
+          "latest_home_water": 1.07,
+          "latest_away_water": 0.85
         },
         {
           "company_name": "利*",
@@ -1628,8 +2395,8 @@
           "initial_home_water": 0.94,
           "initial_away_water": 0.9,
           "latest_handicap": "半/一",
-          "latest_home_water": 1.07,
-          "latest_away_water": 0.85
+          "latest_home_water": 1.08,
+          "latest_away_water": 0.84
         },
         {
           "company_name": "盈*",
@@ -1638,8 +2405,8 @@
           "initial_home_water": 0.89,
           "initial_away_water": 0.89,
           "latest_handicap": "半/一",
-          "latest_home_water": 1.05,
-          "latest_away_water": 0.85
+          "latest_home_water": 1.06,
+          "latest_away_water": 0.84
         },
         {
           "company_name": "18B*t",
@@ -1648,8 +2415,8 @@
           "initial_home_water": 0.89,
           "initial_away_water": 0.83,
           "latest_handicap": "半/一",
-          "latest_home_water": 0.95,
-          "latest_away_water": 0.81
+          "latest_home_water": 0.98,
+          "latest_away_water": 0.79
         }
       ]
     },
@@ -1671,20 +2438,20 @@
           ],
           "latest_odds": [
             5.0,
-            3.6,
-            1.55
+            4.0,
+            1.5
           ],
           "probability": [
-            17.81,
-            24.74,
-            57.45
+            17.91,
+            22.39,
+            59.7
           ],
           "kelly": [
-            1.06,
             0.88,
-            0.84
+            0.91,
+            0.9
           ],
-          "payout": 0.89
+          "payout": 0.9
         },
         "weide": {
           "name": "韦*",
@@ -1694,19 +2461,19 @@
             1.62
           ],
           "latest_odds": [
-            3.9,
-            3.25,
-            1.57
+            4.1,
+            3.3,
+            1.53
           ],
           "probability": [
-            21.35,
-            25.62,
-            53.03
+            20.32,
+            25.24,
+            54.44
           ],
           "kelly": [
-            0.83,
-            0.8,
-            0.85
+            0.72,
+            0.75,
+            0.91
           ],
           "payout": 0.83
         },
@@ -1718,19 +2485,19 @@
             1.7
           ],
           "latest_odds": [
-            3.3,
-            3.6,
-            1.9
+            5.0,
+            4.2,
+            1.48
           ],
           "probability": [
-            27.37,
-            25.09,
-            47.54
+            17.96,
+            21.38,
+            60.67
           ],
           "kelly": [
-            0.7,
             0.88,
-            1.03
+            0.95,
+            0.88
           ],
           "payout": 0.9
         },
@@ -1742,19 +2509,19 @@
             2.2
           ],
           "latest_odds": [
-            5.25,
-            3.8,
+            5.0,
+            3.9,
             1.5
           ],
           "probability": [
-            17.0,
-            23.49,
-            59.51
+            17.81,
+            22.83,
+            59.36
           ],
           "kelly": [
-            1.11,
-            0.93,
-            0.81
+            0.88,
+            0.88,
+            0.9
           ],
           "payout": 0.89
         },
@@ -1766,19 +2533,19 @@
             1.6
           ],
           "latest_odds": [
-            3.5,
-            3.3,
-            1.7
+            4.37,
+            3.8,
+            1.46
           ],
           "probability": [
-            24.28,
-            25.75,
-            49.98
+            19.44,
+            22.36,
+            58.2
           ],
           "kelly": [
-            0.74,
-            0.81,
-            0.92
+            0.77,
+            0.86,
+            0.87
           ],
           "payout": 0.85
         }
@@ -1790,8 +2557,8 @@
           "initial_handicap": "受半/一",
           "initial_home_water": 0.98,
           "initial_away_water": 0.79,
-          "latest_handicap": "受半球",
-          "latest_home_water": 0.91,
+          "latest_handicap": "受一球",
+          "latest_home_water": 0.92,
           "latest_away_water": 0.86
         },
         {
@@ -1800,9 +2567,9 @@
           "initial_handicap": "受半球",
           "initial_home_water": 0.97,
           "initial_away_water": 0.85,
-          "latest_handicap": "受半球",
-          "latest_home_water": 0.86,
-          "latest_away_water": 0.99
+          "latest_handicap": "受一球",
+          "latest_home_water": 0.96,
+          "latest_away_water": 0.89
         },
         {
           "company_name": "威*",
@@ -1810,9 +2577,9 @@
           "initial_handicap": "受半球",
           "initial_home_water": 0.91,
           "initial_away_water": 0.8,
-          "latest_handicap": "受半球↑",
-          "latest_home_water": 0.75,
-          "latest_away_water": 1.0
+          "latest_handicap": "受一球",
+          "latest_home_water": 0.88,
+          "latest_away_water": 0.84
         },
         {
           "company_name": "韦*",
@@ -1820,9 +2587,9 @@
           "initial_handicap": "受半/一",
           "initial_home_water": 0.63,
           "initial_away_water": 0.71,
-          "latest_handicap": "受半球",
-          "latest_home_water": 0.59,
-          "latest_away_water": 0.75
+          "latest_handicap": "受一球↑",
+          "latest_home_water": 0.7,
+          "latest_away_water": 0.63
         },
         {
           "company_name": "36*",
@@ -1830,9 +2597,9 @@
           "initial_handicap": "受半/一",
           "initial_home_water": 0.85,
           "initial_away_water": 0.95,
-          "latest_handicap": "受半/一",
-          "latest_home_water": 0.85,
-          "latest_away_water": 0.95
+          "latest_handicap": "受一球",
+          "latest_home_water": 0.92,
+          "latest_away_water": 0.87
         },
         {
           "company_name": "澳*",
@@ -1840,9 +2607,9 @@
           "initial_handicap": "受半/一",
           "initial_home_water": 0.8,
           "initial_away_water": 0.9,
-          "latest_handicap": "受平/半↓",
-          "latest_home_water": 0.95,
-          "latest_away_water": 0.75
+          "latest_handicap": "受一球↑",
+          "latest_home_water": 0.84,
+          "latest_away_water": 0.86
         },
         {
           "company_name": "ＳＢ/*",
@@ -1850,9 +2617,9 @@
           "initial_handicap": "受半/一",
           "initial_home_water": 0.83,
           "initial_away_water": 0.93,
-          "latest_handicap": "受半球↑",
-          "latest_home_water": 0.83,
-          "latest_away_water": 0.99
+          "latest_handicap": "受一球",
+          "latest_home_water": 1.02,
+          "latest_away_water": 0.8
         },
         {
           "company_name": "香港马*",
@@ -1860,9 +2627,9 @@
           "initial_handicap": "受半/一",
           "initial_home_water": 0.98,
           "initial_away_water": 0.79,
-          "latest_handicap": "受平/半↓",
-          "latest_home_water": 1.09,
-          "latest_away_water": 0.7
+          "latest_handicap": "受一球↑",
+          "latest_home_water": 0.88,
+          "latest_away_water": 0.88
         },
         {
           "company_name": "*陞",
@@ -1870,9 +2637,9 @@
           "initial_handicap": "受平/半",
           "initial_home_water": 1.11,
           "initial_away_water": 0.66,
-          "latest_handicap": "受半球",
-          "latest_home_water": 0.85,
-          "latest_away_water": 0.99
+          "latest_handicap": "受一球",
+          "latest_home_water": 1.0,
+          "latest_away_water": 0.84
         },
         {
           "company_name": "one*",
@@ -1880,9 +2647,9 @@
           "initial_handicap": "受半/一",
           "initial_home_water": 0.73,
           "initial_away_water": 0.94,
-          "latest_handicap": "受半/一↑",
-          "latest_home_water": 0.61,
-          "latest_away_water": 1.13
+          "latest_handicap": "受一球",
+          "latest_home_water": 0.98,
+          "latest_away_water": 0.84
         },
         {
           "company_name": "Int*en",
@@ -1890,9 +2657,9 @@
           "initial_handicap": "受半球",
           "initial_home_water": 0.95,
           "initial_away_water": 0.75,
-          "latest_handicap": "受半球",
-          "latest_home_water": 0.7,
-          "latest_away_water": 1.05
+          "latest_handicap": "受一球",
+          "latest_home_water": 0.8,
+          "latest_away_water": 0.9
         },
         {
           "company_name": "易*",
@@ -1900,9 +2667,9 @@
           "initial_handicap": "受半/一",
           "initial_home_water": 0.88,
           "initial_away_water": 0.9,
-          "latest_handicap": "受平/半↓",
-          "latest_home_water": 1.07,
-          "latest_away_water": 0.82
+          "latest_handicap": "受一球",
+          "latest_home_water": 1.05,
+          "latest_away_water": 0.84
         },
         {
           "company_name": "12b*t",
@@ -1910,9 +2677,9 @@
           "initial_handicap": "受平/半",
           "initial_home_water": 1.0,
           "initial_away_water": 0.76,
-          "latest_handicap": "受半球",
-          "latest_home_water": 0.85,
-          "latest_away_water": 0.99
+          "latest_handicap": "受一球",
+          "latest_home_water": 0.99,
+          "latest_away_water": 0.85
         },
         {
           "company_name": "利*",
@@ -1920,9 +2687,9 @@
           "initial_handicap": "受半/一",
           "initial_home_water": 0.85,
           "initial_away_water": 0.97,
-          "latest_handicap": "受平/半↓",
-          "latest_home_water": 1.06,
-          "latest_away_water": 0.84
+          "latest_handicap": "受一球",
+          "latest_home_water": 1.03,
+          "latest_away_water": 0.87
         },
         {
           "company_name": "盈*",
@@ -1930,9 +2697,9 @@
           "initial_handicap": "受平/半",
           "initial_home_water": 1.02,
           "initial_away_water": 0.8,
-          "latest_handicap": "受平/半↓",
-          "latest_home_water": 1.02,
-          "latest_away_water": 0.8
+          "latest_handicap": "受一球",
+          "latest_home_water": 0.98,
+          "latest_away_water": 0.84
         },
         {
           "company_name": "18B*t",
@@ -1940,11 +2707,14 @@
           "initial_handicap": "受平/半",
           "initial_home_water": 0.78,
           "initial_away_water": 0.94,
-          "latest_handicap": "受半球",
-          "latest_home_water": 0.88,
-          "latest_away_water": 0.86
+          "latest_handicap": "受一球",
+          "latest_home_water": 0.94,
+          "latest_away_water": 0.8
         }
-      ]
+      ],
+      "score": "0-1",
+      "half_score": "0-1",
+      "status": "31"
     },
     "4613902": {
       "match_name": "金浦市民 vs 金泉尚武",
@@ -1963,19 +2733,19 @@
             2.15
           ],
           "latest_odds": [
-            2.6,
-            3.0,
-            2.5
+            2.25,
+            3.1,
+            2.8
           ],
           "probability": [
-            34.4,
-            29.82,
-            35.78
+            39.54,
+            28.7,
+            31.77
           ],
           "kelly": [
-            0.79,
             0.85,
-            1.04
+            0.89,
+            0.94
           ],
           "payout": 0.89
         },
@@ -1987,19 +2757,19 @@
             2.0
           ],
           "latest_odds": [
-            2.8,
-            2.9,
-            2.0
+            2.3,
+            2.88,
+            2.38
           ],
           "probability": [
-            29.71,
-            28.69,
-            41.6
+            36.17,
+            28.88,
+            34.95
           ],
           "kelly": [
-            0.85,
-            0.82,
-            0.83
+            0.87,
+            0.83,
+            0.8
           ],
           "payout": 0.83
         },
@@ -2011,21 +2781,21 @@
             2.1
           ],
           "latest_odds": [
-            2.9,
-            3.4,
-            2.1
+            2.2,
+            3.3,
+            2.75
           ],
           "probability": [
-            30.92,
-            26.38,
-            42.7
+            40.54,
+            27.03,
+            32.43
           ],
           "kelly": [
-            0.88,
-            0.96,
-            0.87
+            0.83,
+            0.95,
+            0.92
           ],
-          "payout": 0.9
+          "payout": 0.89
         },
         "libo": {
           "name": "立*",
@@ -2035,19 +2805,19 @@
             2.1
           ],
           "latest_odds": [
-            3.0,
+            2.3,
             3.1,
-            2.15
+            2.75
           ],
           "probability": [
-            29.73,
+            38.79,
             28.78,
-            41.49
+            32.44
           ],
           "kelly": [
-            0.91,
             0.87,
-            0.89
+            0.89,
+            0.92
           ],
           "payout": 0.89
         },
@@ -2059,24 +2829,27 @@
             2.0
           ],
           "latest_odds": [
-            2.72,
-            3.22,
-            2.0
+            2.21,
+            3.15,
+            2.45
           ],
           "probability": [
-            31.2,
-            26.36,
-            42.44
+            38.41,
+            26.95,
+            34.65
           ],
           "kelly": [
-            0.82,
-            0.91,
-            0.83
+            0.84,
+            0.9,
+            0.82
           ],
           "payout": 0.85
         }
       },
-      "asian_handicap": null
+      "asian_handicap": null,
+      "score": "0-1",
+      "half_score": "0-1",
+      "status": "30"
     },
     "4613907": {
       "match_name": "江原FC vs 城南FC",
@@ -5105,612 +5878,6 @@
         }
       },
       "asian_handicap": null
-    },
-    "4565317": {
-      "match_name": "马竞 vs 马拉加",
-      "league": "西甲",
-      "match_time": "08-20 03:00",
-      "jingcai_id": "周三002",
-      "beidan_id": "20",
-      "source": "jz+bd",
-      "data_source": "zgzcw",
-      "companies": {
-        "william_hill": {
-          "name": "威*",
-          "initial_odds": [
-            1.3,
-            5.0,
-            9.5
-          ],
-          "latest_odds": [
-            1.3,
-            4.8,
-            9.0
-          ],
-          "probability": [
-            70.66,
-            19.14,
-            10.21
-          ],
-          "kelly": [
-            0.93,
-            0.88,
-            0.92
-          ],
-          "payout": 0.92
-        },
-        "weide": {
-          "name": "韦*",
-          "initial_odds": [
-            1.25,
-            5.0,
-            10.5
-          ],
-          "latest_odds": [
-            1.3,
-            5.25,
-            10.0
-          ],
-          "probability": [
-            72.59,
-            17.97,
-            9.44
-          ],
-          "kelly": [
-            0.93,
-            0.96,
-            1.02
-          ],
-          "payout": 0.94
-        },
-        "bet365": {
-          "name": "36*",
-          "initial_odds": [
-            1.25,
-            5.5,
-            12.0
-          ],
-          "latest_odds": [
-            1.33,
-            5.0,
-            10.0
-          ],
-          "probability": [
-            71.48,
-            19.01,
-            9.51
-          ],
-          "kelly": [
-            0.95,
-            0.92,
-            1.02
-          ],
-          "payout": 0.95
-        },
-        "libo": {
-          "name": "立*",
-          "initial_odds": [
-            1.33,
-            5.0,
-            10.0
-          ],
-          "latest_odds": [
-            1.33,
-            5.25,
-            9.0
-          ],
-          "probability": [
-            71.37,
-            18.08,
-            10.55
-          ],
-          "kelly": [
-            0.95,
-            0.96,
-            0.92
-          ],
-          "payout": 0.95
-        },
-        "macau": {
-          "name": "澳*",
-          "initial_odds": [
-            1.25,
-            4.9,
-            8.6
-          ],
-          "latest_odds": [
-            1.28,
-            4.85,
-            8.0
-          ],
-          "probability": [
-            70.23,
-            18.53,
-            11.24
-          ],
-          "kelly": [
-            0.91,
-            0.89,
-            0.82
-          ],
-          "payout": 0.9
-        }
-      },
-      "asian_handicap": [
-        {
-          "company_name": "平均*",
-          "company_key": "",
-          "initial_handicap": "球半",
-          "initial_home_water": 0.98,
-          "initial_away_water": 0.86,
-          "latest_handicap": "球半",
-          "latest_home_water": 0.95,
-          "latest_away_water": 0.9
-        },
-        {
-          "company_name": "平*",
-          "company_key": "",
-          "initial_handicap": "球半",
-          "initial_home_water": 0.96,
-          "initial_away_water": 0.89,
-          "latest_handicap": "球半",
-          "latest_home_water": 1.02,
-          "latest_away_water": 0.91
-        },
-        {
-          "company_name": "威*",
-          "company_key": "william_hill",
-          "initial_handicap": "球半",
-          "initial_home_water": 0.95,
-          "initial_away_water": 0.8,
-          "latest_handicap": "一/球半↓",
-          "latest_home_water": 0.7,
-          "latest_away_water": 0.95
-        },
-        {
-          "company_name": "韦*",
-          "company_key": "weide",
-          "initial_handicap": "球半",
-          "initial_home_water": 0.96,
-          "initial_away_water": 0.91,
-          "latest_handicap": "球半",
-          "latest_home_water": 0.99,
-          "latest_away_water": 0.88
-        },
-        {
-          "company_name": "36*",
-          "company_key": "bet365",
-          "initial_handicap": "球半",
-          "initial_home_water": 0.92,
-          "initial_away_water": 0.92,
-          "latest_handicap": "球半",
-          "latest_home_water": 0.97,
-          "latest_away_water": 0.87
-        },
-        {
-          "company_name": "立*",
-          "company_key": "libo",
-          "initial_handicap": "球半",
-          "initial_home_water": 0.91,
-          "initial_away_water": 0.8,
-          "latest_handicap": "球半",
-          "latest_home_water": 0.83,
-          "latest_away_water": 0.85
-        },
-        {
-          "company_name": "澳*",
-          "company_key": "macau",
-          "initial_handicap": "球半",
-          "initial_home_water": 0.93,
-          "initial_away_water": 0.91,
-          "latest_handicap": "球半",
-          "latest_home_water": 0.98,
-          "latest_away_water": 0.86
-        },
-        {
-          "company_name": "ＳＢ/*",
-          "company_key": "",
-          "initial_handicap": "球半/两",
-          "initial_home_water": 1.0,
-          "initial_away_water": 0.82,
-          "latest_handicap": "球半",
-          "latest_home_water": 1.01,
-          "latest_away_water": 0.88
-        },
-        {
-          "company_name": "香港马*",
-          "company_key": "",
-          "initial_handicap": "一/球半",
-          "initial_home_water": 0.71,
-          "initial_away_water": 1.08,
-          "latest_handicap": "一/球半",
-          "latest_home_water": 0.73,
-          "latest_away_water": 1.12
-        },
-        {
-          "company_name": "*陞",
-          "company_key": "",
-          "initial_handicap": "球半/两",
-          "initial_home_water": 1.29,
-          "initial_away_water": 0.65,
-          "latest_handicap": "球半",
-          "latest_home_water": 1.02,
-          "latest_away_water": 0.91
-        },
-        {
-          "company_name": "one*",
-          "company_key": "",
-          "initial_handicap": "球半",
-          "initial_home_water": 0.97,
-          "initial_away_water": 0.97,
-          "latest_handicap": "球半",
-          "latest_home_water": 1.01,
-          "latest_away_water": 0.93
-        },
-        {
-          "company_name": "Int*en",
-          "company_key": "",
-          "initial_handicap": "球半",
-          "initial_home_water": 0.85,
-          "initial_away_water": 0.9,
-          "latest_handicap": "球半",
-          "latest_home_water": 1.0,
-          "latest_away_water": 0.75
-        },
-        {
-          "company_name": "易*",
-          "company_key": "ysb",
-          "initial_handicap": "球半",
-          "initial_home_water": 0.9,
-          "initial_away_water": 0.94,
-          "latest_handicap": "球半",
-          "latest_home_water": 0.99,
-          "latest_away_water": 0.88
-        },
-        {
-          "company_name": "12b*t",
-          "company_key": "",
-          "initial_handicap": "球半/两",
-          "initial_home_water": 1.29,
-          "initial_away_water": 0.65,
-          "latest_handicap": "球半",
-          "latest_home_water": 1.02,
-          "latest_away_water": 0.91
-        },
-        {
-          "company_name": "利*",
-          "company_key": "",
-          "initial_handicap": "球半",
-          "initial_home_water": 1.02,
-          "initial_away_water": 0.88,
-          "latest_handicap": "球半",
-          "latest_home_water": 1.02,
-          "latest_away_water": 0.91
-        },
-        {
-          "company_name": "盈*",
-          "company_key": "",
-          "initial_handicap": "球半",
-          "initial_home_water": 1.05,
-          "initial_away_water": 0.83,
-          "latest_handicap": "球半",
-          "latest_home_water": 1.01,
-          "latest_away_water": 0.89
-        },
-        {
-          "company_name": "18B*t",
-          "company_key": "",
-          "initial_handicap": "球半",
-          "initial_home_water": 0.92,
-          "initial_away_water": 0.84,
-          "latest_handicap": "球半",
-          "latest_home_water": 0.95,
-          "latest_away_water": 0.83
-        }
-      ]
-    },
-    "4460463": {
-      "match_name": "纽约红牛 vs 纳什威尔",
-      "league": "美职联",
-      "match_time": "08-20 07:30",
-      "jingcai_id": "周三004",
-      "beidan_id": "30",
-      "source": "jz+bd",
-      "data_source": "zgzcw",
-      "companies": {
-        "william_hill": {
-          "name": "威*",
-          "initial_odds": [
-            2.7,
-            3.6,
-            2.2
-          ],
-          "latest_odds": [
-            2.63,
-            3.75,
-            2.2
-          ],
-          "probability": [
-            34.52,
-            24.21,
-            41.27
-          ],
-          "kelly": [
-            0.89,
-            0.94,
-            0.9
-          ],
-          "payout": 0.91
-        },
-        "weide": {
-          "name": "韦*",
-          "initial_odds": [
-            2.88,
-            3.7,
-            2.1
-          ],
-          "latest_odds": [
-            2.75,
-            3.7,
-            2.3
-          ],
-          "probability": [
-            34.03,
-            25.29,
-            40.68
-          ],
-          "kelly": [
-            0.93,
-            0.93,
-            0.95
-          ],
-          "payout": 0.94
-        },
-        "bet365": {
-          "name": "36*",
-          "initial_odds": [
-            2.8,
-            3.7,
-            2.2
-          ],
-          "latest_odds": [
-            2.88,
-            3.8,
-            2.3
-          ],
-          "probability": [
-            33.22,
-            25.18,
-            41.6
-          ],
-          "kelly": [
-            0.97,
-            0.95,
-            0.95
-          ],
-          "payout": 0.96
-        },
-        "libo": {
-          "name": "立*",
-          "initial_odds": [
-            2.6,
-            3.7,
-            2.15
-          ],
-          "latest_odds": [
-            2.62,
-            3.5,
-            2.25
-          ],
-          "probability": [
-            34.33,
-            25.7,
-            39.97
-          ],
-          "kelly": [
-            0.89,
-            0.88,
-            0.93
-          ],
-          "payout": 0.9
-        },
-        "macau": {
-          "name": "澳*",
-          "initial_odds": [
-            2.63,
-            3.61,
-            2.15
-          ],
-          "latest_odds": [
-            2.63,
-            3.61,
-            2.15
-          ],
-          "probability": [
-            33.88,
-            24.68,
-            41.44
-          ],
-          "kelly": [
-            0.89,
-            0.91,
-            0.88
-          ],
-          "payout": 0.89
-        }
-      },
-      "asian_handicap": [
-        {
-          "company_name": "平均*",
-          "company_key": "",
-          "initial_handicap": "受平/半",
-          "initial_home_water": 0.76,
-          "initial_away_water": 0.95,
-          "latest_handicap": "受平/半",
-          "latest_home_water": 0.78,
-          "latest_away_water": 1.11
-        },
-        {
-          "company_name": "平*",
-          "company_key": "",
-          "initial_handicap": "平手",
-          "initial_home_water": 1.03,
-          "initial_away_water": 0.8,
-          "latest_handicap": "受平/半",
-          "latest_home_water": 0.83,
-          "latest_away_water": 1.08
-        },
-        {
-          "company_name": "威*",
-          "company_key": "william_hill",
-          "initial_handicap": "受平/半",
-          "initial_home_water": 0.78,
-          "initial_away_water": 0.94,
-          "latest_handicap": "受平/半",
-          "latest_home_water": 0.74,
-          "latest_away_water": 0.93
-        },
-        {
-          "company_name": "韦*",
-          "company_key": "weide",
-          "initial_handicap": "受平/半",
-          "initial_home_water": 0.94,
-          "initial_away_water": 0.89,
-          "latest_handicap": "受平/半",
-          "latest_home_water": 0.81,
-          "latest_away_water": 1.03
-        },
-        {
-          "company_name": "36*",
-          "company_key": "bet365",
-          "initial_handicap": "受平/半",
-          "initial_home_water": 0.82,
-          "initial_away_water": 0.97,
-          "latest_handicap": "受平/半",
-          "latest_home_water": 0.85,
-          "latest_away_water": 0.95
-        },
-        {
-          "company_name": "立*",
-          "company_key": "libo",
-          "initial_handicap": "受半球",
-          "initial_home_water": 0.61,
-          "initial_away_water": 1.2,
-          "latest_handicap": "受半球",
-          "latest_home_water": 0.61,
-          "latest_away_water": 1.2
-        },
-        {
-          "company_name": "澳*",
-          "company_key": "macau",
-          "initial_handicap": "受平/半",
-          "initial_home_water": 0.83,
-          "initial_away_water": 0.95,
-          "latest_handicap": "受平/半",
-          "latest_home_water": 0.83,
-          "latest_away_water": 0.95
-        },
-        {
-          "company_name": "ＳＢ/*",
-          "company_key": "",
-          "initial_handicap": "受平/半",
-          "initial_home_water": 0.88,
-          "initial_away_water": 1.0,
-          "latest_handicap": "受平/半",
-          "latest_home_water": 0.8,
-          "latest_away_water": 1.09
-        },
-        {
-          "company_name": "香港马*",
-          "company_key": "",
-          "initial_handicap": "受平/半",
-          "initial_home_water": 0.88,
-          "initial_away_water": 0.88,
-          "latest_handicap": "受平/半",
-          "latest_home_water": 0.84,
-          "latest_away_water": 0.92
-        },
-        {
-          "company_name": "*陞",
-          "company_key": "",
-          "initial_handicap": "受平/半",
-          "initial_home_water": 0.84,
-          "initial_away_water": 1.02,
-          "latest_handicap": "受平/半",
-          "latest_home_water": 0.82,
-          "latest_away_water": 1.11
-        },
-        {
-          "company_name": "one*",
-          "company_key": "",
-          "initial_handicap": "受平/半",
-          "initial_home_water": 0.76,
-          "initial_away_water": 0.95,
-          "latest_handicap": "受一/球半↑",
-          "latest_home_water": 0.25,
-          "latest_away_water": 2.52
-        },
-        {
-          "company_name": "Int*en",
-          "company_key": "",
-          "initial_handicap": "平手",
-          "initial_home_water": 1.05,
-          "initial_away_water": 0.7,
-          "latest_handicap": "平手",
-          "latest_home_water": 1.05,
-          "latest_away_water": 0.7
-        },
-        {
-          "company_name": "易*",
-          "company_key": "ysb",
-          "initial_handicap": "受平/半",
-          "initial_home_water": 0.84,
-          "initial_away_water": 0.97,
-          "latest_handicap": "受平/半",
-          "latest_home_water": 0.82,
-          "latest_away_water": 1.03
-        },
-        {
-          "company_name": "12b*t",
-          "company_key": "",
-          "initial_handicap": "受平/半",
-          "initial_home_water": 0.83,
-          "initial_away_water": 1.03,
-          "latest_handicap": "受平/半",
-          "latest_home_water": 0.82,
-          "latest_away_water": 1.11
-        },
-        {
-          "company_name": "利*",
-          "company_key": "",
-          "initial_handicap": "受平/半",
-          "initial_home_water": 0.88,
-          "initial_away_water": 1.02,
-          "latest_handicap": "受平/半",
-          "latest_home_water": 0.86,
-          "latest_away_water": 1.06
-        },
-        {
-          "company_name": "盈*",
-          "company_key": "",
-          "initial_handicap": "受平/半",
-          "initial_home_water": 0.87,
-          "initial_away_water": 1.01,
-          "latest_handicap": "平手↓",
-          "latest_home_water": 1.08,
-          "latest_away_water": 0.82
-        },
-        {
-          "company_name": "18B*t",
-          "company_key": "",
-          "initial_handicap": "受平/半",
-          "initial_home_water": 0.81,
-          "initial_away_water": 0.94,
-          "latest_handicap": "受平/半",
-          "latest_home_water": 0.77,
-          "latest_away_water": 1.05
-        }
-      ]
     },
     "4460466": {
       "match_name": "费城联合 vs 迈阿密",
