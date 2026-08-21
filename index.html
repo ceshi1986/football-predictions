@@ -847,7 +847,7 @@ function updateSummaryAndAdvice(cat, matches) {
   var singleList=[], doubleList=[], skipList=[];
   withResult.forEach(function(m){
     var r = m._result;
-    if (r.confLevel==='high' && r.hitRate>=80 && r.singlePick) singleList.push('<li><strong>'+m.id+'</strong> '+m.home+' vs '+m.away+'<br>单选 '+r.singlePick+' 命中率 '+r.singleRate+'%</li>');
+    if (r.confLevel==='high' && r.hitRate>=80 && r.singlePick && !r.singleTied) singleList.push('<li><strong>'+m.id+'</strong> '+m.home+' vs '+m.away+'<br>单选 '+r.singlePick+' 命中率 '+r.singleRate+'%</li>');
     else if (r.confLevel==='low' || r.hitRate<70) skipList.push('<li><strong>'+m.id+'</strong> '+m.home+' vs '+m.away+'<br>场景 '+r.scenario+' · 样本 '+r.sampleCount+'</li>');
     else doubleList.push('<li><strong>'+m.id+'</strong> '+m.home+' vs '+m.away+'<br>双选 '+r.prediction+' 命中率 '+r.hitRate+'%</li>');
   });
@@ -941,7 +941,7 @@ function classifyV6(match) {
   else if (sampleCount >= 5) confLevel = 'mid';
 
   // 单选：从子组实际胜平负分布取出现次数最多的结果
-  var singlePick = null, singleRate = 0;
+  var singlePick = null, singleRate = 0, singleTied = false;
   if (wdl && sampleCount > 0) {
     var parts = wdl.split('/');
     var wCount = parseInt(parts[0])||0, dCount = parseInt(parts[1])||0, lCount = parseInt(parts[2])||0;
@@ -959,15 +959,27 @@ function classifyV6(match) {
       if (inRange.length>0) best = inRange[0];
     }
     if (best.count > 0) {
-      singlePick = best.key;
-      singleRate = Math.round(best.count / sampleCount * 100);
+      // 检测并列：是否有其他结果与最佳次数相同（且都在双选范围内或都不在）
+      var tied = results.filter(function(r){return r.count===best.count && r.key!==best.key && prediction.indexOf(r.key)!==-1;});
+      if (tied.length > 0) {
+        // 并列，按胜平负顺序组合展示，标明无单选优势
+        var tiedKeys = [best.key].concat(tied.map(function(r){return r.key;}));
+        var order = {'胜':0,'平':1,'负':2};
+        tiedKeys.sort(function(a,b){return order[a]-order[b];});
+        singlePick = tiedKeys.join('/') + '（并列）';
+        singleTied = true;
+        singleRate = Math.round(best.count / sampleCount * 100);
+      } else {
+        singlePick = best.key;
+        singleRate = Math.round(best.count / sampleCount * 100);
+      }
     }
   }
   return {
     scenario: state365+stateW, subGroup: subGroupKey,
     state365:state365, stateW:stateW,
     prediction:prediction, hitRate:hitRate, confLevel:confLevel,
-    singlePick:singlePick, singleRate:Math.round(singleRate),
+    singlePick:singlePick, singleRate:Math.round(singleRate), singleTied:singleTied,
     isHomeStrong:isHomeStrong, sampleCount:sampleCount, wdl:wdl
   };
 }
@@ -1211,13 +1223,14 @@ function renderMatchCard(match, result, idx) {
   }
 
   var prediction=result.prediction, hitRate=result.hitRate, confLevel=result.confLevel;
-  var singlePick=result.singlePick, singleRate=result.singleRate, scenario=result.subGroup||result.scenario;
+  var singlePick=result.singlePick, singleRate=result.singleRate, singleTied=result.singleTied, scenario=result.subGroup||result.scenario;
   var sampleCount=result.sampleCount, wdl=result.wdl;
   var pickClass = getPickClass(prediction);
-  var singleClass = singlePick ? getPickClass(singlePick) : '';
+  var singleClass = (singlePick && !singleTied) ? getPickClass(singlePick) : '';
   var isLow = confLevel==='low';
   var warningHtml = '';
   if (isLow) warningHtml = '<div class="warning-note">⚠️ 样本仅 '+sampleCount+' 场，预测可信度低，建议回避单选。</div>';
+  if (singleTied) warningHtml += '<div class="warning-note">⚖️ 单选方向并列（各'+singleRate+'%），无统计优势，建议走双选。</div>';
 
   return '<div class="match-card'+expiredClass+'" data-match-id="'+matchId+'">'+loadingOverlay+
     '<div class="card-header-top"><span class="match-id">'+matchId+'</span>'+statusHtml+refreshBtn+staleBadge+
@@ -1226,7 +1239,7 @@ function renderMatchCard(match, result, idx) {
     '<div class="time">'+(match.time||'')+' '+countdownHtml+'</div>'+
     '<div class="pred-row">'+
       '<div class="pred-box"><div class="label">V6.7 双选</div><div class="value '+pickClass+'">'+prediction+'</div><div class="sub">双选命中率 '+hitRate+'%</div></div>'+
-      '<div class="pred-box"><div class="label">单选推荐</div><div class="value '+singleClass+'" style="'+(!singlePick?'color:var(--text-muted)':'')+'">'+(singlePick||'—')+'</div><div class="sub">'+(singlePick?'单选命中率 '+singleRate+'%':'样本不足')+'</div></div>'+
+      '<div class="pred-box"><div class="label">单选推荐</div><div class="value '+singleClass+'" style="'+(singleTied?'color:var(--text-muted);font-size:1.05rem;':(!singlePick?'color:var(--text-muted);':''))+'">'+(singlePick||'—')+'</div><div class="sub">'+(singlePick?'单选命中率 '+singleRate+'%':'样本不足')+'</div></div>'+
     '</div>'+
     '<div class="stats-row">'+
       '<div class="stat"><span class="scenario-tag">'+scenario+'</span></div>'+
