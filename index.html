@@ -350,7 +350,7 @@ footer{text-align:center;padding:32px 20px 16px;color:var(--text-muted);font-siz
 
 <div class="strategy-banner">
   <span class="badge">V6.7 策略</span>
-  <p>基于 <strong>1060 场回测</strong>优化 36 个子场景，整体双选命中率 <strong>80.1% → 81.8%</strong>。本场次预测使用最新 V6.7 策略表，结合 zgzcw 实时 Kelly 数据分类场景。</p>
+  <p>基于 <strong>1060 场回测</strong>优化 67 个主客子组，整体双选命中率 <strong>80.1% → 81.7%</strong>。本场次预测使用最新 V6.7 策略表，结合实时 Kelly 数据按主/客子组分类场景。</p>
 </div>
 
 <div class="legend">
@@ -440,7 +440,25 @@ const V6_STATE_MAP = {
   '':       ['X','X'],
 };
 
-const V6_SCENARIO_TABLE = {
+// ========== V6.7 Strategy (67 subgroups with home/away split) ==========
+let _v67Table = null; // {AA主:{pred,count,wdl,hitRate}, ...}
+const V67_URL = 'v67_subgroup_stats.json';
+
+async function loadV67Table() {
+  if (_v67Table) return _v67Table;
+  try {
+    var r = await fetch(V67_URL + '?t=' + Date.now(), {cache: 'no-cache'});
+    if (!r.ok) return null;
+    _v67Table = await r.json();
+    return _v67Table;
+  } catch(e) {
+    console.warn('loadV67Table failed:', e);
+    return null;
+  }
+}
+
+// Fallback: old 36-scenario table (used only if V6.7 table fails to load)
+const V6_FALLBACK_TABLE = {
   'A,A':['胜平',81.0],'A,B':['胜平',90.9],'A,C':['胜平',88.9],
   'B,A':['胜平',69.0],'B,B':['胜平',81.8],'B,C':['胜平',73.9],
   'C,A':['胜负',80.0],'C,B':['胜平',83.3],'C,C':['胜负',85.7],
@@ -732,7 +750,7 @@ function updateSummaryAndAdvice(cat, matches) {
   secEl.style.display = 'block';
   document.getElementById('summary-'+cat+'-body').innerHTML = withResult.map(function(m){
     var r = m._result;
-    return '<tr><td>'+m.id+'</td><td>'+m.home+' vs '+m.away+'</td><td><span class="scenario-tag">'+r.scenario+'</span></td><td class="'+getPickClass(r.prediction)+'">'+r.prediction+'</td><td>'+r.hitRate+'%</td><td class="'+getPickClass(r.singlePick)+'">'+(r.singlePick||'—')+'</td><td>'+(r.singlePick?r.singleRate+'%':'—')+'</td><td>'+r.sampleCount+'</td><td>'+getConfText(r.confLevel)+'</td></tr>';
+    return '<tr><td>'+m.id+'</td><td>'+m.home+' vs '+m.away+'</td><td><span class="scenario-tag">'+(r.subGroup||r.scenario)+'</span></td><td class="'+getPickClass(r.prediction)+'">'+r.prediction+'</td><td>'+r.hitRate+'%</td><td class="'+getPickClass(r.singlePick)+'">'+(r.singlePick||'—')+'</td><td>'+(r.singlePick?r.singleRate+'%':'—')+'</td><td>'+r.sampleCount+'</td><td>'+getConfText(r.confLevel)+'</td></tr>';
   }).join('');
   advEl.style.display = 'grid';
   var singleList=[], doubleList=[], skipList=[];
@@ -806,14 +824,27 @@ function classifyV6(match) {
   }
   if (state365==='X' || stateW==='X') return null;
   var scenarioKey = state365+','+stateW;
-  var strategy = V6_SCENARIO_TABLE[scenarioKey];
-  if (!strategy) return null;
-  var prediction = strategy[0], hitRate = strategy[1];
-  // Look up sample count from backtest stats
-  var scKey = state365 + stateW;
-  var bs = (_backtestStats && _backtestStats[scKey]) || null;
-  var sampleCount = bs ? bs.count : 0;
-  var wdl = bs ? (bs.w+'/'+bs.d+'/'+bs.l) : '0/0/0';
+  var subGroupKey = state365 + stateW + (isHomeStrong ? '主' : '客');
+  var prediction, hitRate, sampleCount, wdl;
+
+  // Try V6.7 subgroup table first
+  if (_v67Table && _v67Table[subGroupKey]) {
+    var v67 = _v67Table[subGroupKey];
+    prediction = v67.pred;
+    hitRate = v67.hitRate;
+    sampleCount = v67.count;
+    wdl = v67.wdl;
+  } else {
+    // Fallback to old 36-scenario table
+    var strategy = V6_FALLBACK_TABLE[scenarioKey];
+    if (!strategy) return null;
+    prediction = strategy[0];
+    hitRate = strategy[1];
+    var bs = (_backtestStats && _backtestStats[state365+stateW]) || null;
+    sampleCount = bs ? bs.count : 0;
+    wdl = bs ? (bs.w+'/'+bs.d+'/'+bs.l) : '0/0/0';
+  }
+
   var confLevel = 'low';
   if (sampleCount >= 10) confLevel = 'high';
   else if (sampleCount >= 5) confLevel = 'mid';
@@ -822,7 +853,8 @@ function classifyV6(match) {
   else if (prediction.includes('负') && !prediction.includes('胜')) { singlePick='负'; singleRate=hitRate*0.7 }
   else if (hitRate>=85) { singlePick='平'; singleRate=hitRate*0.5 }
   return {
-    scenario: state365+stateW, state365:state365, stateW:stateW,
+    scenario: state365+stateW, subGroup: subGroupKey,
+    state365:state365, stateW:stateW,
     prediction:prediction, hitRate:hitRate, confLevel:confLevel,
     singlePick:singlePick, singleRate:Math.round(singleRate),
     isHomeStrong:isHomeStrong, sampleCount:sampleCount, wdl:wdl
@@ -1068,7 +1100,7 @@ function renderMatchCard(match, result, idx) {
   }
 
   var prediction=result.prediction, hitRate=result.hitRate, confLevel=result.confLevel;
-  var singlePick=result.singlePick, singleRate=result.singleRate, scenario=result.scenario;
+  var singlePick=result.singlePick, singleRate=result.singleRate, scenario=result.subGroup||result.scenario;
   var sampleCount=result.sampleCount, wdl=result.wdl;
   var pickClass = getPickClass(prediction);
   var singleClass = singlePick ? getPickClass(singlePick) : '';
@@ -1231,7 +1263,8 @@ async function init() {
     return;
   }
 
-  // Load backtest stats (sample count per scenario)
+  // Load V6.7 strategy table (67 subgroups) and backtest stats
+  await loadV67Table();
   await loadBacktestStats();
 
   // Classify & enrich
