@@ -151,8 +151,8 @@ position:relative;
 .countdown.finished{color:var(--text-muted)}
 
 /* ========== Expired Card ========== */
-.match-card.expired{opacity:.65}
-.match-card.expired:hover{opacity:.8;transform:none;box-shadow:none}
+.match-card.expired{opacity:1}
+.match-card.expired:hover{opacity:1;transform:translateY(-2px);box-shadow:0 8px 32px rgba(124,92,255,.2)}
 
 /* Section Title */
 .section-title{
@@ -633,6 +633,30 @@ function extractMatchNumber(match) {
   return m ? parseInt(m[1],10) : 999;
 }
 
+function findCurrentPeriodKey(cat) {
+  // 找到当前应该显示的期号：优先有"进行中"比赛的日期，其次有"在售/即将截止"的，最后取最近的未来日期
+  const now = new Date();
+  const dates = Object.keys(_matchGroups[cat]).sort();
+  if (!dates.length) return null;
+  // 1. 有进行中比赛的日期
+  for (const dk of dates) {
+    const ms = _matchGroups[cat][dk];
+    if (ms.some(m => getSalesStatus(m._matchDate) === 'started')) return dk;
+  }
+  // 2. 有在售/即将截止比赛的日期
+  for (const dk of dates) {
+    const ms = _matchGroups[cat][dk];
+    if (ms.some(m => { const s = getSalesStatus(m._matchDate); return s === 'on_sale' || s === 'closing_soon'; })) return dk;
+  }
+  // 3. 最近的未来日期（第一个有未开赛比赛的）
+  for (const dk of dates) {
+    const ms = _matchGroups[cat][dk];
+    if (ms.some(m => m._matchDate > now)) return dk;
+  }
+  // 4. 兜底：最后一天
+  return dates[dates.length - 1];
+}
+
 function renderDateSelector(cat) {
   const container = document.getElementById(cat + '-date-selector');
   const dates = Object.keys(_matchGroups[cat]).sort();
@@ -643,15 +667,8 @@ function renderDateSelector(cat) {
   }
   const now = new Date();
   const todayKey = dateKeyStr(getSellingDate(now));
-  let defaultDate = dates[dates.length - 1];
-  // Prefer today; if not available, pick the first future date
-  if (dates.includes(todayKey)) {
-    defaultDate = todayKey;
-  } else {
-    for (const d of dates) {
-      if (d >= todayKey) { defaultDate = d; break; }
-    }
-  }
+  // 智能选择当前期号
+  let defaultDate = findCurrentPeriodKey(cat) || dates[dates.length - 1];
   let html = '';
   for (const dk of dates) {
     const dObj = new Date(dk + 'T00:00:00');
@@ -660,8 +677,11 @@ function renderDateSelector(cat) {
     const count = _matchGroups[cat][dk].length;
     const isActive = dk === defaultDate;
     const isToday = dk === todayKey;
+    // 检查该日期是否有进行中比赛
+    const hasLive = _matchGroups[cat][dk].some(m => getSalesStatus(m._matchDate) === 'started');
+    const liveDot = hasLive ? '<span style="color:#ff6b6b;font-size:.6rem;margin-left:2px">●</span>' : '';
     html += '<div class="date-tab' + (isActive?' active':'') + (isToday?' today-marker':'') + '" data-date="' + dk + '" data-cat="' + cat + '" onclick="selectDate(\'' + cat + '\',\'' + dk + '\')">';
-    html += '<span class="dt-main">' + mmdd + '</span>';
+    html += '<span class="dt-main">' + mmdd + liveDot + '</span>';
     html += '<span class="dt-sub">' + wd + '</span>';
     html += '<span class="dt-count">' + count + '场</span>';
     html += '</div>';
@@ -1226,10 +1246,10 @@ setInterval(function() {
       var sd = getStatusDisplay(status);
       el.className = 'status-badge ' + sd[2];
       el.textContent = sd[0] + ' ' + sd[1];
-      // Update card opacity
+      // Update card - 不再变暗，已开赛/已完赛的比赛保持正常显示
       var card = el.closest('.match-card');
       if (card) {
-        if (status==='closed'||status==='started'||status==='finished') card.classList.add('expired');
+        if (status==='finished') card.classList.add('expired');
         else card.classList.remove('expired');
       }
     } else {
@@ -1242,6 +1262,26 @@ setInterval(function() {
   if (_currentSelDate && _matchGroups[_currentCat]) {
     var matches = _matchGroups[_currentCat][_currentSelDate] || [];
     if (matches.length) updateStatsBar(_currentCat, _currentSelDate, matches);
+
+    // 自动切期：当前期所有比赛都已完赛，且存在下期有未开赛比赛时，自动切换
+    var allFinished = matches.length > 0 && matches.every(function(m) {
+      return getSalesStatus(m._matchDate) === 'finished';
+    });
+    if (allFinished && _matchGroups[_currentCat]) {
+      var dates = Object.keys(_matchGroups[_currentCat]).sort();
+      var curIdx = dates.indexOf(_currentSelDate);
+      if (curIdx >= 0 && curIdx < dates.length - 1) {
+        // 找下一个有未开赛比赛的日期
+        var now2 = new Date();
+        for (var i = curIdx + 1; i < dates.length; i++) {
+          var nextMatches = _matchGroups[_currentCat][dates[i]];
+          if (nextMatches.some(function(m) { return m._matchDate > now2; })) {
+            selectDate(_currentCat, dates[i]);
+            break;
+          }
+        }
+      }
+    }
   }
 }, 30000);
 
