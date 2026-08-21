@@ -177,6 +177,81 @@ def fetch_match_list_from_trade():
     return matches
 
 
+def fetch_beidan_list():
+    """从 trade.500.com/bjdc/ 获取北京单场比赛列表"""
+    print("[1/4] 获取北单列表 (trade.500.com/bjdc/)...")
+    url = 'https://trade.500.com/bjdc/'
+    try:
+        resp = req_lib.get(url, headers=HEADERS, timeout=15)
+        if resp.status_code != 200:
+            print(f"  ⚠️ HTTP {resp.status_code}")
+            return {}
+        html = resp.content.decode('gbk', errors='replace')
+    except Exception as e:
+        print(f"  ⚠️ 请求失败: {e}")
+        return {}
+
+    soup = BeautifulSoup(html, 'html.parser')
+    matches = {}
+    table = soup.find('table', id='vs_table')
+    if not table:
+        print("  ⚠️ 未找到vs_table")
+        return {}
+
+    rows = table.find_all('tr', class_='vs_lines')
+    for row in rows:
+        try:
+            tds = row.find_all('td')
+            if len(tds) < 7:
+                continue
+
+            # td[0] = 北单序号 (1, 2, 3...)
+            bd_num = tds[0].get_text(strip=True)
+            if not bd_num.isdigit():
+                continue
+
+            # td[1] = 联赛
+            league = tds[1].get_text(strip=True)
+
+            # td[2] = 比赛时间
+            match_time = tds[2].get_text(strip=True)
+
+            # td[3] = 主队 [排名]队名
+            home_raw = tds[3].get_text(strip=True)
+            home = re.sub(r'\[\d+\]', '', home_raw).strip()
+
+            # td[5] = 客队 队名[排名]
+            away_raw = tds[5].get_text(strip=True)
+            away = re.sub(r'\[\d+\]', '', away_raw).strip()
+
+            # 找欧赔链接
+            fixture_id = None
+            link = row.find('a', href=re.compile(r'odds\.500\.com/fenxi/ouzhi-\d+'))
+            if link:
+                m = re.search(r'ouzhi-(\d+)', link.get('href', ''))
+                if m:
+                    fixture_id = m.group(1)
+
+            if fixture_id and home and away:
+                bd_id = f'北单{int(bd_num):03d}'
+                matches[bd_id] = {
+                    'fixture_id': fixture_id,
+                    'beidan_id': bd_id,
+                    'jingcai_id': '',
+                    'league': league,
+                    'match_time': match_time,
+                    'home': home,
+                    'away': away,
+                }
+        except Exception:
+            continue
+
+    print(f"  找到 {len(matches)} 场北单比赛")
+    for mid, minfo in list(matches.items())[:3]:
+        print(f"    {mid}: {minfo['home']} vs {minfo['away']} ({minfo['league']}) [{minfo['fixture_id']}]")
+    return matches
+
+
 def fetch_match_list_from_weekfixture():
     """从 live.500.com/weekfixture.php 获取赛事列表（备选）"""
     print("[1/4 备选] 获取赛事列表 (live.500.com)...")
@@ -464,6 +539,7 @@ def parse_ouzhi_html(html, fixture_id, match_info):
         'league': league,
         'match_time': match_time,
         'jingcai_id': match_info.get('jingcai_id', ''),
+        'beidan_id': match_info.get('beidan_id', ''),
         'fixture_id': fixture_id,
         'companies': companies_zgzcw,
         'companies_500com': companies_500com,
@@ -563,7 +639,7 @@ def build_zgzcw_output(results, date_str, scrape_time):
             'league': data.get('league', ''),
             'match_time': data.get('match_time', ''),
             'jingcai_id': data.get('jingcai_id', ''),
-            'beidan_id': '',
+            'beidan_id': data.get('beidan_id', ''),
             'source': '500.com',
             'data_source': '500com_playwright',
             'companies': data.get('companies', {}),
@@ -721,15 +797,29 @@ async def run():
         match_info_map = {fid: {} for fid in fixture_ids}
         print(f"[1/4] 使用指定的 {len(fixture_ids)} 场赛事ID")
     else:
-        matches = fetch_match_list_from_trade()
-        if matches:
-            for mid, minfo in matches.items():
-                fid = minfo['fixture_id']
+        # 竞彩
+        jc_matches = fetch_match_list_from_trade()
+        for mid, minfo in jc_matches.items():
+            fid = minfo['fixture_id']
+            if fid not in match_info_map:
                 fixture_ids.append(fid)
                 match_info_map[fid] = minfo
 
+        # 北单
+        bd_matches = fetch_beidan_list()
+        bd_count = 0
+        for mid, minfo in bd_matches.items():
+            fid = minfo['fixture_id']
+            if fid not in match_info_map:
+                fixture_ids.append(fid)
+                match_info_map[fid] = minfo
+                bd_count += 1
+            else:
+                # 同一场比赛竞彩和北单都有，补充beidan_id
+                match_info_map[fid]['beidan_id'] = minfo.get('beidan_id', '')
+
         if len(fixture_ids) < 5:
-            print("  竞彩列表不足，补充weekfixture...")
+            print("  竞彩+北单列表不足，补充weekfixture...")
             extra_ids = fetch_match_list_from_weekfixture()
             existing = set(fixture_ids)
             for eid in extra_ids:
@@ -742,7 +832,7 @@ async def run():
             print("  ❌ 未获取到赛事ID，退出")
             sys.exit(1)
 
-        print(f"  共 {len(fixture_ids)} 场赛事")
+        print(f"  共 {len(fixture_ids)} 场赛事 (竞彩{len(jc_matches)} + 北单新增{bd_count}，含兼售)")
 
     # Step 2: 抓取数据
     use_requests_mode = args.use_requests
