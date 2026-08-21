@@ -809,9 +809,14 @@ function classifyV6(match) {
   var strategy = V6_SCENARIO_TABLE[scenarioKey];
   if (!strategy) return null;
   var prediction = strategy[0], hitRate = strategy[1];
+  // Look up sample count from backtest stats
+  var scKey = state365 + stateW;
+  var bs = (_backtestStats && _backtestStats[scKey]) || null;
+  var sampleCount = bs ? bs.count : 0;
+  var wdl = bs ? (bs.w+'/'+bs.d+'/'+bs.l) : '0/0/0';
   var confLevel = 'low';
-  if ((match.sample_count||0)>=10) confLevel='high';
-  else if ((match.sample_count||0)>=5) confLevel='mid';
+  if (sampleCount >= 10) confLevel = 'high';
+  else if (sampleCount >= 5) confLevel = 'mid';
   var singlePick = null, singleRate = 0;
   if (prediction.includes('胜') && !prediction.includes('负')) { singlePick='胜'; singleRate=hitRate*0.8 }
   else if (prediction.includes('负') && !prediction.includes('胜')) { singlePick='负'; singleRate=hitRate*0.7 }
@@ -820,7 +825,7 @@ function classifyV6(match) {
     scenario: state365+stateW, state365:state365, stateW:stateW,
     prediction:prediction, hitRate:hitRate, confLevel:confLevel,
     singlePick:singlePick, singleRate:Math.round(singleRate),
-    isHomeStrong:isHomeStrong, sampleCount:match.sample_count||0, wdl:match.wdl||'0/0/0'
+    isHomeStrong:isHomeStrong, sampleCount:sampleCount, wdl:wdl
   };
 }
 
@@ -828,6 +833,37 @@ function classifyV6(match) {
 let _kellyCache = null;
 let _kellyCacheDate = '';
 let _kellyFetchedAt = null;
+
+// ========== Backtest Stats ==========
+let _backtestStats = null; // {AA: {count:52, w:30, d:10, l:12}, ...}
+const BACKTEST_URL = 'backtest_master_table_dedup.json';
+
+async function loadBacktestStats() {
+  if (_backtestStats) return _backtestStats;
+  try {
+    var r = await fetch(BACKTEST_URL + '?t=' + Date.now(), {cache: 'no-cache'});
+    if (!r.ok) return null;
+    var d = await r.json();
+    var detail = d.detail || [];
+    var stats = {};
+    for (var i = 0; i < detail.length; i++) {
+      var m = detail[i];
+      var sc = m.scenario;
+      if (!sc) continue;
+      if (!stats[sc]) stats[sc] = {count:0, w:0, d:0, l:0};
+      stats[sc].count++;
+      var res = m.result;
+      if (res === '胜') stats[sc].w++;
+      else if (res === '平') stats[sc].d++;
+      else if (res === '负') stats[sc].l++;
+    }
+    _backtestStats = stats;
+    return stats;
+  } catch(e) {
+    console.warn('loadBacktestStats failed:', e);
+    return null;
+  }
+}
 let _isRealtime = false;
 let _dataTimestamp = null;
 const STALE_THRESHOLD = 30 * 60 * 1000;
@@ -1194,6 +1230,9 @@ async function init() {
     document.getElementById('banner-msg').textContent = '未获得实时数据，暂无预测';
     return;
   }
+
+  // Load backtest stats (sample count per scenario)
+  await loadBacktestStats();
 
   // Classify & enrich
   for (var i=0; i<kellyData.length; i++) {
