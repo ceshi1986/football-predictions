@@ -634,26 +634,41 @@ function extractMatchNumber(match) {
 }
 
 function findCurrentPeriodKey(cat) {
-  // 找到当前应该显示的期号：优先有"进行中"比赛的日期，其次有"在售/即将截止"的，最后取最近的未来日期
+  // 竞彩按"期"划分（周五/周六/周日等），默认选今天对应的当期
+  // 规则：①今天对应的期且有比赛 → 选它；②当期全部完赛 → 自动切下期；③今天没有竞彩期 → 选最近的未来期
   const now = new Date();
   const dates = Object.keys(_matchGroups[cat]).sort();
   if (!dates.length) return null;
-  // 1. 有进行中比赛的日期
-  for (const dk of dates) {
-    const ms = _matchGroups[cat][dk];
-    if (ms.some(m => getSalesStatus(m._matchDate) === 'started')) return dk;
+
+  // 1. 找今天对应的期（按售卖日判断）
+  const todaySelling = getSellingDate(now);
+  const todayKey = dateKeyStr(todaySelling);
+  if (_matchGroups[cat][todayKey]) {
+    const todayMatches = _matchGroups[cat][todayKey];
+    // 如果今天这期全部完赛了，切到下一个有未开赛比赛的期
+    const allFinished = todayMatches.length > 0 && todayMatches.every(m => getSalesStatus(m._matchDate) === 'finished');
+    if (allFinished) {
+      const curIdx = dates.indexOf(todayKey);
+      for (let i = curIdx + 1; i < dates.length; i++) {
+        if (_matchGroups[cat][dates[i]].some(m => m._matchDate > now)) return dates[i];
+      }
+    }
+    return todayKey;
   }
-  // 2. 有在售/即将截止比赛的日期
-  for (const dk of dates) {
-    const ms = _matchGroups[cat][dk];
-    if (ms.some(m => { const s = getSalesStatus(m._matchDate); return s === 'on_sale' || s === 'closing_soon'; })) return dk;
-  }
-  // 3. 最近的未来日期（第一个有未开赛比赛的）
+
+  // 2. 今天没有竞彩期，找最近的未来日期（第一个有未开赛比赛的）
   for (const dk of dates) {
     const ms = _matchGroups[cat][dk];
     if (ms.some(m => m._matchDate > now)) return dk;
   }
-  // 4. 兜底：最后一天
+
+  // 3. 兜底：有在售/即将截止的日期
+  for (const dk of dates) {
+    const ms = _matchGroups[cat][dk];
+    if (ms.some(m => { const s = getSalesStatus(m._matchDate); return s === 'on_sale' || s === 'closing_soon'; })) return dk;
+  }
+
+  // 4. 最后兜底：最后一天
   return dates[dates.length - 1];
 }
 
@@ -680,9 +695,12 @@ function renderDateSelector(cat) {
     // 检查该日期是否有进行中比赛
     const hasLive = _matchGroups[cat][dk].some(m => getSalesStatus(m._matchDate) === 'started');
     const liveDot = hasLive ? '<span style="color:#ff6b6b;font-size:.6rem;margin-left:2px">●</span>' : '';
+    // 竞彩按"期"显示（周五/周六/周日），北单按日期显示
+    const tabLabel = (cat === 'jc') ? wd : mmdd;
+    const tabSub = (cat === 'jc') ? mmdd : wd;
     html += '<div class="date-tab' + (isActive?' active':'') + (isToday?' today-marker':'') + '" data-date="' + dk + '" data-cat="' + cat + '" onclick="selectDate(\'' + cat + '\',\'' + dk + '\')">';
-    html += '<span class="dt-main">' + mmdd + liveDot + '</span>';
-    html += '<span class="dt-sub">' + wd + '</span>';
+    html += '<span class="dt-main">' + tabLabel + liveDot + '</span>';
+    html += '<span class="dt-sub">' + tabSub + '</span>';
     html += '<span class="dt-count">' + count + '场</span>';
     html += '</div>';
   }
