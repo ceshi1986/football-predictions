@@ -191,6 +191,7 @@ def fetch_beidan_list():
         print(f"  ⚠️ 请求失败: {e}")
         return {}
 
+    from datetime import datetime, timedelta
     soup = BeautifulSoup(html, 'html.parser')
     matches = {}
     table = soup.find('table', id='vs_table')
@@ -198,33 +199,50 @@ def fetch_beidan_list():
         print("  ⚠️ 未找到vs_table")
         return {}
 
-    rows = table.find_all('tr', class_='vs_lines')
-    for row in rows:
+    # 北单页面按日期分组（id="switch_for_YYYY-MM-DD"）
+    # 销售时间 10:00 - 次日10:00，凌晨0-10点的比赛归前一天销售日
+    all_trs = table.find_all('tr')
+    current_date = None
+    for row in all_trs:
+        # 检查是否日期切换行
+        row_id = row.get('id', '')
+        dm = re.match(r'switch_for_(\d{4}-\d{2}-\d{2})', row_id)
+        if dm:
+            current_date = dm.group(1)
+            continue
+
+        if 'vs_lines' not in (row.get('class') or []):
+            continue
+        if not current_date:
+            continue
+
         try:
             tds = row.find_all('td')
             if len(tds) < 7:
                 continue
 
-            # td[0] = 北单序号 (1, 2, 3...)
             bd_num = tds[0].get_text(strip=True)
             if not bd_num.isdigit():
                 continue
 
-            # td[1] = 联赛
             league = tds[1].get_text(strip=True)
-
-            # td[2] = 比赛时间
-            match_time = tds[2].get_text(strip=True)
-
-            # td[3] = 主队 [排名]队名
+            time_text = tds[2].get_text(strip=True)  # e.g. "17:50"
             home_raw = tds[3].get_text(strip=True)
             home = re.sub(r'\[\d+\]', '', home_raw).strip()
-
-            # td[5] = 客队 队名[排名]
             away_raw = tds[5].get_text(strip=True)
             away = re.sub(r'\[\d+\]', '', away_raw).strip()
 
-            # 找欧赔链接
+            # 组装完整比赛时间 MM-DD HH:MM
+            # 日期按北单销售日规则：比赛时间≥10:00用current_date，<10:00归次日
+            try:
+                date_obj = datetime.strptime(current_date, '%Y-%m-%d')
+                hour_min = datetime.strptime(time_text, '%H:%M')
+                if hour_min.hour < 10:
+                    date_obj = date_obj + timedelta(days=1)
+                match_time = date_obj.strftime('%m-%d') + ' ' + time_text
+            except Exception:
+                match_time = time_text
+
             fixture_id = None
             link = row.find('a', href=re.compile(r'odds\.500\.com/fenxi/ouzhi-\d+'))
             if link:
@@ -248,7 +266,7 @@ def fetch_beidan_list():
 
     print(f"  找到 {len(matches)} 场北单比赛")
     for mid, minfo in list(matches.items())[:3]:
-        print(f"    {mid}: {minfo['home']} vs {minfo['away']} ({minfo['league']}) [{minfo['fixture_id']}]")
+        print(f"    {mid}: {minfo['home']} vs {minfo['away']} ({minfo['league']}) {minfo['match_time']} [{minfo['fixture_id']}]")
     return matches
 
 
