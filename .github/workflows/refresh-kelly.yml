@@ -1,0 +1,44 @@
+name: Single Match Kelly Refresh
+
+on:
+  workflow_dispatch:
+    inputs:
+      match_id:
+        description: '比赛ID (如 1419143)'
+        required: true
+        type: string
+
+jobs:
+  refresh:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    
+    steps:
+    - name: Checkout repo
+      uses: actions/checkout@v4
+    
+    - name: Set up Python
+      uses: actions/setup-python@v5
+      with:
+        python-version: '3.11'
+    
+    - name: Install dependencies
+      run: |
+        pip install playwright requests
+        playwright install chromium
+    
+    - name: Scrape Kelly data for match
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      run: |
+        python codeact/scripts/scrape_500com_kelly.py \
+          --match-ids ${{ inputs.match_id }} \
+          --use-requests
+    
+    - name: Commit and push updated data
+      run: |
+        git config user.name "GitHub Actions"
+        git config user.email "actions@github.com"
+        git add data/
+        git diff --cached --quiet || git commit -m "Kelly refresh: match ${{ inputs.match_id }}"
+        git push
