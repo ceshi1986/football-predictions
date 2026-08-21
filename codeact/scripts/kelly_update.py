@@ -43,7 +43,7 @@ def run_script(script_path, label, extra_args=None):
     print(f"\n{'='*50}")
     print(f"  数据源: {label}")
     print(f"{'='*50}")
-    cmd = [sys.executable, script_path, '--no-github']
+    cmd = [sys.executable, script_path, '--no-github', '--use-requests']
     if extra_args:
         cmd.extend(extra_args)
     try:
