@@ -20,7 +20,7 @@ body{
     radial-gradient(ellipse 80% 60% at 10% 20%,rgba(124,92,255,.12),transparent),
     radial-gradient(ellipse 60% 50% at 90% 80%,rgba(105,231,255,.08),transparent);
 }
-.container{max-width:1200px;margin:0 auto;padding:24px 20px 60px}
+.container{max-width:1440px;margin:0 auto;padding:24px 20px 60px}
 
 /* Header */
 header{text-align:center;padding:40px 20px 32px;border-bottom:1px solid var(--glass-border);margin-bottom:32px}
@@ -165,9 +165,9 @@ header .meta .val{color:var(--text);font-weight:600;margin-left:4px}
 .section-title .count{font-size:.85rem;color:var(--text-dim);font-weight:400}
 
 /* Match Grid */
-.match-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:16px}
-@media(max-width:900px){.match-grid{grid-template-columns:repeat(2,1fr)}}
-@media(max-width:600px){.match-grid{grid-template-columns:1fr}}
+.match-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(340px,1fr));gap:16px}
+@media(max-width:768px){.match-grid{grid-template-columns:repeat(auto-fill,minmax(280px,1fr))}}
+@media(max-width:480px){.match-grid{grid-template-columns:1fr}}
 
 /* Match Card */
 .match-card{
@@ -195,16 +195,16 @@ header .meta .val{color:var(--text);font-weight:600;margin-left:4px}
 .tag-it{background:rgba(33,150,243,.15);color:#90CAF9}
 .tag-default{background:rgba(255,255,255,.08);color:var(--text-dim)}
 
-.match-card .teams{font-size:1.05rem;font-weight:600;margin-bottom:4px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.match-card .teams{font-size:1.05rem;font-weight:600;margin-bottom:4px;line-height:1.3;word-break:break-word}
 .match-card .time{font-size:.78rem;color:var(--text-muted);margin-bottom:14px;display:flex;align-items:center;flex-wrap:wrap}
 .match-card .time .single-tag{color:var(--warn);font-weight:700}
 
 /* Prediction */
 .pred-row{display:flex;gap:10px;margin-bottom:10px}
-.pred-box{flex:1;background:rgba(255,255,255,.04);border-radius:10px;padding:10px 12px;border:1px solid rgba(255,255,255,.06)}
-.pred-box .label{font-size:.68rem;color:var(--text-muted);letter-spacing:.03em;margin-bottom:4px}
-.pred-box .value{font-size:1.15rem;font-weight:700}
-.pred-box .sub{font-size:.72rem;color:var(--text-dim);margin-top:2px}
+.pred-box{flex:1;min-width:0;background:rgba(255,255,255,.04);border-radius:10px;padding:10px 12px;border:1px solid rgba(255,255,255,.06)}
+.pred-box .label{font-size:.7rem;color:var(--text-muted);letter-spacing:.03em;margin-bottom:4px;white-space:nowrap}
+.pred-box .value{font-size:1.15rem;font-weight:700;white-space:nowrap}
+.pred-box .sub{font-size:.72rem;color:var(--text-dim);margin-top:2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .pick-win{color:var(--success)}
 .pick-draw{color:var(--warn)}
 .pick-loss{color:var(--danger)}
@@ -217,9 +217,9 @@ header .meta .val{color:var(--text);font-weight:600;margin-left:4px}
 
 /* Stats Row */
 .stats-row{display:flex;gap:8px;margin-top:12px;padding-top:12px;border-top:1px solid var(--glass-border);align-items:center}
-.stat{flex:1;text-align:center}
+.stat{flex:1;min-width:0;text-align:center}
 .stat .num{font-size:.95rem;font-weight:700;color:var(--text)}
-.stat .lbl{font-size:.65rem;color:var(--text-muted)}
+.stat .lbl{font-size:.65rem;color:var(--text-muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 
 /* Scenario Tag */
 .scenario-tag{display:inline-block;font-size:.72rem;font-weight:700;color:var(--primary);background:rgba(124,92,255,.12);padding:3px 10px;border-radius:6px}
