@@ -76,39 +76,38 @@ header .meta .val{color:var(--text);font-weight:600;margin-left:4px}
 .tab-panel.active{display:block}
 
 /* ========== Date Selector (500万 style) ========== */
-.date-selector-wrapper{margin-bottom:4px}
-.date-selector{
-  display:flex;gap:8px;overflow-x:auto;-webkit-overflow-scrolling:touch;
-  padding:6px 2px 10px;scrollbar-width:thin;
+.date-selector-wrapper{margin-bottom:8px;position:relative;z-index:30}
+.period-dropdown{position:relative;display:inline-block;min-width:200px}
+.period-dropdown-btn{
+  display:flex;align-items:center;gap:8px;
+  padding:10px 16px;border:1px solid var(--glass-border);border-radius:10px;
+  background:var(--glass);cursor:pointer;transition:all .2s;
+  font-size:.95rem;color:var(--text);width:100%;
 }
-.date-selector::-webkit-scrollbar{height:4px}
-.date-selector::-webkit-scrollbar-thumb{background:var(--glass-border);border-radius:2px}
-.date-selector::-webkit-scrollbar-track{background:transparent}
-.date-tab{
-  flex-shrink:0;display:flex;flex-direction:column;align-items:center;
-  padding:10px 18px 8px;border:1px solid var(--glass-border);border-radius:12px;
-  background:var(--glass);cursor:pointer;transition:all .25s;min-width:88px;
-position:relative;
+.period-dropdown-btn:hover{border-color:var(--primary);background:rgba(124,92,255,.12)}
+.period-dropdown-btn .pd-label{font-weight:700;flex:1;text-align:left}
+.period-dropdown-btn .pd-count{font-size:.72rem;color:var(--accent);background:rgba(105,231,255,.12);padding:2px 8px;border-radius:4px}
+.period-dropdown-btn .pd-arrow{font-size:.7rem;color:var(--text-dim);transition:transform .2s}
+.period-dropdown.open .pd-arrow{transform:rotate(180deg)}
+.period-dropdown-list{
+  display:none;position:absolute;top:calc(100% + 4px);left:0;right:0;
+  background:rgba(28,22,52,.96);backdrop-filter:blur(16px);
+  border:1px solid var(--glass-border);border-radius:10px;
+  box-shadow:0 8px 32px rgba(0,0,0,.5);overflow:hidden;z-index:100;
+  max-height:320px;overflow-y:auto;
 }
-.date-tab:hover{background:rgba(255,255,255,.1);border-color:rgba(255,255,255,.2)}
-.date-tab.active{
-  background:linear-gradient(135deg,rgba(124,92,255,.3),rgba(105,231,255,.18));
-  border-color:var(--primary);box-shadow:0 4px 16px rgba(124,92,255,.25);
+.period-dropdown.open .period-dropdown-list{display:block}
+.period-option{
+  display:flex;align-items:center;gap:10px;padding:10px 16px;
+  cursor:pointer;transition:background .15s;font-size:.9rem;
 }
-.date-tab .dt-main{font-size:1rem;font-weight:700;color:var(--text);line-height:1.2}
-.date-tab .dt-sub{font-size:.72rem;color:var(--text-dim);margin-top:3px}
-.date-tab .dt-count{
-  font-size:.65rem;color:var(--text-muted);margin-top:5px;
-  background:rgba(255,255,255,.06);padding:2px 8px;border-radius:4px;
-}
-.date-tab.active .dt-main{color:#fff}
-.date-tab.active .dt-sub{color:var(--accent)}
-.date-tab.active .dt-count{background:rgba(105,231,255,.15);color:var(--accent)}
-.date-tab.today-marker::after{
-  content:'今';position:absolute;top:-6px;right:-6px;
-  background:var(--primary);color:#fff;font-size:.55rem;font-weight:700;
-  width:18px;height:18px;border-radius:50%;display:flex;align-items:center;justify-content:center;
-}
+.period-option:hover{background:rgba(124,92,255,.15)}
+.period-option.active{background:linear-gradient(135deg,rgba(124,92,255,.3),rgba(105,231,255,.15));font-weight:700}
+.period-option .po-main{flex:1;text-align:left}
+.period-option .po-sub{font-size:.7rem;color:var(--text-dim);margin-left:6px}
+.period-option .po-count{font-size:.7rem;color:var(--text-muted);background:rgba(255,255,255,.06);padding:2px 8px;border-radius:4px}
+.period-option .po-live{color:#ff6b6b;font-size:.6rem;margin-left:2px}
+.period-option .po-today{font-size:.6rem;background:var(--primary);color:#fff;padding:1px 6px;border-radius:4px;margin-left:4px}
 
 /* ========== Period Stats Bar ========== */
 .period-stats{
@@ -315,8 +314,8 @@ footer{text-align:center;padding:32px 20px 16px;color:var(--text-muted);font-siz
   .summary-section{padding:16px}
   .legend{padding:10px 14px;gap:10px}
   .legend-note{margin-left:0;width:100%;margin-top:6px}
-  .date-tab{padding:8px 14px 6px;min-width:76px}
-  .date-tab .dt-main{font-size:.9rem}
+  .period-dropdown{min-width:160px}
+  .period-dropdown-btn{padding:8px 12px;font-size:.88rem}
   .period-stats{padding:10px 14px;font-size:.78rem}
 }
 
@@ -684,36 +683,87 @@ function renderDateSelector(cat) {
   const todayKey = dateKeyStr(getSellingDate(now));
   // 智能选择当前期号
   let defaultDate = findCurrentPeriodKey(cat) || dates[dates.length - 1];
-  let html = '';
+
+  // Build dropdown
+  let html = '<div class="period-dropdown" id="' + cat + '-dropdown">';
+  // Button
+  const defObj = new Date(defaultDate + 'T00:00:00');
+  const defWd = WEEKDAYS_CN[defObj.getDay()];
+  const defMmdd = formatDateMMDD(defObj);
+  const defCount = _matchGroups[cat][defaultDate].length;
+  const isJc = cat === 'jc';
+  const defLabel = isJc ? defWd : defMmdd;
+  const defSub = isJc ? defMmdd : defWd;
+  const defHasLive = _matchGroups[cat][defaultDate].some(m => getSalesStatus(m._matchDate) === 'started');
+  html += '<div class="period-dropdown-btn" onclick="togglePeriodDropdown(\'' + cat + '\')">';
+  html += '<span class="pd-label">' + defLabel + ' ' + defSub;
+  if (defHasLive) html += ' <span style="color:#ff6b6b;font-size:.6rem">●</span>';
+  html += '</span>';
+  html += '<span class="pd-count">' + defCount + '场</span>';
+  html += '<span class="pd-arrow">▼</span>';
+  html += '</div>';
+  // List
+  html += '<div class="period-dropdown-list">';
   for (const dk of dates) {
     const dObj = new Date(dk + 'T00:00:00');
-    const mmdd = formatDateMMDD(dObj);
     const wd = WEEKDAYS_CN[dObj.getDay()];
+    const mmdd = formatDateMMDD(dObj);
     const count = _matchGroups[cat][dk].length;
     const isActive = dk === defaultDate;
     const isToday = dk === todayKey;
-    // 检查该日期是否有进行中比赛
     const hasLive = _matchGroups[cat][dk].some(m => getSalesStatus(m._matchDate) === 'started');
-    const liveDot = hasLive ? '<span style="color:#ff6b6b;font-size:.6rem;margin-left:2px">●</span>' : '';
-    // 竞彩按"期"显示（周五/周六/周日），北单按日期显示
-    const tabLabel = (cat === 'jc') ? wd : mmdd;
-    const tabSub = (cat === 'jc') ? mmdd : wd;
-    html += '<div class="date-tab' + (isActive?' active':'') + (isToday?' today-marker':'') + '" data-date="' + dk + '" data-cat="' + cat + '" onclick="selectDate(\'' + cat + '\',\'' + dk + '\')">';
-    html += '<span class="dt-main">' + tabLabel + liveDot + '</span>';
-    html += '<span class="dt-sub">' + tabSub + '</span>';
-    html += '<span class="dt-count">' + count + '场</span>';
+    const liveDot = hasLive ? '<span class="po-live">●</span>' : '';
+    const todayTag = isToday ? '<span class="po-today">今</span>' : '';
+    const mainLabel = isJc ? wd : mmdd;
+    const subLabel = isJc ? mmdd : wd;
+    html += '<div class="period-option' + (isActive?' active':'') + '" data-date="' + dk + '" onclick="selectDate(\'' + cat + '\',\'' + dk + '\')">';
+    html += '<span class="po-main">' + mainLabel + liveDot + todayTag + '</span>';
+    html += '<span class="po-sub">' + subLabel + '</span>';
+    html += '<span class="po-count">' + count + '场</span>';
     html += '</div>';
   }
+  html += '</div></div>';
   container.innerHTML = html;
   _currentCat = cat;
   _currentSelDate = defaultDate;
   renderMatchesForDate(cat, defaultDate);
 }
 
+function togglePeriodDropdown(cat) {
+  const dd = document.getElementById(cat + '-dropdown');
+  if (dd) dd.classList.toggle('open');
+}
+
+// Close dropdown when clicking outside
+document.addEventListener('click', function(e) {
+  document.querySelectorAll('.period-dropdown.open').forEach(function(dd) {
+    if (!dd.contains(e.target)) dd.classList.remove('open');
+  });
+});
+
 function selectDate(cat, dk) {
-  document.querySelectorAll('#' + cat + '-date-selector .date-tab').forEach(function(el) {
+  // Close dropdown
+  const dd = document.getElementById(cat + '-dropdown');
+  if (dd) dd.classList.remove('open');
+  // Update active option
+  document.querySelectorAll('#' + cat + '-date-selector .period-option').forEach(function(el) {
     el.classList.toggle('active', el.dataset.date === dk);
   });
+  // Update button label
+  const dObj = new Date(dk + 'T00:00:00');
+  const wd = WEEKDAYS_CN[dObj.getDay()];
+  const mmdd = formatDateMMDD(dObj);
+  const count = _matchGroups[cat][dk] ? _matchGroups[cat][dk].length : 0;
+  const isJc = cat === 'jc';
+  const hasLive = _matchGroups[cat][dk] && _matchGroups[cat][dk].some(m => getSalesStatus(m._matchDate) === 'started');
+  if (dd) {
+    const btn = dd.querySelector('.period-dropdown-btn');
+    if (btn) {
+      const label = isJc ? wd : mmdd;
+      const sub = isJc ? mmdd : wd;
+      btn.innerHTML = '<span class="pd-label">' + label + ' ' + sub + (hasLive?' <span style="color:#ff6b6b;font-size:.6rem">●</span>':'') + '</span><span class="pd-count">' + count + '场</span><span class="pd-arrow">▼</span>';
+    }
+  }
   _currentCat = cat;
   _currentSelDate = dk;
   renderMatchesForDate(cat, dk);
