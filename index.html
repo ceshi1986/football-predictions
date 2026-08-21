@@ -332,7 +332,7 @@ footer{text-align:center;padding:32px 20px 16px;color:var(--text-muted);font-siz
 
 <header>
   <h1>V6.7 Kelly 竞彩预测报告</h1>
-  <p class="subtitle">基于 1060 场回测数据 · 36 场景 Kelly 分类 · V6.7 策略表</p>
+  <p class="subtitle">基于 <span id="stat-sample">—</span> 场回测数据 · <span id="stat-subgroups">—</span> 个主客子组 · V6.7 策略表</p>
   <div class="meta">
     <span>日期 <span class="val" id="meta-date">--</span></span>
     <span>策略版本 <span class="val">V6.7</span></span>
@@ -349,7 +349,7 @@ footer{text-align:center;padding:32px 20px 16px;color:var(--text-muted);font-siz
 
 <div class="strategy-banner">
   <span class="badge">V6.7 策略</span>
-  <p>基于 <strong>1060 场回测</strong>优化 67 个主客子组，整体双选命中率 <strong>80.1% → 81.7%</strong>。本场次预测使用最新 V6.7 策略表，结合实时 Kelly 数据按主/客子组分类场景。</p>
+  <p>基于 <strong><span id="stat-sample2">—</span> 场回测</strong>优化 <span id="stat-subgroups2">—</span> 个主客子组，整体双选命中率 <strong><span id="stat-hitrate">—</span></strong>。本场次预测使用最新 V6.7 策略表，结合实时 Kelly 数据按主/客子组分类场景。</p>
 </div>
 
 <div class="legend">
@@ -449,10 +449,40 @@ async function loadV67Table() {
     var r = await fetch(V67_URL + '?t=' + Date.now(), {cache: 'no-cache'});
     if (!r.ok) return null;
     _v67Table = await r.json();
+    // 动态更新头部统计数字（避免硬编码失真）
+    updateHeaderStats();
     return _v67Table;
   } catch(e) {
     console.warn('loadV67Table failed:', e);
     return null;
+  }
+}
+
+function updateHeaderStats() {
+  if (!_v67Table) return;
+  var totalCount = 0, totalHit = 0, subCount = 0;
+  Object.keys(_v67Table).forEach(function(k){
+    var v = _v67Table[k];
+    if (v && v.count) {
+      totalCount += v.count;
+      subCount++;
+      if (v.pred && typeof v.hitRate === 'number') {
+        totalHit += Math.round(v.count * v.hitRate / 100);
+      }
+    }
+  });
+  if (totalCount > 0) {
+    var rate = (totalHit / totalCount * 100).toFixed(1);
+    var s1 = document.getElementById('stat-sample');
+    var s2 = document.getElementById('stat-subgroups');
+    var s3 = document.getElementById('stat-hitrate');
+    if (s1) s1.textContent = totalCount;
+    if (s2) s2.textContent = subCount;
+    if (s3) s3.textContent = rate + '%';
+    var s1b = document.getElementById('stat-sample2');
+    var s2b = document.getElementById('stat-subgroups2');
+    if (s1b) s1b.textContent = totalCount;
+    if (s2b) s2b.textContent = subCount;
   }
 }
 
