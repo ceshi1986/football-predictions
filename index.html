@@ -67,6 +67,14 @@ header .meta .val{color:var(--text);font-weight:600;margin-left:4px}
 .legend-note{margin-left:auto;font-size:.75rem;color:var(--text-muted)}
 
 /* Section Title */
+.tab-nav{display:flex;gap:4px;margin:24px 0 20px;background:rgba(255,255,255,.04);border-radius:12px;padding:4px}
+.tab-btn{flex:1;padding:12px 20px;border:none;background:transparent;color:var(--text-muted);font-size:.95rem;font-weight:600;cursor:pointer;border-radius:10px;transition:all .2s}
+.tab-btn.active{background:linear-gradient(135deg,rgba(124,92,255,.25),rgba(105,231,255,.15));color:#fff;box-shadow:0 2px 12px rgba(124,92,255,.2)}
+.tab-btn:hover:not(.active){background:rgba(255,255,255,.06);color:var(--text)}
+.tab-count{font-size:.8rem;font-weight:400;opacity:.7;margin-left:4px}
+.tab-panel{display:none}
+.tab-panel.active{display:block}
+
 .section-title{
   font-size:1.2rem;font-weight:700;margin:32px 0 16px;padding-left:4px;
   display:flex;align-items:center;gap:10px;
@@ -244,11 +252,11 @@ footer{
 /* Card Refresh Button - next to match-id in header */
 .card-header-top{display:flex;align-items:center;gap:8px;margin-bottom:10px;flex-wrap:wrap}
 .card-refresh{
-  width:26px;height:26px;min-width:26px;
-  border:none;border-radius:6px;cursor:pointer;
+  height:28px;min-width:auto;padding:0 10px;
+  border:1px solid rgba(255,184,107,.3);border-radius:6px;cursor:pointer;
   background:rgba(255,184,107,.12);color:var(--warn);
-  font-size:.72rem;display:flex;align-items:center;justify-content:center;
-  transition:all .2s;flex-shrink:0;
+  font-size:.72rem;display:flex;align-items:center;justify-content:center;gap:4px;
+  transition:all .2s;flex-shrink:0;font-weight:500;
 }
 .card-refresh:hover{background:rgba(124,92,255,.2);color:var(--primary)}
 .card-refresh:active{transform:scale(.9)}
@@ -368,51 +376,49 @@ footer{
   <div class="legend-note">场景代码 = 365状态 + 韦德状态</div>
 </div>
 
-<!-- 竞彩 Section -->
-<div class="section-title" id="jc-title">
-  ⚽ 竞彩预测 <span class="badge badge-jc">竞彩</span> <span class="count" id="jc-count"></span>
-</div>
-<div class="match-grid" id="jc-grid">
-  <div class="loading-state"><div class="spinner"></div><div>加载数据中...</div></div>
+<!-- Tab Navigation -->
+<div class="tab-nav">
+  <button class="tab-btn active" data-tab="jc" onclick="switchTab('jc')">⚽ 竞彩足球 <span class="tab-count" id="jc-count"></span></button>
+  <button class="tab-btn" data-tab="bd" onclick="switchTab('bd')">🏆 北京单场 <span class="tab-count" id="bd-count"></span></button>
 </div>
 
-<!-- 北单 Section -->
-<div class="section-title" id="bd-title" style="display:none">
-  🏆 北单预测 <span class="badge badge-bd">北单</span> <span class="count" id="bd-count"></span>
-</div>
-<div class="match-grid" id="bd-grid"></div>
-
-<!-- Summary Table -->
-<div class="summary-section" id="summary-section" style="display:none">
-  <h2>📊 预测总览</h2>
-  <div class="table-wrap">
-    <table class="summary-table">
-      <thead>
-        <tr>
-          <th>编号</th><th>对阵</th><th>场景</th><th>V6.7双选</th><th>双选命中率</th><th>单选</th><th>单选命中率</th><th>样本</th><th>置信</th>
-        </tr>
-      </thead>
-      <tbody id="summary-body"></tbody>
-    </table>
+<!-- 竞彩 Tab Panel -->
+<div class="tab-panel active" id="tab-jc">
+  <div class="match-grid" id="jc-grid">
+    <div class="loading-state"><div class="spinner"></div><div>加载数据中...</div></div>
+  </div>
+  <div class="summary-section" id="summary-jc-section" style="display:none">
+    <h2>📊 竞彩预测总览</h2>
+    <div class="table-wrap">
+      <table class="summary-table">
+        <thead><tr><th>编号</th><th>对阵</th><th>场景</th><th>V6.7双选</th><th>双选命中率</th><th>单选</th><th>单选命中率</th><th>样本</th><th>置信</th></tr></thead>
+        <tbody id="summary-jc-body"></tbody>
+      </table>
+    </div>
+  </div>
+  <div class="advice-section" id="advice-jc-section" style="display:none">
+    <div class="advice-card green"><h3>✅ 单选优先</h3><p style="font-size:.72rem;color:var(--text-muted);margin-bottom:10px">高置信 + 高命中率，适合单选</p><ul id="advice-jc-single"></ul></div>
+    <div class="advice-card yellow"><h3>🛡️ 双选稳妥</h3><p style="font-size:.72rem;color:var(--text-muted);margin-bottom:10px">样本充足，建议双选防冷</p><ul id="advice-jc-double"></ul></div>
+    <div class="advice-card red"><h3>⚠️ 回避场次</h3><p style="font-size:.72rem;color:var(--text-muted);margin-bottom:10px">低置信/样本不足，建议回避</p><ul id="advice-jc-skip"></ul></div>
   </div>
 </div>
 
-<!-- Betting Advice -->
-<div class="advice-section" id="advice-section" style="display:none">
-  <div class="advice-card green">
-    <h3>✅ 单选优先</h3>
-    <p style="font-size:.72rem;color:var(--text-muted);margin-bottom:10px">高置信 + 高命中率，适合单选</p>
-    <ul id="advice-single"></ul>
+<!-- 北单 Tab Panel -->
+<div class="tab-panel" id="tab-bd">
+  <div class="match-grid" id="bd-grid"></div>
+  <div class="summary-section" id="summary-bd-section" style="display:none">
+    <h2>📊 北单预测总览</h2>
+    <div class="table-wrap">
+      <table class="summary-table">
+        <thead><tr><th>编号</th><th>对阵</th><th>场景</th><th>V6.7双选</th><th>双选命中率</th><th>单选</th><th>单选命中率</th><th>样本</th><th>置信</th></tr></thead>
+        <tbody id="summary-bd-body"></tbody>
+      </table>
+    </div>
   </div>
-  <div class="advice-card yellow">
-    <h3>🛡️ 双选稳妥</h3>
-    <p style="font-size:.72rem;color:var(--text-muted);margin-bottom:10px">样本充足，建议双选防冷</p>
-    <ul id="advice-double"></ul>
-  </div>
-  <div class="advice-card red">
-    <h3>⚠️ 回避场次</h3>
-    <p style="font-size:.72rem;color:var(--text-muted);margin-bottom:10px">低置信/样本不足，建议回避</p>
-    <ul id="advice-skip"></ul>
+  <div class="advice-section" id="advice-bd-section" style="display:none">
+    <div class="advice-card green"><h3>✅ 单选优先</h3><p style="font-size:.72rem;color:var(--text-muted);margin-bottom:10px">高置信 + 高命中率，适合单选</p><ul id="advice-bd-single"></ul></div>
+    <div class="advice-card yellow"><h3>🛡️ 双选稳妥</h3><p style="font-size:.72rem;color:var(--text-muted);margin-bottom:10px">样本充足，建议双选防冷</p><ul id="advice-bd-double"></ul></div>
+    <div class="advice-card red"><h3>⚠️ 回避场次</h3><p style="font-size:.72rem;color:var(--text-muted);margin-bottom:10px">低置信/样本不足，建议回避</p><ul id="advice-bd-skip"></ul></div>
   </div>
 </div>
 
@@ -459,6 +465,12 @@ const V6_SCENARIO_TABLE = {
   'Y,W':['平负',100.0],'Y,Y':['平胜',0.0],'Y,Z':['胜负',100.0],
   'Z,W':['胜负',100.0],'Z,Y':['平负',100.0],'Z,Z':['负胜',100.0],
 };
+
+// Tab switching
+function switchTab(tab) {
+  document.querySelectorAll('.tab-btn').forEach(b => b.classList.toggle('active', b.dataset.tab === tab));
+  document.querySelectorAll('.tab-panel').forEach(p => p.classList.toggle('active', p.id === 'tab-' + tab));
+}
 
 function getV6StateLetter(favoredDirs, isHomeStrong) {
   const key = Array.from(favoredDirs).sort().join(',');
@@ -775,7 +787,7 @@ function renderMatchCard(match, result, idx) {
   const matchId = match.id || '';
   const showRefresh = !_isRealtime; // only show when data is NOT realtime
   const staleBadge = showRefresh ? '<span class="card-stale-badge">数据待更新</span>' : '';
-  const refreshBtn = showRefresh ? `<button class="card-refresh" onclick="refreshMatch(this,'${matchId.replace(/'/g,'')}')" title="刷新此场数据"><span class="refresh-icon">🔄</span><span class="refresh-spinner"></span></button>` : '';
+  const refreshBtn = showRefresh ? `<button class="card-refresh" onclick="refreshMatch(this,'${matchId.replace(/'/g,'')}')" title="点击获取最新凯利数据"><span class="refresh-icon">🔄</span><span class="refresh-text">获取实时</span><span class="refresh-spinner"></span></button>` : '';
   const loadingOverlay = `<div class="card-loading-overlay"><div class="spinner-sm"></div><div class="load-text">抓取中...</div></div>`;
 
   if (!result) {
@@ -1024,42 +1036,32 @@ async function init() {
     document.getElementById('bd-grid').innerHTML = bdMatches.map((m, i) => renderMatchCard(m, m._result, i)).join('');
   }
 
-  // Summary table
-  const allMatches = [...jcMatches, ...bdMatches].filter(m => m._result);
-  if (allMatches.length > 0) {
-    document.getElementById('summary-section').style.display = 'block';
-    document.getElementById('summary-body').innerHTML = allMatches.map(m => {
+  // Summary tables - split by tab
+  function renderSummaryTable(matches, sectionId, adviceSectionId) {
+    const withResult = matches.filter(m => m._result);
+    if (withResult.length === 0) return;
+    document.getElementById(sectionId).style.display = 'block';
+    const tbodyId = sectionId === 'summary-jc-section' ? 'summary-jc-body' : 'summary-bd-body';
+    document.getElementById(tbodyId).innerHTML = withResult.map(m => {
       const r = m._result;
-      return `<tr>
-        <td>${m.id}</td>
-        <td>${m.home} vs ${m.away}</td>
-        <td><span class="scenario-tag">${r.scenario}</span></td>
-        <td class="${getPickClass(r.prediction)}">${r.prediction}</td>
-        <td>${r.hitRate}%</td>
-        <td class="${getPickClass(r.singlePick)}">${r.singlePick || '—'}</td>
-        <td>${r.singlePick ? r.singleRate+'%' : '—'}</td>
-        <td>${r.sampleCount}</td>
-        <td>${getConfText(r.confLevel)}</td>
-      </tr>`;
+      return `<tr><td>${m.id}</td><td>${m.home} vs ${m.away}</td><td><span class="scenario-tag">${r.scenario}</span></td><td class="${getPickClass(r.prediction)}">${r.prediction}</td><td>${r.hitRate}%</td><td class="${getPickClass(r.singlePick)}">${r.singlePick||'—'}</td><td>${r.singlePick?r.singleRate+'%':'—'}</td><td>${r.sampleCount}</td><td>${getConfText(r.confLevel)}</td></tr>`;
     }).join('');
-
-    // Betting advice
-    document.getElementById('advice-section').style.display = 'grid';
-    const singleList = [], doubleList = [], skipList = [];
-    allMatches.forEach(m => {
+    // Advice
+    document.getElementById(adviceSectionId).style.display = 'grid';
+    const prefix = adviceSectionId === 'advice-jc-section' ? 'jc' : 'bd';
+    const singleList=[], doubleList=[], skipList=[];
+    withResult.forEach(m => {
       const r = m._result;
-      if (r.confLevel === 'high' && r.hitRate >= 80 && r.singlePick) {
-        singleList.push(`<li><strong>${m.id}</strong> ${m.home} vs ${m.away}<br>单选 ${r.singlePick} 命中率 ${r.singleRate}%</li>`);
-      } else if (r.confLevel === 'low' || r.hitRate < 70) {
-        skipList.push(`<li><strong>${m.id}</strong> ${m.home} vs ${m.away}<br>场景 ${r.scenario} · 样本 ${r.sampleCount}</li>`);
-      } else {
-        doubleList.push(`<li><strong>${m.id}</strong> ${m.home} vs ${m.away}<br>双选 ${r.prediction} 命中率 ${r.hitRate}%</li>`);
-      }
+      if (r.confLevel==='high' && r.hitRate>=80 && r.singlePick) singleList.push(`<li><strong>${m.id}</strong> ${m.home} vs ${m.away}<br>单选 ${r.singlePick} 命中率 ${r.singleRate}%</li>`);
+      else if (r.confLevel==='low' || r.hitRate<70) skipList.push(`<li><strong>${m.id}</strong> ${m.home} vs ${m.away}<br>场景 ${r.scenario} · 样本 ${r.sampleCount}</li>`);
+      else doubleList.push(`<li><strong>${m.id}</strong> ${m.home} vs ${m.away}<br>双选 ${r.prediction} 命中率 ${r.hitRate}%</li>`);
     });
-    document.getElementById('advice-single').innerHTML = singleList.length ? singleList.join('') : '<li class="empty">无推荐场次</li>';
-    document.getElementById('advice-double').innerHTML = doubleList.length ? doubleList.join('') : '<li class="empty">无推荐场次</li>';
-    document.getElementById('advice-skip').innerHTML = skipList.length ? skipList.join('') : '<li class="empty">无回避场次</li>';
+    document.getElementById(`advice-${prefix}-single`).innerHTML = singleList.length ? singleList.join('') : '<li class="empty">无推荐场次</li>';
+    document.getElementById(`advice-${prefix}-double`).innerHTML = doubleList.length ? doubleList.join('') : '<li class="empty">无推荐场次</li>';
+    document.getElementById(`advice-${prefix}-skip`).innerHTML = skipList.length ? skipList.join('') : '<li class="empty">无回避场次</li>';
   }
+  renderSummaryTable(jcMatches, 'summary-jc-section', 'advice-jc-section');
+  renderSummaryTable(bdMatches, 'summary-bd-section', 'advice-bd-section');
 
   // Auto-refresh relative time display every minute
   setInterval(() => {
