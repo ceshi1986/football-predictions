@@ -545,16 +545,40 @@ let _currentCat = 'jc';
 let _currentSelDate = '';
 let _allEnrichedMatches = [];
 
+function getJingcaiIssueDate(matchDate, jingcaiId) {
+  // 竞彩按编号"周X"归期，如"周五003"归周五，"周四003"归周四
+  if (jingcaiId) {
+    const wMap = {'一':1,'二':2,'三':3,'四':4,'五':5,'六':6,'日':0};
+    const m = jingcaiId.match(/周([一二三四五六日])/);
+    if (m) {
+      const targetDow = wMap[m[1]];
+      const d = new Date(matchDate);
+      d.setHours(0,0,0,0);
+      // 向前找最近的周X
+      for (let i = 0; i < 7; i++) {
+        if (d.getDay() === targetDow) return d;
+        d.setDate(d.getDate() - 1);
+      }
+    }
+  }
+  // 无编号时按比赛时间凌晨0-6点算前一天
+  const d = new Date(matchDate);
+  if (d.getHours() < 6) d.setDate(d.getDate() - 1);
+  d.setHours(0,0,0,0);
+  return d;
+}
+
 function enrichMatches(kellyData) {
   const result = [];
   for (const m of kellyData) {
     const md = parseMatchTime(m.time);
     if (!md) continue;
     m._matchDate = md;
-    m._sellingDate = getSellingDate(md);
+    const isJc = m.is_jingcai || (m.id && /周[一二三四五六日]/.test(m.id));
+    // 竞彩按编号"周X"归期；北单按售卖日（凌晨0-6点算前一天）归期
+    m._sellingDate = isJc ? getJingcaiIssueDate(md, m.jingcai_id || m.id) : getSellingDate(md);
     m._dateKey = dateKeyStr(m._sellingDate);
     m._status = getSalesStatus(md);
-    const isJc = m.is_jingcai || (m.id && /周[一二三四五六日]/.test(m.id));
     m._category = isJc ? 'jc' : 'bd';
     result.push(m);
   }
@@ -736,7 +760,7 @@ function switchTab(tab) {
 
 // ========== V6 Classification ==========
 function getV6StateLetter(favoredDirs, isHomeStrong) {
-  var key = Array.from(favoredDirs).sort().join(',');
+  var key = Array.from(favoredDirs).join(',');
   var mapping = V6_STATE_MAP[key];
   if (!mapping) return 'X';
   return isHomeStrong ? mapping[0] : mapping[1];
