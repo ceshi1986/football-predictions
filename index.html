@@ -848,10 +848,30 @@ function classifyV6(match) {
   var confLevel = 'low';
   if (sampleCount >= 10) confLevel = 'high';
   else if (sampleCount >= 5) confLevel = 'mid';
+
+  // 单选：从子组实际胜平负分布取出现次数最多的结果
   var singlePick = null, singleRate = 0;
-  if (prediction.includes('胜') && !prediction.includes('负')) { singlePick='胜'; singleRate=hitRate*0.8 }
-  else if (prediction.includes('负') && !prediction.includes('胜')) { singlePick='负'; singleRate=hitRate*0.7 }
-  else if (hitRate>=85) { singlePick='平'; singleRate=hitRate*0.5 }
+  if (wdl && sampleCount > 0) {
+    var parts = wdl.split('/');
+    var wCount = parseInt(parts[0])||0, dCount = parseInt(parts[1])||0, lCount = parseInt(parts[2])||0;
+    var results = [
+      {key:'胜', count:wCount},
+      {key:'平', count:dCount},
+      {key:'负', count:lCount}
+    ];
+    // 按次数排序，次数最多的为单选
+    results.sort(function(a,b){return b.count-a.count});
+    var best = results[0];
+    // 若最佳单选不在双选范围内，降级取双选范围内出现最多的
+    if (prediction.indexOf(best.key) === -1) {
+      var inRange = results.filter(function(r){return prediction.indexOf(r.key)!==-1});
+      if (inRange.length>0) best = inRange[0];
+    }
+    if (best.count > 0) {
+      singlePick = best.key;
+      singleRate = Math.round(best.count / sampleCount * 100);
+    }
+  }
   return {
     scenario: state365+stateW, subGroup: subGroupKey,
     state365:state365, stateW:stateW,
