@@ -478,7 +478,10 @@ const WEEKDAYS_CN = ['周日','周一','周二','周三','周四','周五','周�
 
 function parseMatchTime(timeStr) {
   if (!timeStr) return null;
-  const m = timeStr.match(/^(\d{1,2})-(\d{1,2})\s+(\d{1,2}):(\d{1,2})$/);
+  // 支持 YYYY-MM-DD HH:MM 和 MM-DD HH:MM 两种格式
+  let m = timeStr.match(/^(\d{4})-(\d{1,2})-(\d{1,2})\s+(\d{1,2}):(\d{1,2})$/);
+  if (m) return new Date(parseInt(m[1],10), parseInt(m[2],10)-1, parseInt(m[3],10), parseInt(m[4],10), parseInt(m[5],10));
+  m = timeStr.match(/^(\d{1,2})-(\d{1,2})\s+(\d{1,2}):(\d{1,2})$/);
   if (!m) return null;
   return new Date(MATCH_YEAR, parseInt(m[1],10)-1, parseInt(m[2],10), parseInt(m[3],10), parseInt(m[4],10));
 }
