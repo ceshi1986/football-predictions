@@ -66,7 +66,7 @@ header .meta .val{color:var(--text);font-weight:600;margin-left:4px}
 .legend-dot.low{background:var(--danger)}
 .legend-note{margin-left:auto;font-size:.75rem;color:var(--text-muted)}
 
-/* Section Title */
+/* Tab Nav */
 .tab-nav{display:flex;gap:4px;margin:24px 0 20px;background:rgba(255,255,255,.04);border-radius:12px;padding:4px}
 .tab-btn{flex:1;padding:12px 20px;border:none;background:transparent;color:var(--text-muted);font-size:.95rem;font-weight:600;cursor:pointer;border-radius:10px;transition:all .2s}
 .tab-btn.active{background:linear-gradient(135deg,rgba(124,92,255,.25),rgba(105,231,255,.15));color:#fff;box-shadow:0 2px 12px rgba(124,92,255,.2)}
@@ -75,21 +75,97 @@ header .meta .val{color:var(--text);font-weight:600;margin-left:4px}
 .tab-panel{display:none}
 .tab-panel.active{display:block}
 
+/* ========== Date Selector (500万 style) ========== */
+.date-selector-wrapper{margin-bottom:4px}
+.date-selector{
+  display:flex;gap:8px;overflow-x:auto;-webkit-overflow-scrolling:touch;
+  padding:6px 2px 10px;scrollbar-width:thin;
+}
+.date-selector::-webkit-scrollbar{height:4px}
+.date-selector::-webkit-scrollbar-thumb{background:var(--glass-border);border-radius:2px}
+.date-selector::-webkit-scrollbar-track{background:transparent}
+.date-tab{
+  flex-shrink:0;display:flex;flex-direction:column;align-items:center;
+  padding:10px 18px 8px;border:1px solid var(--glass-border);border-radius:12px;
+  background:var(--glass);cursor:pointer;transition:all .25s;min-width:88px;
+  backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px);position:relative;
+}
+.date-tab:hover{background:rgba(255,255,255,.1);border-color:rgba(255,255,255,.2)}
+.date-tab.active{
+  background:linear-gradient(135deg,rgba(124,92,255,.3),rgba(105,231,255,.18));
+  border-color:var(--primary);box-shadow:0 4px 16px rgba(124,92,255,.25);
+}
+.date-tab .dt-main{font-size:1rem;font-weight:700;color:var(--text);line-height:1.2}
+.date-tab .dt-sub{font-size:.72rem;color:var(--text-dim);margin-top:3px}
+.date-tab .dt-count{
+  font-size:.65rem;color:var(--text-muted);margin-top:5px;
+  background:rgba(255,255,255,.06);padding:2px 8px;border-radius:4px;
+}
+.date-tab.active .dt-main{color:#fff}
+.date-tab.active .dt-sub{color:var(--accent)}
+.date-tab.active .dt-count{background:rgba(105,231,255,.15);color:var(--accent)}
+.date-tab.today-marker::after{
+  content:'今';position:absolute;top:-6px;right:-6px;
+  background:var(--primary);color:#fff;font-size:.55rem;font-weight:700;
+  width:18px;height:18px;border-radius:50%;display:flex;align-items:center;justify-content:center;
+}
+
+/* ========== Period Stats Bar ========== */
+.period-stats{
+  background:var(--glass);border:1px solid var(--glass-border);
+  border-radius:10px;padding:12px 18px;margin-bottom:20px;
+  font-size:.84rem;color:var(--text-dim);
+  display:flex;align-items:center;gap:10px;flex-wrap:wrap;
+  backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px);
+}
+.period-stats .ps-label{color:var(--text);font-weight:700}
+.period-stats .ps-sep{color:var(--glass-border);margin:0 2px}
+.period-stats .ps-on-sale{color:var(--success)}
+.period-stats .ps-closing{color:var(--warn)}
+.period-stats .ps-closed{color:var(--danger)}
+.period-stats .ps-finished{color:var(--text-muted)}
+
+/* ========== Date Group Header ========== */
+.date-group-header{
+  font-size:.95rem;font-weight:600;color:var(--text-dim);
+  padding:14px 4px 10px;margin-bottom:14px;
+  border-bottom:1px solid var(--glass-border);
+  display:flex;align-items:center;gap:8px;
+}
+
+/* ========== Sales Status Badge ========== */
+.status-badge{
+  font-size:.65rem;font-weight:700;padding:3px 10px;border-radius:6px;
+  white-space:nowrap;flex-shrink:0;line-height:1.3;
+}
+.status-on-sale{background:rgba(98,250,211,.15);color:var(--success)}
+.status-closing{background:rgba(255,184,107,.15);color:var(--warn);animation:pulse-warn 2s ease-in-out infinite}
+.status-closed{background:rgba(255,107,107,.12);color:var(--danger)}
+.status-finished{background:rgba(90,106,138,.12);color:var(--text-muted)}
+@keyframes pulse-warn{0%,100%{opacity:1}50%{opacity:.6}}
+
+/* ========== Countdown ========== */
+.countdown{font-size:.75rem;margin-left:6px;font-weight:500}
+.countdown.urgent{color:var(--danger);font-weight:700}
+.countdown.normal{color:var(--text-dim)}
+.countdown.finished{color:var(--text-muted)}
+
+/* ========== Expired Card ========== */
+.match-card.expired{opacity:.5}
+.match-card.expired:hover{opacity:.65;transform:none;box-shadow:none}
+
+/* Section Title */
 .section-title{
   font-size:1.2rem;font-weight:700;margin:32px 0 16px;padding-left:4px;
   display:flex;align-items:center;gap:10px;
 }
-.section-title .badge{
-  font-size:.75rem;padding:3px 10px;border-radius:6px;font-weight:600;
-}
+.section-title .badge{font-size:.75rem;padding:3px 10px;border-radius:6px;font-weight:600}
 .badge-jc{background:rgba(124,92,255,.15);color:var(--primary)}
 .badge-bd{background:rgba(105,231,255,.15);color:var(--accent)}
 .section-title .count{font-size:.85rem;color:var(--text-dim);font-weight:400}
 
 /* Match Grid */
-.match-grid{
-  display:grid;grid-template-columns:repeat(3,1fr);gap:16px;
-}
+.match-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:16px}
 @media(max-width:900px){.match-grid{grid-template-columns:repeat(2,1fr)}}
 @media(max-width:600px){.match-grid{grid-template-columns:1fr}}
 
@@ -106,9 +182,7 @@ header .meta .val{color:var(--text);font-weight:600;margin-left:4px}
   font-size:.78rem;color:var(--accent);font-weight:700;
   background:rgba(105,231,255,.1);padding:3px 10px;border-radius:6px;
 }
-.match-card .league-tag{
-  font-size:.72rem;padding:3px 8px;border-radius:5px;font-weight:600;
-}
+.match-card .league-tag{font-size:.72rem;padding:3px 8px;border-radius:5px;font-weight:600}
 .tag-jp{background:rgba(76,175,80,.15);color:#81C784}
 .tag-sa{background:rgba(255,193,7,.15);color:#FFD54F}
 .tag-fi{background:rgba(33,150,243,.15);color:#64B5F6}
@@ -121,86 +195,52 @@ header .meta .val{color:var(--text);font-weight:600;margin-left:4px}
 .tag-it{background:rgba(33,150,243,.15);color:#90CAF9}
 .tag-default{background:rgba(255,255,255,.08);color:var(--text-dim)}
 
-.match-card .teams{
-  font-size:1.05rem;font-weight:600;margin-bottom:4px;
-  white-space:nowrap;overflow:hidden;text-overflow:ellipsis;
-}
-.match-card .time{font-size:.78rem;color:var(--text-muted);margin-bottom:14px}
+.match-card .teams{font-size:1.05rem;font-weight:600;margin-bottom:4px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.match-card .time{font-size:.78rem;color:var(--text-muted);margin-bottom:14px;display:flex;align-items:center;flex-wrap:wrap}
 .match-card .time .single-tag{color:var(--warn);font-weight:700}
 
 /* Prediction */
 .pred-row{display:flex;gap:10px;margin-bottom:10px}
-.pred-box{
-  flex:1;background:rgba(255,255,255,.04);border-radius:10px;padding:10px 12px;
-  border:1px solid rgba(255,255,255,.06);
-}
+.pred-box{flex:1;background:rgba(255,255,255,.04);border-radius:10px;padding:10px 12px;border:1px solid rgba(255,255,255,.06)}
 .pred-box .label{font-size:.68rem;color:var(--text-muted);letter-spacing:.03em;margin-bottom:4px}
 .pred-box .value{font-size:1.15rem;font-weight:700}
 .pred-box .sub{font-size:.72rem;color:var(--text-dim);margin-top:2px}
-
 .pick-win{color:var(--success)}
 .pick-draw{color:var(--warn)}
 .pick-loss{color:var(--danger)}
 
-/* Confidence - now in card-header-top row */
-.conf-badge{
-  font-size:.65rem;font-weight:700;padding:3px 10px;border-radius:6px;
-  margin-left:auto;flex-shrink:0;
-}
+/* Confidence */
+.conf-badge{font-size:.65rem;font-weight:700;padding:3px 10px;border-radius:6px;margin-left:auto;flex-shrink:0}
 .conf-high{background:rgba(98,250,211,.15);color:var(--success)}
 .conf-mid{background:rgba(255,184,107,.15);color:var(--warn)}
 .conf-low{background:rgba(255,107,107,.15);color:var(--danger)}
 
 /* Stats Row */
-.stats-row{
-  display:flex;gap:8px;margin-top:12px;padding-top:12px;
-  border-top:1px solid var(--glass-border);align-items:center;
-}
+.stats-row{display:flex;gap:8px;margin-top:12px;padding-top:12px;border-top:1px solid var(--glass-border);align-items:center}
 .stat{flex:1;text-align:center}
 .stat .num{font-size:.95rem;font-weight:700;color:var(--text)}
 .stat .lbl{font-size:.65rem;color:var(--text-muted)}
 
 /* Scenario Tag */
-.scenario-tag{
-  display:inline-block;font-size:.72rem;font-weight:700;
-  color:var(--primary);background:rgba(124,92,255,.12);
-  padding:3px 10px;border-radius:6px;
-}
+.scenario-tag{display:inline-block;font-size:.72rem;font-weight:700;color:var(--primary);background:rgba(124,92,255,.12);padding:3px 10px;border-radius:6px}
 
 /* Warning */
-.warning-note{
-  margin-top:10px;font-size:.72rem;color:var(--warn);
-  background:rgba(255,184,107,.08);padding:8px 12px;border-radius:8px;
-  border-left:3px solid var(--warn);line-height:1.5;
-}
+.warning-note{margin-top:10px;font-size:.72rem;color:var(--warn);background:rgba(255,184,107,.08);padding:8px 12px;border-radius:8px;border-left:3px solid var(--warn);line-height:1.5}
 
 /* Summary Table */
-.summary-section{
-  margin-top:40px;padding:24px;
-  background:var(--glass);border:1px solid var(--glass-border);border-radius:14px;
-  backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px);
-}
+.summary-section{margin-top:40px;padding:24px;background:var(--glass);border:1px solid var(--glass-border);border-radius:14px;backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px)}
 .summary-section h2{font-size:1.1rem;font-weight:700;margin-bottom:16px;color:var(--accent)}
 .table-wrap{overflow-x:auto;-webkit-overflow-scrolling:touch}
 .summary-table{width:100%;border-collapse:collapse;font-size:.85rem;min-width:700px}
-.summary-table th,.summary-table td{
-  padding:10px 12px;text-align:left;border-bottom:1px solid var(--glass-border);
-  white-space:nowrap;
-}
+.summary-table th,.summary-table td{padding:10px 12px;text-align:left;border-bottom:1px solid var(--glass-border);white-space:nowrap}
 .summary-table th{color:var(--text-muted);font-weight:600;font-size:.72rem;text-transform:uppercase;letter-spacing:.03em}
 .summary-table td{color:var(--text)}
 .summary-table tr:hover td{background:rgba(255,255,255,.02)}
 
 /* Betting Advice */
-.advice-section{
-  margin-top:36px;display:grid;grid-template-columns:repeat(3,1fr);gap:16px;
-}
+.advice-section{margin-top:36px;display:grid;grid-template-columns:repeat(3,1fr);gap:16px}
 @media(max-width:768px){.advice-section{grid-template-columns:1fr}}
-.advice-card{
-  background:var(--glass);border-radius:14px;padding:20px;
-  border:1px solid var(--glass-border);
-  backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px);
-}
+.advice-card{background:var(--glass);border-radius:14px;padding:20px;border:1px solid var(--glass-border);backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px)}
 .advice-card.green{border-left:4px solid var(--success)}
 .advice-card.yellow{border-left:4px solid var(--warn)}
 .advice-card.red{border-left:4px solid var(--danger)}
@@ -209,114 +249,58 @@ header .meta .val{color:var(--text);font-weight:600;margin-left:4px}
 .advice-card.yellow h3{color:var(--warn)}
 .advice-card.red h3{color:var(--danger)}
 .advice-card ul{list-style:none;padding:0}
-.advice-card li{
-  font-size:.82rem;color:var(--text-dim);padding:6px 0;
-  border-bottom:1px solid rgba(255,255,255,.04);line-height:1.5;
-}
+.advice-card li{font-size:.82rem;color:var(--text-dim);padding:6px 0;border-bottom:1px solid rgba(255,255,255,.04);line-height:1.5}
 .advice-card li:last-child{border-bottom:none}
 .advice-card li strong{color:var(--text);font-weight:600}
 .advice-card .empty{font-size:.8rem;color:var(--text-muted);text-align:center;padding:16px 0}
 
 /* Footer */
-footer{
-  text-align:center;padding:32px 20px 16px;color:var(--text-muted);
-  font-size:.75rem;border-top:1px solid var(--glass-border);margin-top:40px;
-}
+footer{text-align:center;padding:32px 20px 16px;color:var(--text-muted);font-size:.75rem;border-top:1px solid var(--glass-border);margin-top:40px}
 
 /* Loading */
 .loading-state{text-align:center;padding:40px;color:var(--text-dim);font-size:.9rem}
-.loading-state .spinner{
-  display:inline-block;width:32px;height:32px;border:3px solid var(--glass-border);
-  border-top-color:var(--primary);border-radius:50%;animation:spin .8s linear infinite;
-  margin-bottom:12px;
-}
+.loading-state .spinner{display:inline-block;width:32px;height:32px;border:3px solid var(--glass-border);border-top-color:var(--primary);border-radius:50%;animation:spin .8s linear infinite;margin-bottom:12px}
 @keyframes spin{to{transform:rotate(360deg)}}
-
-/* Empty */
 .empty-state{text-align:center;padding:40px;color:var(--text-muted);font-size:.88rem}
 
 /* Realtime Warning Banner */
-.realtime-banner{
-  display:none;margin-bottom:20px;padding:14px 20px;
-  background:rgba(255,184,107,.1);border:1px solid rgba(255,184,107,.3);
-  border-radius:12px;text-align:center;
-  backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px);
-  animation:bannerPulse 3s ease-in-out infinite;
-}
+.realtime-banner{display:none;margin-bottom:20px;padding:14px 20px;background:rgba(255,184,107,.1);border:1px solid rgba(255,184,107,.3);border-radius:12px;text-align:center;backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px);animation:bannerPulse 3s ease-in-out infinite}
 .realtime-banner.show{display:block}
 @keyframes bannerPulse{0%,100%{box-shadow:0 0 0 0 rgba(255,184,107,0)}50%{box-shadow:0 0 16px 2px rgba(255,184,107,.15)}}
 .realtime-banner .banner-icon{font-size:1.2rem;margin-right:6px}
 .realtime-banner .banner-text{color:var(--warn);font-size:.88rem;font-weight:600}
 .realtime-banner .banner-sub{color:var(--text-muted);font-size:.75rem;margin-top:4px}
 
-/* Card Refresh Button - next to match-id in header */
+/* Card Refresh Button */
 .card-header-top{display:flex;align-items:center;gap:8px;margin-bottom:10px;flex-wrap:wrap}
-.card-refresh{
-  height:28px;min-width:auto;padding:0 10px;
-  border:1px solid rgba(255,184,107,.3);border-radius:6px;cursor:pointer;
-  background:rgba(255,184,107,.12);color:var(--warn);
-  font-size:.72rem;display:flex;align-items:center;justify-content:center;gap:4px;
-  transition:all .2s;flex-shrink:0;font-weight:500;
-}
+.card-refresh{height:28px;min-width:auto;padding:0 10px;border:1px solid rgba(255,184,107,.3);border-radius:6px;cursor:pointer;background:rgba(255,184,107,.12);color:var(--warn);font-size:.72rem;display:flex;align-items:center;justify-content:center;gap:4px;transition:all .2s;flex-shrink:0;font-weight:500}
 .card-refresh:hover{background:rgba(124,92,255,.2);color:var(--primary)}
 .card-refresh:active{transform:scale(.9)}
 .card-refresh.loading{pointer-events:none;opacity:.7;background:rgba(124,92,255,.15)}
 .card-refresh.loading .refresh-icon{display:none}
 .card-refresh.loading .refresh-spinner{display:inline-block}
-.refresh-spinner{
-  display:none;width:14px;height:14px;
-  border:2px solid transparent;border-top-color:var(--primary);
-  border-radius:50%;animation:spin .6s linear infinite;
-}
-/* Stale indicator on card */
-.card-stale-badge{
-  font-size:.62rem;color:var(--warn);background:rgba(255,184,107,.1);
-  padding:2px 6px;border-radius:4px;white-space:nowrap;
-}
+.refresh-spinner{display:none;width:14px;height:14px;border:2px solid transparent;border-top-color:var(--primary);border-radius:50%;animation:spin .6s linear infinite}
+.card-stale-badge{font-size:.62rem;color:var(--warn);background:rgba(255,184,107,.1);padding:2px 6px;border-radius:4px;white-space:nowrap}
 
 /* Card Loading Overlay */
-.card-loading-overlay{
-  position:absolute;top:0;left:0;right:0;bottom:0;
-  background:rgba(10,14,26,.85);display:none;align-items:center;justify-content:center;
-  border-radius:14px;z-index:3;flex-direction:column;gap:8px;
-}
+.card-loading-overlay{position:absolute;top:0;left:0;right:0;bottom:0;background:rgba(10,14,26,.85);display:none;align-items:center;justify-content:center;border-radius:14px;z-index:3;flex-direction:column;gap:8px}
 .card-loading-overlay.show{display:flex}
-.card-loading-overlay .spinner-sm{
-  width:24px;height:24px;border:2px solid var(--glass-border);
-  border-top-color:var(--primary);border-radius:50%;animation:spin .7s linear infinite;
-}
+.card-loading-overlay .spinner-sm{width:24px;height:24px;border:2px solid var(--glass-border);border-top-color:var(--primary);border-radius:50%;animation:spin .7s linear infinite}
 .card-loading-overlay .load-text{font-size:.72rem;color:var(--text-dim)}
 
 /* Data Status Indicator */
-.data-status{
-  display:inline-flex;align-items:center;gap:5px;margin-left:6px;
-}
+.data-status{display:inline-flex;align-items:center;gap:5px;margin-left:6px}
 .status-dot{width:7px;height:7px;border-radius:50%;flex-shrink:0}
 .status-dot.live{background:var(--success);box-shadow:0 0 6px rgba(98,250,211,.5)}
 .status-dot.stale{background:var(--warn);box-shadow:0 0 6px rgba(255,184,107,.5)}
 .status-dot.dead{background:var(--danger);box-shadow:0 0 6px rgba(255,107,107,.5)}
 
 /* Share Section */
-.share-section{
-  margin-top:32px;text-align:center;
-}
-.share-btn{
-  display:inline-flex;align-items:center;gap:8px;
-  padding:12px 28px;border:none;border-radius:12px;
-  background:linear-gradient(135deg,var(--primary),var(--accent));
-  color:#fff;font-size:.88rem;font-weight:700;cursor:pointer;
-  transition:all .2s;box-shadow:0 4px 16px rgba(124,92,255,.3);
-}
+.share-section{margin-top:32px;text-align:center}
+.share-btn{display:inline-flex;align-items:center;gap:8px;padding:12px 28px;border:none;border-radius:12px;background:linear-gradient(135deg,var(--primary),var(--accent));color:#fff;font-size:.88rem;font-weight:700;cursor:pointer;transition:all .2s;box-shadow:0 4px 16px rgba(124,92,255,.3)}
 .share-btn:hover{transform:translateY(-1px);box-shadow:0 6px 24px rgba(124,92,255,.4)}
 .share-btn:active{transform:scale(.97);opacity:.9}
-.share-toast{
-  position:fixed;bottom:30px;left:50%;transform:translateX(-50%);
-  background:rgba(98,250,211,.15);border:1px solid rgba(98,250,211,.3);
-  color:var(--success);padding:10px 20px;border-radius:10px;
-  font-size:.82rem;font-weight:600;z-index:9999;
-  backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px);
-  opacity:0;transition:opacity .3s;pointer-events:none;
-}
+.share-toast{position:fixed;bottom:30px;left:50%;transform:translateX(-50%);background:rgba(98,250,211,.15);border:1px solid rgba(98,250,211,.3);color:var(--success);padding:10px 20px;border-radius:10px;font-size:.82rem;font-weight:600;z-index:9999;backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px);opacity:0;transition:opacity .3s;pointer-events:none}
 .share-toast.show{opacity:1}
 
 /* Responsive */
@@ -332,14 +316,15 @@ footer{
   .summary-section{padding:16px}
   .legend{padding:10px 14px;gap:10px}
   .legend-note{margin-left:0;width:100%;margin-top:6px}
+  .date-tab{padding:8px 14px 6px;min-width:76px}
+  .date-tab .dt-main{font-size:.9rem}
+  .period-stats{padding:10px 14px;font-size:.78rem}
 }
 
 /* Print */
 @media print{
   body{background:#fff;color:#111}
-  .match-card,.strategy-banner,.legend,.summary-section,.advice-card{
-    background:#f8f9fa;border-color:#ddd;backdrop-filter:none;
-  }
+  .match-card,.strategy-banner,.legend,.summary-section,.advice-card{background:#f8f9fa;border-color:#ddd;backdrop-filter:none}
   header h1{background:none;-webkit-text-fill-color:#111;color:#111}
 }
 </style>
@@ -384,8 +369,12 @@ footer{
 
 <!-- 竞彩 Tab Panel -->
 <div class="tab-panel active" id="tab-jc">
-  <div class="match-grid" id="jc-grid">
-    <div class="loading-state"><div class="spinner"></div><div>加载数据中...</div></div>
+  <div class="date-selector-wrapper"><div class="date-selector" id="jc-date-selector"></div></div>
+  <div class="period-stats" id="jc-stats"></div>
+  <div id="jc-content">
+    <div class="match-grid" id="jc-grid">
+      <div class="loading-state"><div class="spinner"></div><div>加载数据中...</div></div>
+    </div>
   </div>
   <div class="summary-section" id="summary-jc-section" style="display:none">
     <h2>📊 竞彩预测总览</h2>
@@ -405,7 +394,11 @@ footer{
 
 <!-- 北单 Tab Panel -->
 <div class="tab-panel" id="tab-bd">
-  <div class="match-grid" id="bd-grid"></div>
+  <div class="date-selector-wrapper"><div class="date-selector" id="bd-date-selector"></div></div>
+  <div class="period-stats" id="bd-stats"></div>
+  <div id="bd-content">
+    <div class="match-grid" id="bd-grid"></div>
+  </div>
   <div class="summary-section" id="summary-bd-section" style="display:none">
     <h2>📊 北单预测总览</h2>
     <div class="table-wrap">
@@ -437,8 +430,6 @@ footer{
 
 <script>
 // ========== V6.7 Scenario Classification Engine ==========
-
-// V6 State Map: frozenset(favored_directions) → (when_home_strong, when_away_strong)
 const V6_STATE_MAP = {
   'h':      ['A','Z'],
   'h,d':    ['B','W'],
@@ -450,7 +441,6 @@ const V6_STATE_MAP = {
   '':       ['X','X'],
 };
 
-// V6 36-scenario Strategy Table
 const V6_SCENARIO_TABLE = {
   'A,A':['胜平',81.0],'A,B':['胜平',90.9],'A,C':['胜平',88.9],
   'B,A':['胜平',69.0],'B,B':['胜平',81.8],'B,C':['胜平',73.9],
@@ -466,528 +456,705 @@ const V6_SCENARIO_TABLE = {
   'Z,W':['胜负',100.0],'Z,Y':['平负',100.0],'Z,Z':['负胜',100.0],
 };
 
-// Tab switching
-function switchTab(tab) {
-  document.querySelectorAll('.tab-btn').forEach(b => b.classList.toggle('active', b.dataset.tab === tab));
-  document.querySelectorAll('.tab-panel').forEach(p => p.classList.toggle('active', p.id === 'tab-' + tab));
+// ========== Time & Date Utilities ==========
+const MATCH_YEAR = 2026;
+const WEEKDAYS_CN = ['周日','周一','周二','周三','周四','周五','周六'];
+
+function parseMatchTime(timeStr) {
+  if (!timeStr) return null;
+  const m = timeStr.match(/^(\d{1,2})-(\d{1,2})\s+(\d{1,2}):(\d{1,2})$/);
+  if (!m) return null;
+  return new Date(MATCH_YEAR, parseInt(m[1],10)-1, parseInt(m[2],10), parseInt(m[3],10), parseInt(m[4],10));
 }
 
+function getSellingDate(matchDate) {
+  const d = new Date(matchDate);
+  if (d.getHours() < 6) d.setDate(d.getDate() - 1);
+  d.setHours(0,0,0,0);
+  return d;
+}
+
+function dateKeyStr(d) {
+  return d.getFullYear() + '-' + String(d.getMonth()+1).padStart(2,'0') + '-' + String(d.getDate()).padStart(2,'0');
+}
+
+function formatDateMMDD(d) {
+  return String(d.getMonth()+1).padStart(2,'0') + '-' + String(d.getDate()).padStart(2,'0');
+}
+
+// ========== Sales Status ==========
+function getSalesStatus(matchDate) {
+  const now = new Date();
+  if (now >= matchDate) {
+    const elapsed = now - matchDate;
+    if (elapsed > 2 * 3600000) return 'finished';
+    return 'started';
+  }
+  const sellingDate = getSellingDate(matchDate);
+  const dow = sellingDate.getDay();
+  const isWeekend = (dow === 0 || dow === 6);
+  const closeHour = isWeekend ? 23 : 22;
+  const dailyClose = new Date(sellingDate);
+  dailyClose.setHours(closeHour, 0, 0, 0);
+  const deadline = matchDate < dailyClose ? new Date(matchDate) : dailyClose;
+  if (now >= deadline) return 'closed';
+  const minsToDeadline = (deadline - now) / 60000;
+  const minsToStart = (matchDate - now) / 60000;
+  if (minsToDeadline < 30 || minsToStart < 30) return 'closing_soon';
+  return 'on_sale';
+}
+
+function getStatusDisplay(status) {
+  switch(status) {
+    case 'on_sale': return ['🟢','在售','status-on-sale'];
+    case 'closing_soon': return ['🟡','即将截止','status-closing'];
+    case 'closed': return ['🔴','已截止','status-closed'];
+    case 'started': return ['🔴','进行中','status-closed'];
+    case 'finished': return ['✅','已完赛','status-finished'];
+    default: return ['⚪','未知',''];
+  }
+}
+
+function getCountdownText(matchDate) {
+  const now = new Date();
+  const diff = matchDate - now;
+  if (diff <= 0) {
+    const elapsed = -diff;
+    if (elapsed > 2 * 3600000) return '已完赛';
+    return '进行中';
+  }
+  const totalMins = Math.floor(diff / 60000);
+  const hours = Math.floor(totalMins / 60);
+  const mins = totalMins % 60;
+  if (hours > 0) return '距开赛 ' + hours + '时' + mins + '分';
+  if (totalMins > 0) return '⏰ ' + totalMins + '分钟后开赛';
+  return '即将开赛';
+}
+
+function getCountdownClass(matchDate) {
+  const minsLeft = (matchDate - new Date()) / 60000;
+  if (minsLeft <= 0) return 'countdown finished';
+  if (minsLeft < 60) return 'countdown urgent';
+  return 'countdown normal';
+}
+
+// ========== Date Selector & Grouping ==========
+let _matchGroups = { jc: {}, bd: {} };
+let _matchGroupsAll = { jc: [], bd: [] };
+let _currentCat = 'jc';
+let _currentSelDate = '';
+let _allEnrichedMatches = [];
+
+function enrichMatches(kellyData) {
+  const result = [];
+  for (const m of kellyData) {
+    const md = parseMatchTime(m.time);
+    if (!md) continue;
+    m._matchDate = md;
+    m._sellingDate = getSellingDate(md);
+    m._dateKey = dateKeyStr(m._sellingDate);
+    m._status = getSalesStatus(md);
+    const isJc = m.is_jingcai || (m.id && /周[一二三四五六日]/.test(m.id));
+    m._category = isJc ? 'jc' : 'bd';
+    result.push(m);
+  }
+  return result;
+}
+
+function buildMatchGroups(enriched) {
+  const groups = { jc: {}, bd: {} };
+  const allLists = { jc: [], bd: [] };
+  for (const m of enriched) {
+    const cat = m._category;
+    const dk = m._dateKey;
+    if (!groups[cat][dk]) groups[cat][dk] = [];
+    groups[cat][dk].push(m);
+    allLists[cat].push(m);
+  }
+  // Sort each group
+  for (const cat of ['jc','bd']) {
+    for (const dk of Object.keys(groups[cat])) {
+      groups[cat][dk].sort((a,b) => {
+        const na = extractMatchNumber(a);
+        const nb = extractMatchNumber(b);
+        if (na !== nb) return na - nb;
+        return (a.time||'').localeCompare(b.time||'');
+      });
+    }
+  }
+  _matchGroups = groups;
+  _matchGroupsAll = allLists;
+}
+
+function extractMatchNumber(match) {
+  const id = match.id || '';
+  const m = id.match(/(\d{2,3})$/);
+  return m ? parseInt(m[1],10) : 999;
+}
+
+function renderDateSelector(cat) {
+  const container = document.getElementById(cat + '-date-selector');
+  const dates = Object.keys(_matchGroups[cat]).sort();
+  if (!dates.length) {
+    container.innerHTML = '<div style="color:var(--text-muted);font-size:.85rem;padding:8px">暂无赛事数据</div>';
+    document.getElementById(cat + '-stats').innerHTML = '';
+    return;
+  }
+  const now = new Date();
+  const todayKey = dateKeyStr(getSellingDate(now));
+  let defaultDate = dates[dates.length - 1];
+  // Prefer today; if not available, pick the first future date
+  if (dates.includes(todayKey)) {
+    defaultDate = todayKey;
+  } else {
+    for (const d of dates) {
+      if (d >= todayKey) { defaultDate = d; break; }
+    }
+  }
+  let html = '';
+  for (const dk of dates) {
+    const dObj = new Date(dk + 'T00:00:00');
+    const mmdd = formatDateMMDD(dObj);
+    const wd = WEEKDAYS_CN[dObj.getDay()];
+    const count = _matchGroups[cat][dk].length;
+    const isActive = dk === defaultDate;
+    const isToday = dk === todayKey;
+    html += '<div class="date-tab' + (isActive?' active':'') + (isToday?' today-marker':'') + '" data-date="' + dk + '" data-cat="' + cat + '" onclick="selectDate(\'' + cat + '\',\'' + dk + '\')">';
+    html += '<span class="dt-main">' + mmdd + '</span>';
+    html += '<span class="dt-sub">' + wd + '</span>';
+    html += '<span class="dt-count">' + count + '场</span>';
+    html += '</div>';
+  }
+  container.innerHTML = html;
+  _currentCat = cat;
+  _currentSelDate = defaultDate;
+  renderMatchesForDate(cat, defaultDate);
+}
+
+function selectDate(cat, dk) {
+  document.querySelectorAll('#' + cat + '-date-selector .date-tab').forEach(function(el) {
+    el.classList.toggle('active', el.dataset.date === dk);
+  });
+  _currentCat = cat;
+  _currentSelDate = dk;
+  renderMatchesForDate(cat, dk);
+}
+
+function renderMatchesForDate(cat, dk) {
+  var matches = (_matchGroups[cat] && _matchGroups[cat][dk]) || [];
+  var gridEl = document.getElementById(cat + '-grid');
+  if (!matches.length) {
+    gridEl.innerHTML = '<div class="empty-state">📭 该日期暂无赛事</div>';
+    updateStatsBar(cat, dk, []);
+    document.getElementById('summary-' + cat + '-section').style.display = 'none';
+    document.getElementById('advice-' + cat + '-section').style.display = 'none';
+    return;
+  }
+  // Re-calculate statuses (time may have passed)
+  for (var i = 0; i < matches.length; i++) {
+    matches[i]._status = getSalesStatus(matches[i]._matchDate);
+  }
+  var d = new Date(dk + 'T00:00:00');
+  var fullDate = dk + ' ' + WEEKDAYS_CN[d.getDay()];
+  var html = '<div class="date-group-header">📅 ' + fullDate + ' · 共' + matches.length + '场</div>';
+  html += '<div class="match-grid">';
+  for (var i = 0; i < matches.length; i++) {
+    html += renderMatchCard(matches[i], matches[i]._result, i);
+  }
+  html += '</div>';
+  gridEl.innerHTML = html;
+  updateStatsBar(cat, dk, matches);
+  updateSummaryAndAdvice(cat, matches);
+}
+
+function updateStatsBar(cat, dk, matches) {
+  var el = document.getElementById(cat + '-stats');
+  if (!matches.length) { el.innerHTML = '<span style="color:var(--text-muted)">暂无数据</span>'; return; }
+  var onSale=0, closing=0, closed=0, finished=0;
+  for (var i=0; i<matches.length; i++) {
+    var s = matches[i]._status || getSalesStatus(matches[i]._matchDate);
+    if (s==='on_sale') onSale++;
+    else if (s==='closing_soon') closing++;
+    else if (s==='closed'||s==='started') closed++;
+    else if (s==='finished') finished++;
+  }
+  var nums = [];
+  for (var i=0; i<matches.length; i++) {
+    var n = extractMatchNumber(matches[i]);
+    if (n < 999) nums.push(n);
+  }
+  var minNum = nums.length ? String(Math.min.apply(null,nums)).padStart(3,'0') : '001';
+  var maxNum = nums.length ? String(Math.max.apply(null,nums)).padStart(3,'0') : String(matches.length).padStart(3,'0');
+  var dayPrefix = (matches[0].id||'').match(/(周[一二三四五六日])/);
+  var period;
+  if (dayPrefix) {
+    period = dayPrefix[1] + minNum + '-' + maxNum;
+  } else {
+    period = formatDateMMDD(new Date(dk+'T00:00:00')) + ' ' + minNum + '-' + maxNum;
+  }
+  var html = '<span class="ps-label">当前期：' + period + '</span>';
+  html += '<span class="ps-sep">·</span><span>共' + matches.length + '场</span>';
+  if (onSale>0) html += '<span class="ps-sep">·</span><span class="ps-on-sale">🟢在售' + onSale + '场</span>';
+  if (closing>0) html += '<span class="ps-sep">·</span><span class="ps-closing">🟡即将截止' + closing + '场</span>';
+  if (closed>0) html += '<span class="ps-sep">·</span><span class="ps-closed">🔴已截止' + closed + '场</span>';
+  if (finished>0) html += '<span class="ps-sep">·</span><span class="ps-finished">✅已完赛' + finished + '场</span>';
+  el.innerHTML = html;
+}
+
+function updateSummaryAndAdvice(cat, matches) {
+  var withResult = matches.filter(function(m){return m._result});
+  var secEl = document.getElementById('summary-'+cat+'-section');
+  var advEl = document.getElementById('advice-'+cat+'-section');
+  if (!withResult.length) { secEl.style.display='none'; advEl.style.display='none'; return; }
+  secEl.style.display = 'block';
+  document.getElementById('summary-'+cat+'-body').innerHTML = withResult.map(function(m){
+    var r = m._result;
+    return '<tr><td>'+m.id+'</td><td>'+m.home+' vs '+m.away+'</td><td><span class="scenario-tag">'+r.scenario+'</span></td><td class="'+getPickClass(r.prediction)+'">'+r.prediction+'</td><td>'+r.hitRate+'%</td><td class="'+getPickClass(r.singlePick)+'">'+(r.singlePick||'—')+'</td><td>'+(r.singlePick?r.singleRate+'%':'—')+'</td><td>'+r.sampleCount+'</td><td>'+getConfText(r.confLevel)+'</td></tr>';
+  }).join('');
+  advEl.style.display = 'grid';
+  var singleList=[], doubleList=[], skipList=[];
+  withResult.forEach(function(m){
+    var r = m._result;
+    if (r.confLevel==='high' && r.hitRate>=80 && r.singlePick) singleList.push('<li><strong>'+m.id+'</strong> '+m.home+' vs '+m.away+'<br>单选 '+r.singlePick+' 命中率 '+r.singleRate+'%</li>');
+    else if (r.confLevel==='low' || r.hitRate<70) skipList.push('<li><strong>'+m.id+'</strong> '+m.home+' vs '+m.away+'<br>场景 '+r.scenario+' · 样本 '+r.sampleCount+'</li>');
+    else doubleList.push('<li><strong>'+m.id+'</strong> '+m.home+' vs '+m.away+'<br>双选 '+r.prediction+' 命中率 '+r.hitRate+'%</li>');
+  });
+  document.getElementById('advice-'+cat+'-single').innerHTML = singleList.length ? singleList.join('') : '<li class="empty">无推荐场次</li>';
+  document.getElementById('advice-'+cat+'-double').innerHTML = doubleList.length ? doubleList.join('') : '<li class="empty">无推荐场次</li>';
+  document.getElementById('advice-'+cat+'-skip').innerHTML = skipList.length ? skipList.join('') : '<li class="empty">无回避场次</li>';
+}
+
+// Tab switching
+function switchTab(tab) {
+  document.querySelectorAll('.tab-btn').forEach(function(b){b.classList.toggle('active', b.dataset.tab===tab)});
+  document.querySelectorAll('.tab-panel').forEach(function(p){p.classList.toggle('active', p.id==='tab-'+tab)});
+  // Re-render date selector for this tab if data loaded
+  if (_matchGroups[tab] && Object.keys(_matchGroups[tab]).length > 0) {
+    renderDateSelector(tab);
+  }
+}
+
+// ========== V6 Classification ==========
 function getV6StateLetter(favoredDirs, isHomeStrong) {
-  const key = Array.from(favoredDirs).sort().join(',');
-  const mapping = V6_STATE_MAP[key];
+  var key = Array.from(favoredDirs).sort().join(',');
+  var mapping = V6_STATE_MAP[key];
   if (!mapping) return 'X';
   return isHomeStrong ? mapping[0] : mapping[1];
 }
 
 function classifyV6(match) {
-  // Extract bet365 and weide Kelly from match data
-  const k365 = match.bet365_kelly;
-  const kw = match.weide_kelly;
-  const p365 = match.bet365_payout || 0.93;
-  const pw = match.weide_payout || 0.93;
-
+  var k365 = match.bet365_kelly;
+  var kw = match.weide_kelly;
+  var p365 = match.bet365_payout || 0.93;
+  var pw = match.weide_payout || 0.93;
   if (!k365 || !kw) return null;
-
-  // Determine strong team direction (365 odds: win<=loss → home strong)
-  let isHomeStrong = true;
+  var isHomeStrong = true;
   if (match.odds_365) {
-    const w = match.odds_365.w || 0;
-    const l = match.odds_365.l || 0;
+    var w = match.odds_365.w || 0;
+    var l = match.odds_365.l || 0;
     if (w > 1 && l > 1) isHomeStrong = w <= l;
   }
-
-  // Get favored directions (Kelly <= payout)
-  const favored365 = new Set();
-  ['h','d','a'].forEach(d => { if ((k365[d]||1.0) <= p365) favored365.add(d); });
-  const favoredW = new Set();
-  ['h','d','a'].forEach(d => { if ((kw[d]||1.0) <= pw) favoredW.add(d); });
-
-  let state365 = getV6StateLetter(favored365, isHomeStrong);
-  let stateW = getV6StateLetter(favoredW, isHomeStrong);
-
-  // D state handling
-  if (state365 === 'D' && stateW === 'D') return null;
-
-  if (state365 === 'D') {
-    const vals = [k365.h||0, k365.d||0, k365.a||0];
-    if (vals[0] === vals[1] && vals[1] === vals[2]) {
-      state365 = 'B';
-    } else {
-      const maxVal = Math.max(...vals);
-      const remaining = new Set();
-      ['h','d','a'].forEach((d,i) => { if ((k365[d]||0) !== maxVal) remaining.add(d); });
+  var favored365 = new Set();
+  ['h','d','a'].forEach(function(d){ if((k365[d]||1.0)<=p365) favored365.add(d) });
+  var favoredW = new Set();
+  ['h','d','a'].forEach(function(d){ if((kw[d]||1.0)<=pw) favoredW.add(d) });
+  var state365 = getV6StateLetter(favored365, isHomeStrong);
+  var stateW = getV6StateLetter(favoredW, isHomeStrong);
+  if (state365==='D' && stateW==='D') return null;
+  if (state365==='D') {
+    var vals = [k365.h||0, k365.d||0, k365.a||0];
+    if (vals[0]===vals[1] && vals[1]===vals[2]) { state365='B'; }
+    else {
+      var maxVal = Math.max.apply(null,vals);
+      var remaining = new Set();
+      ['h','d','a'].forEach(function(d,i){ if((k365[d]||0)!==maxVal) remaining.add(d) });
       state365 = getV6StateLetter(remaining, isHomeStrong);
     }
   }
-  if (stateW === 'D') {
-    const vals = [kw.h||0, kw.d||0, kw.a||0];
-    if (vals[0] === vals[1] && vals[1] === vals[2]) {
-      stateW = 'B';
-    } else {
-      const maxVal = Math.max(...vals);
-      const remaining = new Set();
-      ['h','d','a'].forEach((d,i) => { if ((kw[d]||0) !== maxVal) remaining.add(d); });
-      stateW = getV6StateLetter(remaining, isHomeStrong);
+  if (stateW==='D') {
+    var vals2 = [kw.h||0, kw.d||0, kw.a||0];
+    if (vals2[0]===vals2[1] && vals2[1]===vals2[2]) { stateW='B'; }
+    else {
+      var maxVal2 = Math.max.apply(null,vals2);
+      var remaining2 = new Set();
+      ['h','d','a'].forEach(function(d,i){ if((kw[d]||0)!==maxVal2) remaining2.add(d) });
+      stateW = getV6StateLetter(remaining2, isHomeStrong);
     }
   }
-
-  if (state365 === 'X' || stateW === 'X') return null;
-
-  const scenarioKey = state365 + ',' + stateW;
-  const strategy = V6_SCENARIO_TABLE[scenarioKey];
+  if (state365==='X' || stateW==='X') return null;
+  var scenarioKey = state365+','+stateW;
+  var strategy = V6_SCENARIO_TABLE[scenarioKey];
   if (!strategy) return null;
-
-  const [prediction, hitRate] = strategy;
-
-  // Confidence level
-  let confLevel = 'low';
-  if ((match.sample_count || 0) >= 10) confLevel = 'high';
-  else if ((match.sample_count || 0) >= 5) confLevel = 'mid';
-
-  // Single pick
-  let singlePick = null;
-  let singleRate = 0;
-  if (prediction.includes('胜') && !prediction.includes('负')) { singlePick = '胜'; singleRate = hitRate * 0.8; }
-  else if (prediction.includes('负') && !prediction.includes('胜')) { singlePick = '负'; singleRate = hitRate * 0.7; }
-  else if (hitRate >= 85) { singlePick = '平'; singleRate = hitRate * 0.5; }
-
+  var prediction = strategy[0], hitRate = strategy[1];
+  var confLevel = 'low';
+  if ((match.sample_count||0)>=10) confLevel='high';
+  else if ((match.sample_count||0)>=5) confLevel='mid';
+  var singlePick = null, singleRate = 0;
+  if (prediction.includes('胜') && !prediction.includes('负')) { singlePick='胜'; singleRate=hitRate*0.8 }
+  else if (prediction.includes('负') && !prediction.includes('胜')) { singlePick='负'; singleRate=hitRate*0.7 }
+  else if (hitRate>=85) { singlePick='平'; singleRate=hitRate*0.5 }
   return {
-    scenario: state365 + stateW,
-    state365, stateW,
-    prediction, hitRate,
-    confLevel,
-    singlePick, singleRate: Math.round(singleRate),
-    isHomeStrong,
-    sampleCount: match.sample_count || 0,
-    wdl: match.wdl || '0/0/0',
+    scenario: state365+stateW, state365:state365, stateW:stateW,
+    prediction:prediction, hitRate:hitRate, confLevel:confLevel,
+    singlePick:singlePick, singleRate:Math.round(singleRate),
+    isHomeStrong:isHomeStrong, sampleCount:match.sample_count||0, wdl:match.wdl||'0/0/0'
   };
 }
-
 
 // ========== Data Loading ==========
 let _kellyCache = null;
 let _kellyCacheDate = '';
-let _kellyFetchedAt = null;    // timestamp of when data was fetched
-let _isRealtime = false;       // real-time data flag
-let _dataTimestamp = null;     // data file's own timestamp
-
-const STALE_THRESHOLD = 30 * 60 * 1000; // 30 minutes in ms
+let _kellyFetchedAt = null;
+let _isRealtime = false;
+let _dataTimestamp = null;
+const STALE_THRESHOLD = 30 * 60 * 1000;
 
 function convertZgzcwKelly(data) {
   if (!data || !data.matches) return null;
-  const result = [];
-  const matches = data.matches;
-  const keys = Object.keys(matches);
-  for (let i = 0; i < keys.length; i++) {
-    const m = matches[keys[i]];
-    const teams = (m.match_name || '').split(' vs ');
+  var result = [];
+  var matches = data.matches;
+  var keys = Object.keys(matches);
+  for (var i=0; i<keys.length; i++) {
+    var m = matches[keys[i]];
+    var teams = (m.match_name || '').split(' vs ');
     if (teams.length !== 2) continue;
-    const companies = m.companies || {};
-    const ck = Object.keys(companies);
-    let bet365_kelly = null, weide_kelly = null, bet365_payout = 0.93, weide_payout = 0.93;
-    let odds_365 = null;
-    for (let j = 0; j < ck.length; j++) {
-      const c = companies[ck[j]];
-      if (ck[j] === 'bet365' || (c.name && c.name.includes('365'))) {
-        bet365_kelly = { h: c.kelly[0], d: c.kelly[1], a: c.kelly[2] };
+    var companies = m.companies || {};
+    var ck = Object.keys(companies);
+    var bet365_kelly=null, weide_kelly=null, bet365_payout=0.93, weide_payout=0.93;
+    var odds_365 = null;
+    for (var j=0; j<ck.length; j++) {
+      var c = companies[ck[j]];
+      if (ck[j]==='bet365' || (c.name && c.name.includes('365'))) {
+        bet365_kelly = {h:c.kelly[0], d:c.kelly[1], a:c.kelly[2]};
         bet365_payout = c.payout || 0.93;
-        odds_365 = { w: c.latest_odds[0], d: c.latest_odds[1], l: c.latest_odds[2] };
+        odds_365 = {w:c.latest_odds[0], d:c.latest_odds[1], l:c.latest_odds[2]};
       }
-      if (ck[j] === 'weide' || (c.name && (c.name.includes('伟德') || c.name.includes('weide')))) {
-        weide_kelly = { h: c.kelly[0], d: c.kelly[1], a: c.kelly[2] };
+      if (ck[j]==='weide' || (c.name && (c.name.includes('伟德') || c.name.includes('weide')))) {
+        weide_kelly = {h:c.kelly[0], d:c.kelly[1], a:c.kelly[2]};
         weide_payout = c.payout || 0.93;
       }
     }
     result.push({
       id: m.jingcai_id || keys[i],
+      jingcai_id: m.jingcai_id || '',
+      beidan_id: m.beidan_id || '',
       home: teams[0], away: teams[1],
       league: m.league || '',
       time: m.match_time || '',
       is_jingcai: !!(m.jingcai_id),
-      bet365_kelly, weide_kelly, bet365_payout, weide_payout, odds_365,
+      bet365_kelly:bet365_kelly, weide_kelly:weide_kelly,
+      bet365_payout:bet365_payout, weide_payout:weide_payout, odds_365:odds_365,
     });
   }
   return result;
 }
 
-// Extract Kelly fingerprints for real-time comparison
 function getKellyFingerprint(data) {
   if (!data || !Array.isArray(data)) return '';
-  return data.map(m => {
-    const k365 = m.bet365_kelly ? `${m.bet365_kelly.h},${m.bet365_kelly.d},${m.bet365_kelly.a}` : '';
-    const kw = m.weide_kelly ? `${m.weide_kelly.h},${m.weide_kelly.d},${m.weide_kelly.a}` : '';
-    return (m.id||'') + ':' + k365 + '|' + kw;
+  return data.map(function(m){
+    var k365 = m.bet365_kelly ? m.bet365_kelly.h+','+m.bet365_kelly.d+','+m.bet365_kelly.a : '';
+    var kw = m.weide_kelly ? m.weide_kelly.h+','+m.weide_kelly.d+','+m.weide_kelly.a : '';
+    return (m.id||'')+':'+k365+'|'+kw;
   }).join(';');
 }
 
-// Real-time detection: fetch 3 times, compare Kelly values
 async function fetchOnce(url) {
   try {
-    const r = await fetch(url + '?t=' + Date.now(), {cache:'no-cache'});
+    var r = await fetch(url+'?t='+Date.now(), {cache:'no-cache'});
     if (r.ok) return await r.json();
   } catch(e) {}
   return null;
 }
 
 async function fetchWithRealtimeCheck(dateKey) {
-  const urls = [
-    'data/500com_daily/' + dateKey + '/zgzcw_kelly_data.json',
-    'data/500com_daily/' + dateKey + '/zgzcw_kelly_optimal.json',
-    'data/500com_daily/' + dateKey + '/kelly_data_full.json',
+  var urls = [
+    'data/500com_daily/'+dateKey+'/zgzcw_kelly_data.json',
+    'data/500com_daily/'+dateKey+'/zgzcw_kelly_optimal.json',
+    'data/500com_daily/'+dateKey+'/kelly_data_full.json',
   ];
-
-  for (const baseUrl of urls) {
-    // Fetch 3 times with short interval
-    const results = [];
-    for (let i = 0; i < 3; i++) {
-      const d = await fetchOnce(baseUrl);
+  for (var bi=0; bi<urls.length; bi++) {
+    var baseUrl = urls[bi];
+    var results = [];
+    for (var i=0; i<3; i++) {
+      var d = await fetchOnce(baseUrl);
       if (!d || !d.matches) break;
-      let parsed;
+      var parsed;
       if (Array.isArray(d.matches)) { parsed = d.matches; }
       else { parsed = convertZgzcwKelly(d); }
       if (parsed && parsed.length > 0) {
-        results.push({ data: parsed, raw: d, fingerprint: getKellyFingerprint(parsed) });
+        results.push({data:parsed, raw:d, fingerprint:getKellyFingerprint(parsed)});
       }
-      if (i < 2) await new Promise(r => setTimeout(r, 500)); // 500ms interval
+      if (i<2) await new Promise(function(r){setTimeout(r,500)});
     }
-
-    if (results.length === 0) continue;
-
-    // Check if all 3 fetches got identical data (non-realtime)
-    let isRealtime = true;
-    if (results.length >= 3) {
-      isRealtime = !(results[0].fingerprint === results[1].fingerprint &&
-                     results[1].fingerprint === results[2].fingerprint);
-    } else if (results.length >= 2) {
+    if (results.length===0) continue;
+    var isRealtime = true;
+    if (results.length>=3) {
+      isRealtime = !(results[0].fingerprint===results[1].fingerprint && results[1].fingerprint===results[2].fingerprint);
+    } else if (results.length>=2) {
       isRealtime = results[0].fingerprint !== results[1].fingerprint;
     }
-
-    // Check JSON field is_realtime (set by backend)
-    const rawData = results[0].raw;
-    if (rawData && typeof rawData.is_realtime === 'boolean') {
-      isRealtime = rawData.is_realtime;
-    }
-
-    // Extract data timestamp
-    let dataTs = null;
-    if (rawData && rawData.scraped_at) {
-      dataTs = new Date(rawData.scraped_at).getTime();
-    } else if (rawData && rawData.updated_at) {
-      dataTs = new Date(rawData.updated_at).getTime();
-    }
-
+    var rawData = results[0].raw;
+    if (rawData && typeof rawData.is_realtime === 'boolean') isRealtime = rawData.is_realtime;
+    var dataTs = null;
+    if (rawData && rawData.scraped_at) dataTs = new Date(rawData.scraped_at).getTime();
+    else if (rawData && rawData.updated_at) dataTs = new Date(rawData.updated_at).getTime();
     _kellyCache = results[0].data;
     _kellyCacheDate = dateKey;
     _kellyFetchedAt = Date.now();
     _isRealtime = isRealtime;
     _dataTimestamp = dataTs;
-
-    console.log(`Kelly loaded: ${_kellyCache.length} matches, realtime=${isRealtime}, date=${dateKey}`);
+    console.log('Kelly loaded: '+_kellyCache.length+' matches, realtime='+isRealtime+', date='+dateKey);
     return _kellyCache;
   }
   return null;
 }
 
 async function fetchKellyData() {
-  const now = new Date();
-  const dk = now.getFullYear() + String(now.getMonth()+1).padStart(2,'0') + String(now.getDate()).padStart(2,'0');
-
-  // If cached and fresh (within 5 min), skip re-fetch
-  if (_kellyCache && _kellyCacheDate === dk && _kellyFetchedAt && (Date.now() - _kellyFetchedAt) < 5*60*1000) {
-    return _kellyCache;
-  }
-
-  let result = await fetchWithRealtimeCheck(dk);
+  var now = new Date();
+  var dk = now.getFullYear()+String(now.getMonth()+1).padStart(2,'0')+String(now.getDate()).padStart(2,'0');
+  if (_kellyCache && _kellyCacheDate===dk && _kellyFetchedAt && (Date.now()-_kellyFetchedAt)<5*60*1000) return _kellyCache;
+  var result = await fetchWithRealtimeCheck(dk);
   if (result) return result;
-
-  // Try yesterday
-  const y = new Date(now.getTime() - 86400000);
-  const yk = y.getFullYear() + String(y.getMonth()+1).padStart(2,'0') + String(y.getDate()).padStart(2,'0');
-  if (yk !== dk) {
-    result = await fetchWithRealtimeCheck(yk);
-    if (result) return result;
-  }
-
+  var y = new Date(now.getTime()-86400000);
+  var yk = y.getFullYear()+String(y.getMonth()+1).padStart(2,'0')+String(y.getDate()).padStart(2,'0');
+  if (yk!==dk) { result = await fetchWithRealtimeCheck(yk); if (result) return result; }
   return null;
 }
 
-// Relative time formatter
 function formatRelativeTime(ts) {
   if (!ts) return '未知';
-  const diff = Date.now() - ts;
-  const mins = Math.floor(diff / 60000);
-  if (mins < 1) return '刚刚';
-  if (mins < 60) return mins + '分钟前';
-  const hrs = Math.floor(mins / 60);
-  if (hrs < 24) return hrs + '小时前';
-  const days = Math.floor(hrs / 24);
-  return days + '天前';
+  var diff = Date.now() - ts;
+  var mins = Math.floor(diff/60000);
+  if (mins<1) return '刚刚';
+  if (mins<60) return mins+'分钟前';
+  var hrs = Math.floor(mins/60);
+  if (hrs<24) return hrs+'小时前';
+  var days = Math.floor(hrs/24);
+  return days+'天前';
 }
 
 function getDataStatus() {
-  if (!_isRealtime) return { cls: 'dead', label: '非实时' };
-  if (!_dataTimestamp && !_kellyFetchedAt) return { cls: 'stale', label: '未知' };
-  const ts = _dataTimestamp || _kellyFetchedAt;
-  const age = Date.now() - ts;
-  if (age < 10 * 60 * 1000) return { cls: 'live', label: '实时' };
-  if (age < STALE_THRESHOLD) return { cls: 'stale', label: '较新' };
-  return { cls: 'dead', label: '过期' };
+  if (!_isRealtime) return {cls:'dead',label:'非实时'};
+  if (!_dataTimestamp && !_kellyFetchedAt) return {cls:'stale',label:'未知'};
+  var ts = _dataTimestamp || _kellyFetchedAt;
+  var age = Date.now() - ts;
+  if (age<10*60*1000) return {cls:'live',label:'实时'};
+  if (age<STALE_THRESHOLD) return {cls:'stale',label:'较新'};
+  return {cls:'dead',label:'过期'};
 }
 
 function isDataStale() {
   if (!_isRealtime) return true;
-  const ts = _dataTimestamp || _kellyFetchedAt;
+  var ts = _dataTimestamp || _kellyFetchedAt;
   if (!ts) return true;
-  return (Date.now() - ts) > STALE_THRESHOLD;
+  return (Date.now()-ts) > STALE_THRESHOLD;
 }
-
 
 // ========== Rendering ==========
 function getLeagueTag(league) {
-  const map = {
-    '日职':'tag-jp','日本':'tag-jp','沙特联':'tag-sa','沙特':'tag-sa',
-    '芬超':'tag-fi','芬兰':'tag-fi','瑞超':'tag-se','瑞典':'tag-se',
-    '法乙':'tag-fr','法甲':'tag-fr','法国':'tag-fr',
-    '荷乙':'tag-nl','荷甲':'tag-nl','荷兰':'tag-nl',
-    '英超':'tag-en','英格兰':'tag-en',
-    '西甲':'tag-es','西班牙':'tag-es',
-    '德甲':'tag-de','德国':'tag-de',
-    '意甲':'tag-it','意大利':'tag-it',
-  };
-  for (const [k,v] of Object.entries(map)) {
-    if (league.includes(k)) return v;
-  }
+  var map = {'日职':'tag-jp','日本':'tag-jp','沙特联':'tag-sa','沙特':'tag-sa','芬超':'tag-fi','芬兰':'tag-fi','瑞超':'tag-se','瑞典':'tag-se','法乙':'tag-fr','法甲':'tag-fr','法国':'tag-fr','荷乙':'tag-nl','荷甲':'tag-nl','荷兰':'tag-nl','英超':'tag-en','英格兰':'tag-en','西甲':'tag-es','西班牙':'tag-es','德甲':'tag-de','德国':'tag-de','意甲':'tag-it','意大利':'tag-it'};
+  for (var k in map) { if (league.includes(k)) return map[k]; }
   return 'tag-default';
 }
 
 function getConfLabel(level) {
-  if (level === 'high') return '<span class="conf-badge conf-high">高置信</span>';
-  if (level === 'mid') return '<span class="conf-badge conf-mid">中置信</span>';
+  if (level==='high') return '<span class="conf-badge conf-high">高置信</span>';
+  if (level==='mid') return '<span class="conf-badge conf-mid">中置信</span>';
   return '<span class="conf-badge conf-low">低置信</span>';
 }
 
 function getConfText(level) {
-  if (level === 'high') return '<span class="legend-dot high" style="display:inline-block;vertical-align:middle;width:8px;height:8px"></span> 高';
-  if (level === 'mid') return '<span class="legend-dot mid" style="display:inline-block;vertical-align:middle;width:8px;height:8px"></span> 中';
+  if (level==='high') return '<span class="legend-dot high" style="display:inline-block;vertical-align:middle;width:8px;height:8px"></span> 高';
+  if (level==='mid') return '<span class="legend-dot mid" style="display:inline-block;vertical-align:middle;width:8px;height:8px"></span> 中';
   return '<span class="legend-dot low" style="display:inline-block;vertical-align:middle;width:8px;height:8px"></span> 低';
 }
 
 function getPickClass(val) {
-  if (!val || val === '—') return '';
+  if (!val || val==='—') return '';
   if (val.includes('胜') && !val.includes('负') && !val.includes('平')) return 'pick-win';
   if (val.includes('平')) return 'pick-draw';
   if (val.includes('负') && !val.includes('胜')) return 'pick-loss';
   return 'pick-win';
 }
 
-// API endpoint for single match refresh (to be deployed separately)
 const REFRESH_API = '/api/refresh-match';
 
 function renderMatchCard(match, result, idx) {
-  const matchId = match.id || '';
-  const showRefresh = !_isRealtime; // only show when data is NOT realtime
-  const staleBadge = showRefresh ? '<span class="card-stale-badge">数据待更新</span>' : '';
-  const refreshBtn = showRefresh ? `<button class="card-refresh" onclick="refreshMatch(this,'${matchId.replace(/'/g,'')}')" title="点击获取最新凯利数据"><span class="refresh-icon">🔄</span><span class="refresh-text">获取实时</span><span class="refresh-spinner"></span></button>` : '';
-  const loadingOverlay = `<div class="card-loading-overlay"><div class="spinner-sm"></div><div class="load-text">抓取中...</div></div>`;
+  var matchId = match.id || '';
+  var showRefresh = !_isRealtime;
+  var staleBadge = showRefresh ? '<span class="card-stale-badge">数据待更新</span>' : '';
+  var refreshBtn = showRefresh ? '<button class="card-refresh" onclick="refreshMatch(this,\''+matchId.replace(/'/g,'')+'\')" title="点击获取最新凯利数据"><span class="refresh-icon">🔄</span><span class="refresh-text">获取实时</span><span class="refresh-spinner"></span></button>' : '';
+  var loadingOverlay = '<div class="card-loading-overlay"><div class="spinner-sm"></div><div class="load-text">抓取中...</div></div>';
+
+  // Sales status
+  var matchDate = match._matchDate;
+  var statusHtml = '', countdownHtml = '', expiredClass = '';
+  if (matchDate) {
+    var status = match._status || getSalesStatus(matchDate);
+    var sd = getStatusDisplay(status);
+    statusHtml = '<span class="status-badge '+sd[2]+'" data-mt="'+match.time+'">'+sd[0]+' '+sd[1]+'</span>';
+    var cdText = getCountdownText(matchDate);
+    var cdClass = getCountdownClass(matchDate);
+    countdownHtml = '<span class="'+cdClass+'" data-mt="'+match.time+'">'+cdText+'</span>';
+    if (status==='closed'||status==='started'||status==='finished') expiredClass = ' expired';
+  }
 
   if (!result) {
-    return `<div class="match-card" data-match-id="${matchId}">
-      ${loadingOverlay}
-      <div class="card-header-top">
-        <span class="match-id">${matchId}</span>
-        ${refreshBtn}${staleBadge}
-        <span class="league-tag ${getLeagueTag(match.league)}">${match.league || '未知'}</span>
-      </div>
-      <div class="teams">${match.home} vs ${match.away}</div>
-      <div class="time">${match.time || ''}</div>
-      <div class="empty-state" style="padding:16px 0">暂无预测数据</div>
-    </div>`;
+    return '<div class="match-card'+expiredClass+'" data-match-id="'+matchId+'">'+loadingOverlay+
+      '<div class="card-header-top"><span class="match-id">'+matchId+'</span>'+statusHtml+refreshBtn+staleBadge+
+      '<span class="league-tag '+getLeagueTag(match.league)+'">'+(match.league||'未知')+'</span></div>'+
+      '<div class="teams">'+match.home+' vs '+match.away+'</div>'+
+      '<div class="time">'+(match.time||'')+' '+countdownHtml+'</div>'+
+      '<div class="empty-state" style="padding:16px 0">暂无预测数据</div></div>';
   }
 
-  const { prediction, hitRate, confLevel, singlePick, singleRate, scenario, sampleCount, wdl } = result;
-  const pickClass = getPickClass(prediction);
-  const singleClass = singlePick ? getPickClass(singlePick) : '';
-  const isLow = confLevel === 'low';
+  var prediction=result.prediction, hitRate=result.hitRate, confLevel=result.confLevel;
+  var singlePick=result.singlePick, singleRate=result.singleRate, scenario=result.scenario;
+  var sampleCount=result.sampleCount, wdl=result.wdl;
+  var pickClass = getPickClass(prediction);
+  var singleClass = singlePick ? getPickClass(singlePick) : '';
+  var isLow = confLevel==='low';
+  var warningHtml = '';
+  if (isLow) warningHtml = '<div class="warning-note">⚠️ 样本仅 '+sampleCount+' 场，预测可信度低，建议回避单选。</div>';
 
-  let warningHtml = '';
-  if (isLow) {
-    warningHtml = `<div class="warning-note">⚠️ 样本仅 ${sampleCount} 场，预测可信度低，建议回避单选。</div>`;
-  }
-
-  return `<div class="match-card" data-match-id="${matchId}">
-    ${loadingOverlay}
-    <div class="card-header-top">
-      <span class="match-id">${matchId}</span>
-      ${refreshBtn}${staleBadge}
-      <span class="league-tag ${getLeagueTag(match.league)}">${match.league || '未知'}</span>
-      ${getConfLabel(confLevel)}
-    </div>
-    <div class="teams">${match.home} vs ${match.away}</div>
-    <div class="time">${match.time || ''}</div>
-    <div class="pred-row">
-      <div class="pred-box">
-        <div class="label">V6.7 双选</div>
-        <div class="value ${pickClass}">${prediction}</div>
-        <div class="sub">双选命中率 ${hitRate}%</div>
-      </div>
-      <div class="pred-box">
-        <div class="label">单选推荐</div>
-        <div class="value ${singleClass}" style="${!singlePick?'color:var(--text-muted)':''}">${singlePick || '—'}</div>
-        <div class="sub">${singlePick ? '单选命中率 '+singleRate+'%' : '样本不足'}</div>
-      </div>
-    </div>
-    <div class="stats-row">
-      <div class="stat"><span class="scenario-tag">${scenario}</span></div>
-      <div class="stat"><div class="num">${sampleCount}</div><div class="lbl">样本量</div></div>
-      <div class="stat"><div class="num">${wdl}</div><div class="lbl">胜/平/负</div></div>
-    </div>
-    ${warningHtml}
-  </div>`;
+  return '<div class="match-card'+expiredClass+'" data-match-id="'+matchId+'">'+loadingOverlay+
+    '<div class="card-header-top"><span class="match-id">'+matchId+'</span>'+statusHtml+refreshBtn+staleBadge+
+    '<span class="league-tag '+getLeagueTag(match.league)+'">'+(match.league||'未知')+'</span>'+getConfLabel(confLevel)+'</div>'+
+    '<div class="teams">'+match.home+' vs '+match.away+'</div>'+
+    '<div class="time">'+(match.time||'')+' '+countdownHtml+'</div>'+
+    '<div class="pred-row">'+
+      '<div class="pred-box"><div class="label">V6.7 双选</div><div class="value '+pickClass+'">'+prediction+'</div><div class="sub">双选命中率 '+hitRate+'%</div></div>'+
+      '<div class="pred-box"><div class="label">单选推荐</div><div class="value '+singleClass+'" style="'+(!singlePick?'color:var(--text-muted)':'')+'">'+(singlePick||'—')+'</div><div class="sub">'+(singlePick?'单选命中率 '+singleRate+'%':'样本不足')+'</div></div>'+
+    '</div>'+
+    '<div class="stats-row">'+
+      '<div class="stat"><span class="scenario-tag">'+scenario+'</span></div>'+
+      '<div class="stat"><div class="num">'+sampleCount+'</div><div class="lbl">样本量</div></div>'+
+      '<div class="stat"><div class="num">'+wdl+'</div><div class="lbl">胜/平/负</div></div>'+
+    '</div>'+
+    warningHtml+'</div>';
 }
 
-// Single match refresh via API
+// Single match refresh
 async function refreshMatch(btn, matchId) {
   btn.classList.add('loading');
-  const card = btn.closest('.match-card');
-  const overlay = card.querySelector('.card-loading-overlay');
+  var card = btn.closest('.match-card');
+  var overlay = card.querySelector('.card-loading-overlay');
   if (overlay) overlay.classList.add('show');
-
   try {
-    // Call single-match refresh API
-    const resp = await fetch(REFRESH_API + '?match_id=' + encodeURIComponent(matchId), {
-      method: 'POST',
-      headers: {'Content-Type': 'application/json'},
-    });
-
-    if (!resp.ok) throw new Error('API returned ' + resp.status);
-    const result = await resp.json();
-
-    if (result.status === 'ok' || result.status === 'queued') {
-      // Poll for completion (max 30s)
-      let done = false;
-      for (let i = 0; i < 10; i++) {
-        await new Promise(r => setTimeout(r, 3000));
-        // Check if data updated
-        _kellyFetchedAt = null; // force re-fetch
-        const freshData = await fetchKellyData();
+    var resp = await fetch(REFRESH_API+'?match_id='+encodeURIComponent(matchId), {method:'POST',headers:{'Content-Type':'application/json'}});
+    if (!resp.ok) throw new Error('API returned '+resp.status);
+    var rj = await resp.json();
+    if (rj.status==='ok'||rj.status==='queued') {
+      var done = false;
+      for (var i=0; i<10; i++) {
+        await new Promise(function(r){setTimeout(r,3000)});
+        _kellyFetchedAt = null;
+        var freshData = await fetchKellyData();
         if (freshData) {
-          const m = freshData.find(x => x.id === matchId);
+          var m = freshData.find(function(x){return x.id===matchId});
           if (m) {
-            const pred = classifyV6(m);
+            var pred = classifyV6(m);
             card.outerHTML = renderMatchCard(m, pred);
-            done = true;
-            break;
+            done = true; break;
           }
         }
       }
-      if (!done) {
-        // Timeout - remove loading overlay
-        if (overlay) overlay.classList.remove('show');
-        btn.classList.remove('loading');
-        console.log('Refresh timeout for', matchId);
-      }
-    } else {
-      throw new Error(result.error || 'Unknown error');
-    }
+      if (!done) { if(overlay) overlay.classList.remove('show'); btn.classList.remove('loading'); }
+    } else { throw new Error(rj.error||'Unknown error'); }
   } catch(e) {
     console.log('Refresh failed for', matchId, e);
     if (overlay) overlay.classList.remove('show');
     btn.classList.remove('loading');
-    // Fallback: retry full data load
     try {
-      _kellyCache = null; _kellyCacheDate = ''; _kellyFetchedAt = null;
-      const data = await fetchKellyData();
-      if (data) {
-        const m = data.find(x => x.id === matchId);
-        if (m) card.outerHTML = renderMatchCard(m, classifyV6(m));
-      }
+      _kellyCache=null; _kellyCacheDate=''; _kellyFetchedAt=null;
+      var data = await fetchKellyData();
+      if (data) { var m=data.find(function(x){return x.id===matchId}); if(m) card.outerHTML=renderMatchCard(m,classifyV6(m)); }
     } catch(e2) {}
   }
 }
 
 // ========== Share ==========
 function shareReport() {
-  const url = window.location.href;
-  const now = new Date();
-  const dateStr = `${now.getFullYear()}-${String(now.getMonth()+1).padStart(2,'0')}-${String(now.getDate()).padStart(2,'0')}`;
-  const text = `🏆 V6.7 Kelly竞彩预测 ${dateStr}\n基于36场景Kelly分类策略\n${url}`;
-
-  // Try Web Share API (mobile)
+  var url = window.location.href;
+  var now = new Date();
+  var dateStr = now.getFullYear()+'-'+String(now.getMonth()+1).padStart(2,'0')+'-'+String(now.getDate()).padStart(2,'0');
+  var text = '🏆 V6.7 Kelly竞彩预测 '+dateStr+'\n基于36场景Kelly分类策略\n'+url;
   if (navigator.share) {
-    navigator.share({
-      title: 'V6.7 Kelly竞彩预测报告',
-      text: text,
-      url: url,
-    }).catch(() => fallbackCopy(text));
-  } else {
-    fallbackCopy(text);
-  }
+    navigator.share({title:'V6.7 Kelly竞彩预测报告',text:text,url:url}).catch(function(){fallbackCopy(text)});
+  } else { fallbackCopy(text); }
 }
-
 function fallbackCopy(text) {
-  // Try clipboard API
   if (navigator.clipboard && navigator.clipboard.writeText) {
-    navigator.clipboard.writeText(text).then(() => showToast('✅ 已复制到剪贴板，可分享给好友')).catch(() => manualCopy(text));
-  } else {
-    manualCopy(text);
-  }
+    navigator.clipboard.writeText(text).then(function(){showToast('✅ 已复制到剪贴板，可分享给好友')}).catch(function(){manualCopy(text)});
+  } else { manualCopy(text); }
 }
-
 function manualCopy(text) {
-  const ta = document.createElement('textarea');
-  ta.value = text;
-  ta.style.cssText = 'position:fixed;left:-9999px';
-  document.body.appendChild(ta);
-  ta.select();
-  try {
-    document.execCommand('copy');
-    showToast('✅ 已复制到剪贴板，可分享给好友');
-  } catch(e) {
-    showToast('📋 请手动复制链接分享');
-  }
+  var ta = document.createElement('textarea');
+  ta.value = text; ta.style.cssText = 'position:fixed;left:-9999px';
+  document.body.appendChild(ta); ta.select();
+  try { document.execCommand('copy'); showToast('✅ 已复制到剪贴板，可分享给好友'); }
+  catch(e) { showToast('📋 请手动复制链接分享'); }
   document.body.removeChild(ta);
 }
-
 function showToast(msg) {
-  let toast = document.getElementById('share-toast');
-  if (!toast) {
-    toast = document.createElement('div');
-    toast.id = 'share-toast';
-    toast.className = 'share-toast';
-    document.body.appendChild(toast);
-  }
-  toast.textContent = msg;
-  toast.classList.add('show');
-  setTimeout(() => toast.classList.remove('show'), 2500);
+  var toast = document.getElementById('share-toast');
+  if (!toast) { toast=document.createElement('div'); toast.id='share-toast'; toast.className='share-toast'; document.body.appendChild(toast); }
+  toast.textContent = msg; toast.classList.add('show');
+  setTimeout(function(){toast.classList.remove('show')}, 2500);
 }
 
-// ========== Init with Realtime Check ==========
+// ========== Countdown Auto-Update ==========
+setInterval(function() {
+  // Update all countdown and status elements
+  document.querySelectorAll('[data-mt]').forEach(function(el) {
+    var mt = el.getAttribute('data-mt');
+    var d = parseMatchTime(mt);
+    if (!d) return;
+    if (el.classList.contains('status-badge') || el.classList.contains('status-on-sale') || el.classList.contains('status-closing') || el.classList.contains('status-closed') || el.classList.contains('status-finished')) {
+      var status = getSalesStatus(d);
+      var sd = getStatusDisplay(status);
+      el.className = 'status-badge ' + sd[2];
+      el.textContent = sd[0] + ' ' + sd[1];
+      // Update card opacity
+      var card = el.closest('.match-card');
+      if (card) {
+        if (status==='closed'||status==='started'||status==='finished') card.classList.add('expired');
+        else card.classList.remove('expired');
+      }
+    } else {
+      // countdown element
+      el.textContent = getCountdownText(d);
+      el.className = getCountdownClass(d);
+    }
+  });
+  // Also update stats bar if visible
+  if (_currentSelDate && _matchGroups[_currentCat]) {
+    var matches = _matchGroups[_currentCat][_currentSelDate] || [];
+    if (matches.length) updateStatsBar(_currentCat, _currentSelDate, matches);
+  }
+}, 30000);
+
+// ========== Init ==========
 async function init() {
-  // Update date
-  const now = new Date();
-  const weekDays = ['日','一','二','三','四','五','六'];
-  const dateStr = `${now.getFullYear()}-${String(now.getMonth()+1).padStart(2,'0')}-${String(now.getDate()).padStart(2,'0')} 周${weekDays[now.getDay()]}`;
+  var now = new Date();
+  var weekDays = ['日','一','二','三','四','五','六'];
+  var dateStr = now.getFullYear()+'-'+String(now.getMonth()+1).padStart(2,'0')+'-'+String(now.getDate()).padStart(2,'0')+' 周'+weekDays[now.getDay()];
   document.getElementById('meta-date').textContent = dateStr;
 
-  // Fetch Kelly data (with realtime detection)
-  const kellyData = await fetchKellyData();
-
-  // Update Kelly time with relative display
-  const ts = _dataTimestamp || _kellyFetchedAt;
+  var kellyData = await fetchKellyData();
+  var ts = _dataTimestamp || _kellyFetchedAt;
   if (ts) {
-    const relTime = formatRelativeTime(ts);
-    const absTime = new Date(ts).toLocaleTimeString('zh-CN', {hour:'2-digit',minute:'2-digit'});
-    const status = getDataStatus();
-    document.getElementById('meta-kelly-time').innerHTML =
-      `${absTime} (${relTime}) <span class="data-status"><span class="status-dot ${status.cls}"></span></span>`;
+    var relTime = formatRelativeTime(ts);
+    var absTime = new Date(ts).toLocaleTimeString('zh-CN',{hour:'2-digit',minute:'2-digit'});
+    var status = getDataStatus();
+    document.getElementById('meta-kelly-time').innerHTML = absTime+' ('+relTime+') <span class="data-status"><span class="status-dot '+status.cls+'"></span></span>';
   } else {
     document.getElementById('meta-kelly-time').textContent = '未获取';
   }
 
-  // Handle stale/non-realtime data: show warning, hide predictions
-  const stale = isDataStale();
+  var stale = isDataStale();
   if (stale || !_isRealtime) {
-    const banner = document.getElementById('realtime-banner');
+    var banner = document.getElementById('realtime-banner');
     banner.classList.add('show');
     if (!_isRealtime) {
       document.getElementById('banner-msg').textContent = '未获得实时数据，当前为历史数据';
@@ -1005,79 +1172,46 @@ async function init() {
     return;
   }
 
-  // Classify all matches
-  const jcMatches = [];
-  const bdMatches = [];
-
-  for (const match of kellyData) {
-    const result = classifyV6(match);
-    match._result = result;
-    if (match.is_jingcai || (match.id && /周五|周六|周日|周一|周二|周三|周四/.test(match.id))) {
-      jcMatches.push(match);
-    } else {
-      bdMatches.push(match);
-    }
+  // Classify & enrich
+  for (var i=0; i<kellyData.length; i++) {
+    kellyData[i]._result = classifyV6(kellyData[i]);
   }
 
-  // Render 竞彩
-  document.getElementById('meta-jc-count').textContent = jcMatches.length + ' 场';
-  document.getElementById('jc-count').textContent = `(${jcMatches.length} 场)`;
+  // Enrich with dates and group
+  var enriched = enrichMatches(kellyData);
+  buildMatchGroups(enriched);
 
-  if (jcMatches.length === 0) {
-    document.getElementById('jc-grid').innerHTML = '<div class="empty-state">📭 今日暂无竞彩赛事</div>';
+  var jcAll = _matchGroupsAll.jc;
+  var bdAll = _matchGroupsAll.bd;
+
+  // Update tab counts
+  document.getElementById('meta-jc-count').textContent = jcAll.length + ' 场';
+  document.getElementById('jc-count').textContent = '(' + jcAll.length + ' 场)';
+  document.getElementById('bd-count').textContent = '(' + bdAll.length + ' 场)';
+
+  // Render date selectors
+  renderDateSelector('jc');
+  if (bdAll.length > 0) {
+    renderDateSelector('bd');
   } else {
-    document.getElementById('jc-grid').innerHTML = jcMatches.map((m, i) => renderMatchCard(m, m._result, i)).join('');
+    document.getElementById('bd-date-selector').innerHTML = '<div style="color:var(--text-muted);font-size:.85rem;padding:8px">暂无北单赛事</div>';
+    document.getElementById('bd-grid').innerHTML = '<div class="empty-state">📭 暂无北京单场赛事</div>';
   }
 
-  // Render 北单
-  if (bdMatches.length > 0) {
-    document.getElementById('bd-title').style.display = 'flex';
-    document.getElementById('bd-count').textContent = `(${bdMatches.length} 场)`;
-    document.getElementById('bd-grid').innerHTML = bdMatches.map((m, i) => renderMatchCard(m, m._result, i)).join('');
-  }
-
-  // Summary tables - split by tab
-  function renderSummaryTable(matches, sectionId, adviceSectionId) {
-    const withResult = matches.filter(m => m._result);
-    if (withResult.length === 0) return;
-    document.getElementById(sectionId).style.display = 'block';
-    const tbodyId = sectionId === 'summary-jc-section' ? 'summary-jc-body' : 'summary-bd-body';
-    document.getElementById(tbodyId).innerHTML = withResult.map(m => {
-      const r = m._result;
-      return `<tr><td>${m.id}</td><td>${m.home} vs ${m.away}</td><td><span class="scenario-tag">${r.scenario}</span></td><td class="${getPickClass(r.prediction)}">${r.prediction}</td><td>${r.hitRate}%</td><td class="${getPickClass(r.singlePick)}">${r.singlePick||'—'}</td><td>${r.singlePick?r.singleRate+'%':'—'}</td><td>${r.sampleCount}</td><td>${getConfText(r.confLevel)}</td></tr>`;
-    }).join('');
-    // Advice
-    document.getElementById(adviceSectionId).style.display = 'grid';
-    const prefix = adviceSectionId === 'advice-jc-section' ? 'jc' : 'bd';
-    const singleList=[], doubleList=[], skipList=[];
-    withResult.forEach(m => {
-      const r = m._result;
-      if (r.confLevel==='high' && r.hitRate>=80 && r.singlePick) singleList.push(`<li><strong>${m.id}</strong> ${m.home} vs ${m.away}<br>单选 ${r.singlePick} 命中率 ${r.singleRate}%</li>`);
-      else if (r.confLevel==='low' || r.hitRate<70) skipList.push(`<li><strong>${m.id}</strong> ${m.home} vs ${m.away}<br>场景 ${r.scenario} · 样本 ${r.sampleCount}</li>`);
-      else doubleList.push(`<li><strong>${m.id}</strong> ${m.home} vs ${m.away}<br>双选 ${r.prediction} 命中率 ${r.hitRate}%</li>`);
-    });
-    document.getElementById(`advice-${prefix}-single`).innerHTML = singleList.length ? singleList.join('') : '<li class="empty">无推荐场次</li>';
-    document.getElementById(`advice-${prefix}-double`).innerHTML = doubleList.length ? doubleList.join('') : '<li class="empty">无推荐场次</li>';
-    document.getElementById(`advice-${prefix}-skip`).innerHTML = skipList.length ? skipList.join('') : '<li class="empty">无回避场次</li>';
-  }
-  renderSummaryTable(jcMatches, 'summary-jc-section', 'advice-jc-section');
-  renderSummaryTable(bdMatches, 'summary-bd-section', 'advice-bd-section');
-
-  // Auto-refresh relative time display every minute
-  setInterval(() => {
+  // Auto-refresh relative time
+  setInterval(function() {
     if (ts) {
-      const relTime = formatRelativeTime(ts);
-      const status = getDataStatus();
-      const el = document.getElementById('meta-kelly-time');
+      var relTime = formatRelativeTime(ts);
+      var status = getDataStatus();
+      var el = document.getElementById('meta-kelly-time');
       if (el) {
-        const absTime = new Date(ts).toLocaleTimeString('zh-CN', {hour:'2-digit',minute:'2-digit'});
-        el.innerHTML = `${absTime} (${relTime}) <span class="data-status"><span class="status-dot ${status.cls}"></span></span>`;
+        var absTime = new Date(ts).toLocaleTimeString('zh-CN',{hour:'2-digit',minute:'2-digit'});
+        el.innerHTML = absTime+' ('+relTime+') <span class="data-status"><span class="status-dot '+status.cls+'"></span></span>';
       }
     }
   }, 60000);
 }
 
-// Init on load
 init();
 </script>
 </body>
