@@ -152,6 +152,9 @@ header .meta .val{color:var(--text);font-weight:600;margin-left:4px}
 /* ========== Expired Card ========== */
 .match-card.expired{opacity:1}
 .match-card.expired:hover{opacity:1;transform:translateY(-2px);box-shadow:0 8px 32px rgba(124,92,255,.2)}
+.match-card.frog-jump-card{border:1.5px solid rgba(255,180,50,.5);background:linear-gradient(135deg,rgba(255,180,50,.08),rgba(124,92,255,.12))}
+.match-card.frog-jump-card:hover{border-color:rgba(255,180,50,.7);box-shadow:0 8px 32px rgba(255,180,50,.25)}
+.frog-tag{background:linear-gradient(135deg,#f5a623,#ff8c00)!important;color:#fff!important}
 
 /* Section Title */
 .section-title{
@@ -947,6 +950,26 @@ function classifyV6(match) {
     }
   }
   if (state365==='X' || stateW==='X') return null;
+
+  // 蛙跳盘检测（基于澳门亚盘让球盘初盘→终盘跳级≥0.5，最高优先级）
+  if (match.macau_ah) {
+    var ah = match.macau_ah;
+    var diff = Math.abs(ah.latest - ah.init);
+    if (diff >= 0.5) {
+      var frogDir = Math.abs(ah.latest) > Math.abs(ah.init) ? 'up' : 'down';
+      var frogPred = frogDir === 'up' ? '上盘' : '下盘';
+      return {
+        scenario: '蛙跳', subGroup: '蛙跳',
+        state365: state365, stateW: stateW,
+        prediction: frogPred, hitRate: 100, confLevel: 'high',
+        singlePick: frogPred, singleRate: 0, singleTied: false,
+        isHomeStrong: isHomeStrong, sampleCount: 0, wdl: '0/0/0',
+        isFrogJump: true, frogDirection: frogDir,
+        frogDetail: ah.initStr + '→' + ah.latestStr
+      };
+    }
+  }
+
   var scenarioKey = state365+','+stateW;
   var subGroupKey = state365 + stateW + (isHomeStrong ? '主' : '客');
   var prediction, hitRate, sampleCount, wdl;
@@ -1064,6 +1087,7 @@ function convertZgzcwKelly(data) {
     var ck = Object.keys(companies);
     var bet365_kelly=null, weide_kelly=null, bet365_payout=0.93, weide_payout=0.93;
     var odds_365 = null;
+    var macau_ah = null;
     for (var j=0; j<ck.length; j++) {
       var c = companies[ck[j]];
       if (ck[j]==='bet365' || (c.name && c.name.includes('365'))) {
@@ -1074,6 +1098,10 @@ function convertZgzcwKelly(data) {
       if (ck[j]==='weide' || (c.name && (c.name.includes('伟德') || c.name.includes('weide')))) {
         weide_kelly = {h:c.kelly[0], d:c.kelly[1], a:c.kelly[2]};
         weide_payout = c.payout || 0.93;
+      }
+      if (ck[j]==='macau' && c.initial_handicap_val!=null && c.latest_handicap_val!=null) {
+        macau_ah = {init:c.initial_handicap_val, latest:c.latest_handicap_val,
+                    initStr:c.initial_handicap_str||'', latestStr:c.latest_handicap_str||''};
       }
     }
     result.push({
@@ -1086,6 +1114,7 @@ function convertZgzcwKelly(data) {
       is_jingcai: !!(m.jingcai_id),
       bet365_kelly:bet365_kelly, weide_kelly:weide_kelly,
       bet365_payout:bet365_payout, weide_payout:weide_payout, odds_365:odds_365,
+      macau_ah: macau_ah,
     });
   }
   return result;
@@ -1213,6 +1242,8 @@ function getConfText(level) {
 
 function getPickClass(val) {
   if (!val || val==='—') return '';
+  if (val==='上盘') return 'pick-win';
+  if (val==='下盘') return 'pick-loss';
   if (val.includes('胜') && !val.includes('负') && !val.includes('平')) return 'pick-win';
   if (val.includes('平')) return 'pick-draw';
   if (val.includes('负') && !val.includes('胜')) return 'pick-loss';
@@ -1260,20 +1291,28 @@ function renderMatchCard(match, result, idx) {
   if (isLow) warningHtml = '<div class="warning-note">⚠️ 样本仅 '+sampleCount+' 场，预测可信度低，建议回避单选。</div>';
   if (singleTied) warningHtml += '<div class="warning-note">⚖️ 单选方向并列（各'+singleRate+'%），无统计优势，建议走双选。</div>';
 
-  return '<div class="match-card'+expiredClass+'" data-match-id="'+matchId+'">'+loadingOverlay+
+  // 蛙跳盘特殊渲染
+  var isFrog = result.isFrogJump;
+  var predRowHtml = isFrog
+    ? '<div class="pred-box" style="flex:1"><div class="label">🐸 澳门蛙跳盘</div><div class="value '+pickClass+'" style="font-size:1.6rem">'+prediction+'</div><div class="sub">澳门亚盘 '+result.frogDetail+'</div></div>'
+    : '<div class="pred-box"><div class="label">V6.7 双选</div><div class="value '+pickClass+'">'+prediction+'</div><div class="sub">双选命中率 '+hitRate+'%</div></div>'+
+      '<div class="pred-box"><div class="label">单选推荐</div><div class="value '+singleClass+'" style="'+(singleTied?'color:var(--text-muted);font-size:1.05rem;':(!singlePick?'color:var(--text-muted);':''))+'">'+(singlePick||'—')+'</div><div class="sub">'+(singlePick?'单选命中率 '+singleRate+'%':'样本不足')+'</div></div>';
+
+  var statsRowHtml = isFrog
+    ? '<div class="stat"><span class="scenario-tag frog-tag">蛙跳盘</span></div>'+
+      '<div class="stat"><div class="num">'+(result.frogDirection==='up'?'上盘跳':'下盘跳')+'</div><div class="lbl">跳盘方向</div></div>'+
+      '<div class="stat"><div class="num" style="font-size:0.85rem">'+result.frogDetail+'</div><div class="lbl">盘口变化</div></div>'
+    : '<div class="stat"><span class="scenario-tag">'+scenario+'</span></div>'+
+      '<div class="stat"><div class="num">'+sampleCount+'</div><div class="lbl">样本量</div></div>'+
+      '<div class="stat"><div class="num">'+wdl+'</div><div class="lbl">胜/平/负</div></div>';
+
+  return '<div class="match-card'+expiredClass+(isFrog?' frog-jump-card':'')+'" data-match-id="'+matchId+'">'+loadingOverlay+
     '<div class="card-header-top"><span class="match-id">'+matchId+'</span>'+statusHtml+refreshBtn+staleBadge+
     '<span class="league-tag '+getLeagueTag(match.league)+'">'+(match.league||'未知')+'</span>'+getConfLabel(confLevel)+'</div>'+
     '<div class="teams">'+match.home+' vs '+match.away+'</div>'+
     '<div class="time">'+(match.time||'')+' '+countdownHtml+'</div>'+
-    '<div class="pred-row">'+
-      '<div class="pred-box"><div class="label">V6.7 双选</div><div class="value '+pickClass+'">'+prediction+'</div><div class="sub">双选命中率 '+hitRate+'%</div></div>'+
-      '<div class="pred-box"><div class="label">单选推荐</div><div class="value '+singleClass+'" style="'+(singleTied?'color:var(--text-muted);font-size:1.05rem;':(!singlePick?'color:var(--text-muted);':''))+'">'+(singlePick||'—')+'</div><div class="sub">'+(singlePick?'单选命中率 '+singleRate+'%':'样本不足')+'</div></div>'+
-    '</div>'+
-    '<div class="stats-row">'+
-      '<div class="stat"><span class="scenario-tag">'+scenario+'</span></div>'+
-      '<div class="stat"><div class="num">'+sampleCount+'</div><div class="lbl">样本量</div></div>'+
-      '<div class="stat"><div class="num">'+wdl+'</div><div class="lbl">胜/平/负</div></div>'+
-    '</div>'+
+    '<div class="pred-row">'+predRowHtml+'</div>'+
+    '<div class="stats-row">'+statsRowHtml+'</div>'+
     warningHtml+'</div>';
 }
 
