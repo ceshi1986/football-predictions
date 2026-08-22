@@ -155,6 +155,15 @@ header .meta .val{color:var(--text);font-weight:600;margin-left:4px}
 .match-card.frog-jump-card{border:1.5px solid rgba(255,180,50,.5);background:linear-gradient(135deg,rgba(255,180,50,.08),rgba(124,92,255,.12))}
 .match-card.frog-jump-card:hover{border-color:rgba(255,180,50,.7);box-shadow:0 8px 32px rgba(255,180,50,.25)}
 .frog-tag{background:linear-gradient(135deg,#f5a623,#ff8c00)!important;color:#fff!important}
+/* 赛后命中标注 */
+.match-card.hit-card{border-color:rgba(52,199,89,.5)!important;background:linear-gradient(135deg,rgba(52,199,89,.06),rgba(124,92,255,.08))!important}
+.match-card.miss-card{border-color:rgba(255,59,48,.4)!important;background:linear-gradient(135deg,rgba(255,59,48,.05),rgba(124,92,255,.06))!important}
+.result-badge{display:inline-flex;align-items:center;gap:4px;font-size:.72rem;font-weight:700;padding:3px 8px;border-radius:5px;margin-left:6px}
+.result-hit{background:rgba(52,199,89,.15);color:#34c759}
+.result-miss{background:rgba(255,59,48,.12);color:#ff3b30}
+.result-score{font-size:.85rem;font-weight:700;padding:2px 8px;border-radius:4px;margin-left:6px;background:var(--glass-bg)}
+.result-row{display:flex;align-items:center;gap:6px;margin-top:8px;padding-top:8px;border-top:1px dashed var(--glass-border);font-size:.78rem;flex-wrap:wrap}
+.result-row .result-label{color:var(--text-muted)}
 
 /* Section Title */
 .section-title{
@@ -342,6 +351,7 @@ footer{text-align:center;padding:32px 20px 16px;color:var(--text-muted);font-siz
     <span>策略版本 <span class="val">V6.8</span></span>
     <span>竞彩场次 <span class="val" id="meta-jc-count">--</span></span>
     <span>Kelly数据 <span class="val" id="meta-kelly-time">--</span></span>
+    <span id="meta-hit-info" style="display:none;font-size:.78rem;color:var(--text-muted)"></span>
   </div>
 </header>
 
@@ -489,6 +499,8 @@ let _v67Table = null; // {AA主:{total,double_hit_rate,...}, ...}
 const _V67_DECODE = {"s0234fd15":"CC客","s03416d0b":"YC主","s03f70d22":"ZZ主","s05eb1cd7":"BC主","s076ea715":"ZB主","s09b46e96":"CA客","s0abadbad":"BC客","s198468c3":"CW主","s19b12541":"AC主","s1b9620ef":"ZW客","s1d742a28":"ZC主","s1e04e446":"BW客","s1eea3bde":"BY主","s21135d47":"WY主","s2466b0b7":"BY客","s282a25d1":"WB客","s28d151e4":"AZ客","s2eb11040":"CC主","s2ee6db88":"YW客","s39245e48":"YC客","s40c4f03e":"WA客","s413a8be2":"WC主","s45265029":"ZZ客","s489d5c6a":"WY客","s4a840c91":"AY主","s51078a29":"AY客","s54b059e5":"YY客","s571e1e0c":"YB客","s5844311d":"CY客","s5c95f94e":"ZA客","s63d35233":"ZB客","s65dc1077":"AZ主","s6af42002":"YZ客","s70598ba6":"WC客","s75974f91":"CA主","s7628c405":"WW客","s79b2083e":"WW主","s7a516847":"YB主","s8151a3ff":"WA主","s81cdcae1":"YA客","s83c0a91f":"AA客","s84f3391d":"ZY客","s8e87eb67":"WB主","s93935eaf":"BZ主","s93d322d7":"WZ主","s99df0746":"BZ客","s9e2ca202":"AW主","sa37679ac":"AB客","sa47407e9":"AW客","sa76594ff":"CW客","sadae9be4":"YZ主","saf4e47aa":"CB主","sbbb8515d":"CB客","sbf7c03d1":"BB主","sc2d36846":"YA主","sc501bf18":"YY主","sca05bb88":"CZ客","scede9ec0":"AB主","scf742e24":"WZ客","sd14af110":"DC主","sd6a716c8":"ZA主","sd739f6ab":"ZW主","sdab83ab7":"BA主","sdad63269":"CZ主","sdd379dee":"BA客","se368ef78":"YW主","se7b51e3b":"BB客","se7e92adc":"ZY主","sed655842":"ZC客","sf22f30c3":"AC客","sf68dc83f":"CY主","sfa4a2464":"BW主","sfaec895d":"AA主"};
 let _frogTrack = null; // {total, up_total, up_hit, down_total, down_hit, hit_rate, records}
 let _lockedPreds = null; // {matchId: {locked_at, companies: {...}}}
+let _matchResults = null;
+let _hitStats = {total: 0, hits: 0, rate: 0};
 const V67_URL = 'v67_subgroup_stats_obf.json';
 
 async function loadV67Table() {
@@ -554,6 +566,45 @@ function applyLockedPrediction(match) {
   match._locked = true;
   match._lockedAt = lock.locked_at;
   return match;
+}
+
+async function loadMatchResults(dateKey) {
+  if (_matchResults) return _matchResults;
+  _matchResults = {};
+  try {
+    var r = await fetch('data/500com_daily/'+dateKey+'/match_results.json?t='+Date.now(), {cache:'no-cache'});
+    if (r.ok) { var d = await r.json(); if (d.results) Object.assign(_matchResults, d.results); }
+  } catch(e) {}
+  try {
+    var y = new Date(); y.setDate(y.getDate()-1);
+    var yk = y.getFullYear()+String(y.getMonth()+1).padStart(2,'0')+String(y.getDate()).padStart(2,'0');
+    if (yk !== dateKey) {
+      var r2 = await fetch('data/500com_daily/'+yk+'/match_results.json?t='+Date.now(), {cache:'no-cache'});
+      if (r2.ok) { var d2 = await r2.json(); if (d2.results) Object.assign(_matchResults, d2.results); }
+    }
+  } catch(e) {}
+  var total=0, hits=0;
+  for (var k in _matchResults) {
+    var v = _matchResults[k];
+    if (v.prediction && v.hit !== null && v.hit !== undefined) { total++; if (v.hit) hits++; }
+  }
+  _hitStats = {total:total, hits:hits, rate: total>0 ? Math.round(hits/total*100) : 0};
+  console.log('Match results: '+total+' matches, '+hits+' hits ('+_hitStats.rate+'%)');
+  return _matchResults;
+}
+
+function getMatchResult(match) {
+  if (!_matchResults || !match) return null;
+  var h = (match.home||'').trim(), a = (match.away||'').trim();
+  if (_matchResults[h+'|'+a]) return _matchResults[h+'|'+a];
+  for (var k in _matchResults) {
+    var parts = k.split('|');
+    if (parts.length === 2) {
+      var ph = parts[0].trim(), pa = parts[1].trim();
+      if ((ph === h && pa === a) || (ph === a && pa === h)) return _matchResults[k];
+    }
+  }
+  return null;
 }
 
 function updateHeaderStats() {
@@ -1412,6 +1463,21 @@ function renderMatchCard(match, result, idx) {
       '<div class="pred-box"><div class="label">单选推荐</div><div class="value '+singleClass+'" style="'+(singleTied?'color:var(--text-muted);font-size:1.05rem;':(!singlePick?'color:var(--text-muted);':''))+'">'+(singlePick||'—')+'</div><div class="sub">'+(singlePick?'单选命中率 '+singleRate+'%':'样本不足')+'</div></div>';
   }
 
+  var matchResult = getMatchResult(match);
+  var resultHtml = '';
+  var cardExtraClass = '';
+  if (matchResult && matchResult.score_h !== null && matchResult.score_h !== undefined) {
+    var hitBadge = matchResult.hit
+      ? '<span class="result-badge result-hit">✅ 命中</span>'
+      : '<span class="result-badge result-miss">❌ 未中</span>';
+    cardExtraClass = matchResult.hit ? ' hit-card' : ' miss-card';
+    resultHtml = '<div class="result-row"><span class="result-label">赛果:</span>'+
+      '<span class="result-score">'+matchResult.score_h+'-'+matchResult.score_a+'</span>'+
+      '<span class="result-label">'+matchResult.result+'</span>'+hitBadge+
+      (matchResult.subgroup?'<span class="result-label" style="margin-left:auto">'+matchResult.subgroup+'</span>':(matchResult.scenario?'<span class="result-label" style="margin-left:auto">'+matchResult.scenario+'</span>':''))+
+      '</div>';
+  }
+
   var statsRowHtml = isFrog
     ? '<div class="stat"><span class="scenario-tag frog-tag">蛙跳盘</span></div>'+
       '<div class="stat"><div class="num">'+(result.frogDirection==='up'?'上盘跳':'下盘跳')+'</div><div class="lbl">跳盘方向</div></div>'+
@@ -1420,13 +1486,14 @@ function renderMatchCard(match, result, idx) {
       '<div class="stat"><div class="num">'+sampleCount+'</div><div class="lbl">样本量</div></div>'+
       '<div class="stat"><div class="num">'+wdl+'</div><div class="lbl">胜/平/负</div></div>';
 
-  return '<div class="match-card'+expiredClass+(isFrog?' frog-jump-card':'')+'" data-match-id="'+matchId+'">'+loadingOverlay+
+  return '<div class="match-card'+expiredClass+(isFrog?' frog-jump-card':'')+cardExtraClass+'" data-match-id="'+matchId+'">'+loadingOverlay+
     '<div class="card-header-top"><span class="match-id">'+matchId+'</span>'+statusHtml+refreshBtn+staleBadge+lockedBadge+
     '<span class="league-tag '+getLeagueTag(match.league)+'">'+(match.league||'未知')+'</span>'+getConfLabel(confLevel)+'</div>'+
     '<div class="teams">'+match.home+' vs '+match.away+'</div>'+
     '<div class="time">'+(match.time||'')+' '+countdownHtml+'</div>'+
     '<div class="pred-row">'+predRowHtml+'</div>'+
     '<div class="stats-row">'+statsRowHtml+'</div>'+
+    resultHtml+
     warningHtml+'</div>';
 }
 
@@ -1602,6 +1669,7 @@ async function init() {
   var nowDk = new Date();
   var todayKey = nowDk.getFullYear()+String(nowDk.getMonth()+1).padStart(2,'0')+String(nowDk.getDate()).padStart(2,'0');
   await loadLockedPreds(todayKey);
+  await loadMatchResults(todayKey);
 
   // Classify & enrich（先应用锁定再分类，保证锁定场次预测不变）
   for (var i=0; i<kellyData.length; i++) {
@@ -1618,6 +1686,10 @@ async function init() {
 
   // Update tab counts
   document.getElementById('meta-jc-count').textContent = jcAll.length + ' 场';
+  if (_hitStats.total > 0) {
+    var hi = document.getElementById('meta-hit-info');
+    if (hi) { hi.innerHTML = '已完赛 <strong>'+_hitStats.hits+'/'+_hitStats.total+'</strong> 场，命中率 <strong>'+_hitStats.rate+'%</strong>'; hi.style.display=''; }
+  }
   document.getElementById('jc-count').textContent = '(' + jcAll.length + ' 场)';
   document.getElementById('bd-count').textContent = '(' + bdAll.length + ' 场)';
 
