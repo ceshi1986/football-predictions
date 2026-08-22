@@ -208,9 +208,10 @@
       ],
       "direction_rule": {
         "formula": "latest_handicap_val * (latest_handicap_val - initial_handicap_val) > 0 → 上盘，否则下盘",
-        "principle": "盘口移动方向与终盘让球方一致，说明资金涌向让球方→上盘；不一致说明资金涌向受让方→下盘。翻转场景（盘口过0）无论往哪边翻都是上盘，因为新让球方即资金涌入方。",
-        "up": "latest*(latest-init) > 0 → 上盘（终盘让球方被资金看好）",
-        "down": "latest*(latest-init) <= 0 → 下盘（资金涌向受让方）"
+        "edge_case_zero": "终盘为平手(0)时乘积为0，按移动方向判断：初盘<0（受让→平手）→上盘，初盘>0（让球→平手）→下盘",
+        "principle": "盘口移动方向与终盘让球方一致，资金涌向让球方→上盘；不一致资金涌向受让方→下盘。翻转过0场景无论往哪边翻都是上盘。",
+        "up": "latest*(latest-init) > 0 → 上盘；或latest=0且init<0 → 上盘",
+        "down": "latest*(latest-init) <= 0 → 下盘；或latest=0且init>0 → 下盘"
       },
       "examples": [
         {
@@ -228,6 +229,22 @@
           "calc": "0.5*(0.5-1.0)=-0.25≤0",
           "recommend": "下盘",
           "note": "主队让球变浅，主队不被看好"
+        },
+        {
+          "from": "受让半球(-0.5)",
+          "to": "平手(0)",
+          "abs_diff": 0.5,
+          "calc": "终盘0，初盘<0 → 上盘",
+          "recommend": "上盘",
+          "note": "客队让半球退到平手，客队让不起，资金涌向主队"
+        },
+        {
+          "from": "让半球(0.5)",
+          "to": "平手(0)",
+          "abs_diff": 0.5,
+          "calc": "终盘0，初盘>0 → 下盘",
+          "recommend": "下盘",
+          "note": "主队让半球退到平手，主队让不起，资金涌向客队"
         },
         {
           "from": "受让半球(-0.5)",
