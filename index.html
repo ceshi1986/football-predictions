@@ -444,17 +444,24 @@ const V6_STATE_MAP = {
 };
 
 // ========== V6.7 Strategy (67 subgroups with home/away split) ==========
-let _v67Table = null; // {AA主:{pred,count,wdl,hitRate}, ...}
+let _v67Table = null; // {AA主:{total,double_hit_rate,...}, ...}
+const _V67_DECODE = {"s0234fd15":"CC客","s03416d0b":"YC主","s03f70d22":"ZZ主","s05eb1cd7":"BC主","s076ea715":"ZB主","s09b46e96":"CA客","s0abadbad":"BC客","s198468c3":"CW主","s19b12541":"AC主","s1b9620ef":"ZW客","s1d742a28":"ZC主","s1e04e446":"BW客","s1eea3bde":"BY主","s21135d47":"WY主","s2466b0b7":"BY客","s282a25d1":"WB客","s28d151e4":"AZ客","s2eb11040":"CC主","s2ee6db88":"YW客","s39245e48":"YC客","s40c4f03e":"WA客","s413a8be2":"WC主","s45265029":"ZZ客","s489d5c6a":"WY客","s4a840c91":"AY主","s51078a29":"AY客","s54b059e5":"YY客","s571e1e0c":"YB客","s5844311d":"CY客","s5c95f94e":"ZA客","s63d35233":"ZB客","s65dc1077":"AZ主","s6af42002":"YZ客","s70598ba6":"WC客","s75974f91":"CA主","s7628c405":"WW客","s79b2083e":"WW主","s7a516847":"YB主","s8151a3ff":"WA主","s81cdcae1":"YA客","s83c0a91f":"AA客","s84f3391d":"ZY客","s8e87eb67":"WB主","s93935eaf":"BZ主","s93d322d7":"WZ主","s99df0746":"BZ客","s9e2ca202":"AW主","sa37679ac":"AB客","sa47407e9":"AW客","sa76594ff":"CW客","sadae9be4":"YZ主","saf4e47aa":"CB主","sbbb8515d":"CB客","sbf7c03d1":"BB主","sc2d36846":"YA主","sc501bf18":"YY主","sca05bb88":"CZ客","scede9ec0":"AB主","scf742e24":"WZ客","sd14af110":"DC主","sd6a716c8":"ZA主","sd739f6ab":"ZW主","sdab83ab7":"BA主","sdad63269":"CZ主","sdd379dee":"BA客","se368ef78":"YW主","se7b51e3b":"BB客","se7e92adc":"ZY主","sed655842":"ZC客","sf22f30c3":"AC客","sf68dc83f":"CY主","sfa4a2464":"BW主","sfaec895d":"AA主"};
 let _frogTrack = null; // {total, up_total, up_hit, down_total, down_hit, hit_rate, records}
 let _lockedPreds = null; // {matchId: {locked_at, companies: {...}}}
-const V67_URL = 'v67_subgroup_stats.json';
+const V67_URL = 'v67_subgroup_stats_obf.json';
 
 async function loadV67Table() {
   if (_v67Table) return _v67Table;
   try {
     var r = await fetch(V67_URL + '?t=' + Date.now(), {cache: 'no-cache'});
     if (!r.ok) return null;
-    _v67Table = await r.json();
+    var raw = await r.json();
+    // 解码混淆key → 原始子组名
+    _v67Table = {};
+    Object.keys(raw).forEach(function(k){
+      var origKey = _V67_DECODE[k] || k;
+      _v67Table[origKey] = raw[k];
+    });
     // 动态更新头部统计数字（避免硬编码失真）
     updateHeaderStats();
     return _v67Table;
