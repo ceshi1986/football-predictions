@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>V6.7 Kelly 竞彩预测报告</title>
+<title>V6.8 Kelly 竞彩预测报告</title>
 <style>
 *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
 :root{
@@ -335,11 +335,11 @@ footer{text-align:center;padding:32px 20px 16px;color:var(--text-muted);font-siz
 <div class="container">
 
 <header>
-  <h1>V6.7 Kelly 竞彩预测报告</h1>
-  <p class="subtitle">基于 <span id="stat-sample">—</span> 场回测数据 · <span id="stat-subgroups">—</span> 个主客子组 · V6.7 策略表</p>
+  <h1>V6.8 Kelly 竞彩预测报告</h1>
+  <p class="subtitle">基于 <span id="stat-sample">—</span> 场回测数据 · <span id="stat-subgroups">—</span> 个主客子组 · V6.8 策略表</p>
   <div class="meta">
     <span>日期 <span class="val" id="meta-date">--</span></span>
-    <span>策略版本 <span class="val">V6.7</span></span>
+    <span>策略版本 <span class="val">V6.8</span></span>
     <span>竞彩场次 <span class="val" id="meta-jc-count">--</span></span>
     <span>Kelly数据 <span class="val" id="meta-kelly-time">--</span></span>
   </div>
@@ -352,8 +352,8 @@ footer{text-align:center;padding:32px 20px 16px;color:var(--text-muted);font-siz
 </div>
 
 <div class="strategy-banner">
-  <span class="badge">V6.7 策略</span>
-  <p>基于 <strong><span id="stat-sample2">—</span> 场回测</strong>优化 <span id="stat-subgroups2">—</span> 个主客子组，整体双选命中率 <strong><span id="stat-hitrate">—</span></strong>。本场次预测使用最新 V6.7 策略表，结合实时 Kelly 数据按主/客子组分类场景。</p>
+  <span class="badge">V6.8 策略</span>
+  <p>基于 <strong><span id="stat-sample2">—</span> 场回测</strong>优化 <span id="stat-subgroups2">—</span> 个主客子组，整体双选命中率 <strong><span id="stat-hitrate">—</span></strong>。本场次预测使用最新 V6.8 策略表，结合实时 Kelly 数据按主/客子组分类场景。</p>
 </div>
 
 <div class="legend">
@@ -382,7 +382,7 @@ footer{text-align:center;padding:32px 20px 16px;color:var(--text-muted);font-siz
     <h2>📊 竞彩预测总览</h2>
     <div class="table-wrap">
       <table class="summary-table">
-        <thead><tr><th>编号</th><th>对阵</th><th>场景</th><th>V6.7双选</th><th>双选命中率</th><th>单选</th><th>单选命中率</th><th>样本</th><th>置信</th></tr></thead>
+        <thead><tr><th>编号</th><th>对阵</th><th>场景</th><th>V6.8双选</th><th>双选命中率</th><th>单选</th><th>单选命中率</th><th>样本</th><th>置信</th></tr></thead>
         <tbody id="summary-jc-body"></tbody>
       </table>
     </div>
@@ -405,7 +405,7 @@ footer{text-align:center;padding:32px 20px 16px;color:var(--text-muted);font-siz
     <h2>📊 北单预测总览</h2>
     <div class="table-wrap">
       <table class="summary-table">
-        <thead><tr><th>编号</th><th>对阵</th><th>场景</th><th>V6.7双选</th><th>双选命中率</th><th>单选</th><th>单选命中率</th><th>样本</th><th>置信</th></tr></thead>
+        <thead><tr><th>编号</th><th>对阵</th><th>场景</th><th>V6.8双选</th><th>双选命中率</th><th>单选</th><th>单选命中率</th><th>样本</th><th>置信</th></tr></thead>
         <tbody id="summary-bd-body"></tbody>
       </table>
     </div>
@@ -424,13 +424,54 @@ footer{text-align:center;padding:32px 20px 16px;color:var(--text-muted);font-siz
 </div>
 
 <footer>
-  <p>数据来源：500com / zgzcw Kelly 指数 · 策略版本 V6.7</p>
+  <p>数据来源：500com / zgzcw Kelly 指数 · 策略版本 V6.8</p>
   <p style="margin-top:6px">⚠️ 本报告仅供娱乐参考，不构成任何投注建议。请理性对待，切勿沉迷。</p>
 </footer>
 
 </div>
 
 <script>
+// ========== 蛙跳盘V2路径检测 ==========
+// 规则：连续同向跳两级(每级0.25)，不跨让受界限(穿越0)，路径不足3点不触发
+function _detectFrogJumpV2(ah) {
+  var empty = {jump:false, direction:null, detail:''};
+  if (!ah) return empty;
+  var vals = [];
+  // 优先使用完整路径
+  if (ah.path && ah.path.length >= 3) {
+    ah.path.forEach(function(p){
+      var v = (p && p.val !== undefined && p.val !== null) ? parseFloat(p.val) : null;
+      if (v !== null && !isNaN(v)) vals.push(v);
+    });
+  }
+  // 路径不足3点，降级不触发（安全默认）
+  if (vals.length < 3) return {jump:false, direction:null, detail:'路径不足'};
+  // 压缩相邻相同值
+  var comp = [vals[0]];
+  for (var i=1; i<vals.length; i++) {
+    if (vals[i] !== comp[comp.length-1]) comp.push(vals[i]);
+  }
+  if (comp.length < 3) return {jump:false, direction:null, detail:'盘口未发生两级变动'};
+  // 滑动窗口找连续同向两级跳
+  for (var j=0; j<=comp.length-3; j++) {
+    var a=comp[j], b=comp[j+1], c=comp[j+2];
+    var d1=Math.round((b-a)*10000)/10000;
+    var d2=Math.round((c-b)*10000)/10000;
+    var s1=0.25;
+    if (Math.abs(Math.abs(d1)-s1)>0.001) continue;
+    if (Math.abs(Math.abs(d2)-s1)>0.001) continue;
+    if (d1*d2<=0) continue;
+    if (Math.abs(c-a)<0.5-0.001) continue;
+    // 检查跨让受界限：窗口内不能同时有正有负
+    var hasPos=(a>0)||(b>0)||(c>0);
+    var hasNeg=(a<0)||(b<0)||(c<0);
+    if (hasPos&&hasNeg) continue;
+    var dir = c>a ? 'up' : 'down';
+    return {jump:true, direction:dir, detail:a+'→'+b+'→'+c+(dir==='up'?' 连升两级':' 连降两级')};
+  }
+  return {jump:false, direction:null, detail:'未发现连续同向两级跳'};
+}
+
 // ========== V6.7 Scenario Classification Engine ==========
 const V6_STATE_MAP = {
   'h':      ['A','Z'],
@@ -506,7 +547,8 @@ function applyLockedPrediction(match) {
   if (mac.initial_handicap_val !== undefined || mac.latest_handicap_val !== undefined) {
     match.macau_ah = {
       init: mac.initial_handicap_val, latest: mac.latest_handicap_val,
-      initStr: mac.initial_handicap_str, latestStr: mac.latest_handicap_str
+      initStr: mac.initial_handicap_str, latestStr: mac.latest_handicap_str,
+      path: mac.handicap_path || null
     };
   }
   match._locked = true;
@@ -1009,26 +1051,19 @@ function classifyV6(match) {
   }
   if (state365==='X' || stateW==='X') return null;
 
-  // 蛙跳盘检测（基于澳门亚盘让球盘初盘→终盘跳级≥0.5，最高优先级）
+  // 蛙跳盘V2检测（基于完整盘口变化路径，连续同向跳两级且不跨让受界限，最高优先级）
   if (match.macau_ah) {
-    var ah = match.macau_ah;
-    var diff = Math.abs(ah.latest - ah.init);
-    if (diff >= 0.5) {
-      var frogDir;
-      if (ah.latest === 0) {
-        frogDir = ah.init < 0 ? 'up' : 'down';
-      } else {
-        frogDir = ah.latest * (ah.latest - ah.init) > 0 ? 'up' : 'down';
-      }
-      var frogPred = frogDir === 'up' ? '上盘' : '下盘';
+    var frogResult = _detectFrogJumpV2(match.macau_ah);
+    if (frogResult.jump) {
+      var frogPred = frogResult.direction === 'up' ? '上盘' : '下盘';
       return {
         scenario: '蛙跳', subGroup: '蛙跳',
         state365: state365, stateW: stateW,
         prediction: frogPred, hitRate: 100, confLevel: 'high',
         singlePick: frogPred, singleRate: 0, singleTied: false,
         isHomeStrong: isHomeStrong, sampleCount: 0, wdl: '0/0/0',
-        isFrogJump: true, frogDirection: frogDir,
-        frogDetail: ah.initStr + '→' + ah.latestStr
+        isFrogJump: true, frogDirection: frogResult.direction,
+        frogDetail: frogResult.detail
       };
     }
   }
@@ -1373,7 +1408,7 @@ function renderMatchCard(match, result, idx) {
     else frogSubHtml += '<div class="sub">历史追踪中</div>';
     predRowHtml = '<div class="pred-box" style="flex:1"><div class="label">🐸 澳门蛙跳盘</div><div class="value '+pickClass+'" style="font-size:1.6rem">'+prediction+'</div>'+frogSubHtml+'</div>';
   } else {
-    predRowHtml = '<div class="pred-box"><div class="label">V6.7 双选</div><div class="value '+pickClass+'">'+prediction+'</div><div class="sub">双选命中率 '+hitRate+'%</div></div>'+
+    predRowHtml = '<div class="pred-box"><div class="label">V6.8 双选</div><div class="value '+pickClass+'">'+prediction+'</div><div class="sub">双选命中率 '+hitRate+'%</div></div>'+
       '<div class="pred-box"><div class="label">单选推荐</div><div class="value '+singleClass+'" style="'+(singleTied?'color:var(--text-muted);font-size:1.05rem;':(!singlePick?'color:var(--text-muted);':''))+'">'+(singlePick||'—')+'</div><div class="sub">'+(singlePick?'单选命中率 '+singleRate+'%':'样本不足')+'</div></div>';
   }
 
@@ -1444,9 +1479,9 @@ function shareReport() {
   var url = window.location.href;
   var now = new Date();
   var dateStr = now.getFullYear()+'-'+String(now.getMonth()+1).padStart(2,'0')+'-'+String(now.getDate()).padStart(2,'0');
-  var text = '🏆 V6.7 Kelly竞彩预测 '+dateStr+'\n基于36场景Kelly分类策略\n'+url;
+  var text = '🏆 V6.8 Kelly竞彩预测 '+dateStr+'\n基于36场景Kelly分类策略\n'+url;
   if (navigator.share) {
-    navigator.share({title:'V6.7 Kelly竞彩预测报告',text:text,url:url}).catch(function(){fallbackCopy(text)});
+    navigator.share({title:'V6.8 Kelly竞彩预测报告',text:text,url:url}).catch(function(){fallbackCopy(text)});
   } else { fallbackCopy(text); }
 }
 function fallbackCopy(text) {
