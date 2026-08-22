@@ -79,6 +79,118 @@ CID_TO_NAME = {
     '5': '澳门', '9': '易胜博', '1': '竞彩官方',
 }
 
+# 亚盘盘口名称 -> 数值（主队视角，受让为负）
+HANDICAP_MAP = {
+    '平手': 0, '平手/半球': 0.25, '平/半': 0.25,
+    '半球': 0.5, '半球/一球': 0.75, '半/一': 0.75,
+    '一球': 1.0, '一球/球半': 1.25, '一/球半': 1.25,
+    '球半': 1.5, '球半/两球': 1.75, '球半/两': 1.75,
+    '两球': 2.0, '两球/两球半': 2.25, '两/两半': 2.25,
+    '两球半': 2.5, '两球半/三球': 2.75, '两半/三': 2.75,
+    '三球': 3.0, '三球/三球半': 3.25, '三/三半': 3.25,
+    '三球半': 3.5, '三球半/四球': 3.75, '三半/四': 3.75,
+    '四球': 4.0, '四球/四球半': 4.25, '四/四半': 4.25,
+    '四球半': 4.5,
+}
+
+
+def parse_handicap_value(h_str):
+    """解析亚盘盘口字符串为数值（主队视角，受让为负）。"""
+    if not h_str:
+        return None
+    h_str = re.sub(r'[↑↓]', '', str(h_str)).strip()
+    is_reverse = False
+    if h_str.startswith('受'):
+        is_reverse = True
+        h_str = h_str[1:]
+    val = HANDICAP_MAP.get(h_str)
+    if val is None:
+        return None
+    return -val if is_reverse else val
+
+
+def fetch_macau_asian_handicap(fixture_id):
+    """抓取澳门亚盘初盘和即时盘口数据。
+    返回 {'initial_handicap_str', 'latest_handicap_str',
+          'initial_handicap_val', 'latest_handicap_val',
+          'initial_water_home', 'initial_water_away',
+          'latest_water_home', 'latest_water_away'} 或 None。
+    """
+    url = f'https://odds.500.com/fenxi/yazhi-{fixture_id}.shtml'
+    try:
+        resp = req_lib.get(url, headers=HEADERS, timeout=15)
+        if resp.status_code != 200:
+            return None
+        html = resp.content.decode('gb2312', errors='replace')
+        if len(html) < 5000:
+            return None
+    except Exception:
+        return None
+
+    soup = BeautifulSoup(html, 'html.parser')
+    # 找澳门(cid=5)行
+    macau_tr = None
+    for tr in soup.find_all('tr'):
+        a = tr.find('a', href=re.compile(r'yazhi\.php\?cid=5(?:&|$)'))
+        if a:
+            macau_tr = tr
+            break
+    if not macau_tr:
+        return None
+
+    tds = macau_tr.find_all('td', recursive=False)
+    if len(tds) < 6:
+        return None
+
+    # td[2] = 即时盘口: "水|盘口|水" 或 "水↓|半球|降|水↑|1"
+    # td[4] = 初始盘口: "水|盘口|水"
+    def _parse_handicap_td(td):
+        """从td中提取(主队水位, 盘口字符串, 客队水位)。"""
+        # 用<br>分割
+        parts = []
+        for elem in td.descendants:
+            if getattr(elem, 'name', None) == 'br':
+                continue
+        text = td.get_text(separator='\n', strip=True)
+        lines = [l.strip() for l in text.split('\n') if l.strip()]
+        # 过滤掉"升""降""1""2"等变化计数标记
+        filtered = []
+        for l in lines:
+            # 纯数字(变化次数)或单字升降标记跳过
+            if re.match(r'^\d+$', l):
+                continue
+            if l in ('升', '降'):
+                continue
+            filtered.append(l)
+        if len(filtered) < 3:
+            return None, None, None
+        home_water = _safe_float(filtered[0])
+        handicap_str = filtered[1]
+        away_water = _safe_float(filtered[-1])
+        return home_water, handicap_str, away_water
+
+    lw_home, latest_str, lw_away = _parse_handicap_td(tds[2])
+    iw_home, init_str, iw_away = _parse_handicap_td(tds[4])
+
+    if not init_str or not latest_str:
+        return None
+
+    init_val = parse_handicap_value(init_str)
+    latest_val = parse_handicap_value(latest_str)
+    if init_val is None or latest_val is None:
+        return None
+
+    return {
+        'initial_handicap_str': init_str,
+        'latest_handicap_str': latest_str,
+        'initial_handicap_val': init_val,
+        'latest_handicap_val': latest_val,
+        'initial_water_home': iw_home,
+        'initial_water_away': iw_away,
+        'latest_water_home': lw_home,
+        'latest_water_away': lw_away,
+    }
+
 # GitHub配置
 GITHUB_TOKEN = os.environ.get('GITHUB_TOKEN', '')
 GITHUB_REPO = 'ceshi1986/football-predictions'
@@ -172,6 +284,61 @@ def fetch_match_list_from_trade():
             continue
 
     print(f"  找到 {len(matches)} 场竞彩比赛")
+    for mid, minfo in list(matches.items())[:3]:
+        print(f"    {mid}: {minfo['home']} vs {minfo['away']} ({minfo['league']}) [{minfo['fixture_id']}]")
+    return matches
+
+
+def fetch_live_jingcai_matches():
+    """从 live.500.com 获取正在进行/已完赛的竞彩比赛（这些比赛在trade.500.com已下架）。
+    live页 tr 属性 order=5NNN(周五)/6NNN(周六)/0NNN(周日)，fid=赔率页fixture_id。
+    """
+    print("[1/4 补充] 获取live.500.com已开赛竞彩比赛...")
+    url = 'https://live.500.com/'
+    day_map = {'5': '周五', '6': '周六', '0': '周日', '1': '周一',
+               '2': '周二', '3': '周三', '4': '周四'}
+    try:
+        resp = req_lib.get(url, headers=HEADERS, timeout=15)
+        if resp.status_code != 200:
+            print(f"  ⚠️ HTTP {resp.status_code}")
+            return {}
+        html = resp.content.decode('gbk', errors='replace')
+    except Exception as e:
+        print(f"  ⚠️ 请求失败: {e}")
+        return {}
+
+    soup = BeautifulSoup(html, 'html.parser')
+    matches = {}
+    for tr in soup.find_all('tr'):
+        try:
+            fid = tr.get('fid')
+            order = tr.get('order', '')
+            gy = tr.get('gy', '')
+            if not fid or not order or len(order) != 4 or not order[1:].isdigit():
+                continue
+            day_cn = day_map.get(order[0])
+            if not day_cn:
+                continue
+            jc_id = f"{day_cn}{order[1:]}"
+            parts = gy.split(',')
+            league = parts[0] if len(parts) >= 1 else ''
+            home = parts[1] if len(parts) >= 2 else ''
+            away = parts[2] if len(parts) >= 3 else ''
+            # trade列表已有的就不重复
+            if jc_id in matches:
+                continue
+            matches[jc_id] = {
+                'fixture_id': fid,
+                'jingcai_id': jc_id,
+                'league': league,
+                'home': home,
+                'away': away,
+                'match_time': '',
+                'from_live': True,
+            }
+        except Exception:
+            continue
+    print(f"  live页找到 {len(matches)} 场已开赛竞彩比赛")
     for mid, minfo in list(matches.items())[:3]:
         print(f"    {mid}: {minfo['home']} vs {minfo['away']} ({minfo['league']}) [{minfo['fixture_id']}]")
     return matches
@@ -341,9 +508,15 @@ async def scrape_all_matches(fixture_ids, match_info_map, use_requests_mode=Fals
             if html:
                 parsed = parse_ouzhi_html(html, fid, m_info)
                 if parsed and parsed.get('companies'):
+                    # 抓取澳门亚盘（蛙跳盘检测用）
+                    ah = fetch_macau_asian_handicap(fid)
+                    if ah and 'macau' in parsed['companies']:
+                        parsed['companies']['macau'].update(ah)
+                        parsed['macau_asian_handicap'] = ah
                     results[fid] = parsed
                     n_target = len([k for k in TARGET_COMPANIES if k in parsed['companies']])
-                    print(f"✓ {len(parsed['companies'])}家公司, {n_target}家目标")
+                    ah_tag = ' +亚盘' if ah else ''
+                    print(f"✓ {len(parsed['companies'])}家公司, {n_target}家目标{ah_tag}")
                 else:
                     print("✗ 解析无数据")
             else:
@@ -392,9 +565,15 @@ async def scrape_all_matches(fixture_ids, match_info_map, use_requests_mode=Fals
                 if html:
                     parsed = parse_ouzhi_html(html, fid, m_info)
                     if parsed and parsed.get('companies'):
+                        # 抓取澳门亚盘（蛙跳盘检测用）
+                        ah = fetch_macau_asian_handicap(fid)
+                        if ah and 'macau' in parsed['companies']:
+                            parsed['companies']['macau'].update(ah)
+                            parsed['macau_asian_handicap'] = ah
                         results[fid] = parsed
                         n_target = len([k for k in TARGET_COMPANIES if k in parsed['companies']])
-                        print(f"✓ {len(parsed['companies'])}家公司, {n_target}家目标")
+                        ah_tag = ' +亚盘' if ah else ''
+                        print(f"✓ {len(parsed['companies'])}家公司, {n_target}家目标{ah_tag}")
                     else:
                         print("✗ 解析无数据")
                 else:
@@ -457,6 +636,12 @@ def parse_ouzhi_html(html, fixture_id, match_info):
     if not match_time:
         tm = re.search(r'比赛时间\s*([\d-]+\s+[\d:]+)', html)
         if tm: match_time = tm.group(1)
+
+    # 统一时间格式为 MM-DD HH:MM（去掉年份前缀，与前端解析一致）
+    if match_time:
+        tm_fmt = re.match(r'^\d{4}-(\d{2}-\d{2}\s+\d{2}:\d{2})', match_time)
+        if tm_fmt:
+            match_time = tm_fmt.group(1)
 
     companies_zgzcw = {}
     companies_500com = {}
@@ -650,6 +835,7 @@ def build_zgzcw_output(results, date_str, scrape_time):
     """构建zgzcw兼容格式（daily_predictions.py的_load_kelly_zgzcw_data直接消费）"""
     matches_dict = {}
     for fid, data in results.items():
+        ds = data.get('data_source', '500com_playwright')
         matches_dict[fid] = {
             'match_name': data.get('match_name', ''),
             'home': data.get('home', ''),
@@ -659,7 +845,7 @@ def build_zgzcw_output(results, date_str, scrape_time):
             'jingcai_id': data.get('jingcai_id', ''),
             'beidan_id': data.get('beidan_id', ''),
             'source': '500.com',
-            'data_source': '500com_playwright',
+            'data_source': ds,
             'companies': data.get('companies', {}),
             'asian_handicap': None,
         }
@@ -823,6 +1009,23 @@ async def run():
                 fixture_ids.append(fid)
                 match_info_map[fid] = minfo
 
+        # 补充已开赛/已完赛竞彩（trade页已下架，从live.500.com获取）
+        live_matches = fetch_live_jingcai_matches()
+        live_added = 0
+        for mid, minfo in live_matches.items():
+            if mid in jc_matches:
+                continue  # trade列表已有
+            fid = minfo['fixture_id']
+            if fid not in match_info_map:
+                fixture_ids.append(fid)
+                match_info_map[fid] = minfo
+                live_added += 1
+            else:
+                # fid已存在（可能是北单），补充竞彩编号
+                match_info_map[fid]['jingcai_id'] = mid
+        if live_added:
+            print(f"  live补充 {live_added} 场已开赛竞彩")
+
         # 北单
         bd_matches = fetch_beidan_list()
         bd_count = 0
@@ -850,7 +1053,7 @@ async def run():
             print("  ❌ 未获取到赛事ID，退出")
             sys.exit(1)
 
-        print(f"  共 {len(fixture_ids)} 场赛事 (竞彩{len(jc_matches)} + 北单新增{bd_count}，含兼售)")
+        print(f"  共 {len(fixture_ids)} 场赛事 (竞彩在售{len(jc_matches)}+已开赛{live_added} + 北单新增{bd_count}，含兼售)")
 
     # Step 2: 抓取数据
     use_requests_mode = args.use_requests
@@ -860,7 +1063,162 @@ async def run():
         print("\n  ❌ 未抓取到任何数据，退出")
         sys.exit(1)
 
-    # Step 3: 格式转换与保存
+    # Step 3: 合并旧数据（保留已开赛/已完赛场次的凯利数据和竞彩/北单编号，避免重新抓取时丢失）
+    zgzcw_path_old = os.path.join(DATA_DIR, date_str, 'zgzcw_kelly_data.json')
+    snap_dir = os.path.join(DATA_DIR, date_str, 'snapshots')
+
+    def _load_old_json(path):
+        try:
+            with open(path, 'r', encoding='utf-8') as f:
+                d = json.load(f)
+            om = d.get('matches', {})
+            if isinstance(om, list):
+                return {str(m.get('fixture_id', i)): m for i, m in enumerate(om)}
+            elif isinstance(om, dict):
+                return {str(k): v for k, v in om.items()}
+        except Exception:
+            return {}
+        return {}
+
+    # Gather historical matches from current file + all snapshots (newest first)
+    # This allows recovering jingcai_id/beidan_id that may have been lost in recent scrapes
+    old_sources = []
+    if os.path.exists(zgzcw_path_old):
+        old_sources.append(('current', _load_old_json(zgzcw_path_old)))
+    if os.path.isdir(snap_dir):
+        snap_files = sorted(
+            [f for f in os.listdir(snap_dir) if f.startswith('kelly_snapshot_') and f.endswith('.json')],
+            reverse=True
+        )
+        for sf in snap_files[:5]:  # look at last 5 snapshots
+            old_sources.append((sf, _load_old_json(os.path.join(snap_dir, sf))))
+
+    # Build a unified historical lookup: key by team name pair, value has jingcai_id/beidan_id/companies
+    def _norm_name(s):
+        return (s or '').strip().replace(' ', '')
+
+    def _name_key(m):
+        return (_norm_name(m.get('home', '')), _norm_name(m.get('away', '')))
+
+    def _names_match(a, b):
+        if a == b:
+            return True
+        for i in (0, 1):
+            x, y = a[i], b[i]
+            if not x or not y:
+                continue
+            if x == y or x.startswith(y) or y.startswith(x):
+                oa, ob = a[1 - i], b[1 - i]
+                if oa and ob and (oa == ob or oa.startswith(ob) or ob.startswith(oa)):
+                    return True
+        return False
+
+    # Collect all historical match records (for full-match retention)
+    hist_matches = {}  # fid -> record (newest wins for duplicate fids)
+    hist_name_records = []  # list of (name_key, record), newest first
+
+    def _merge_hist_record(existing, m):
+        """Given two records for the same match, keep the one with better metadata."""
+        if existing is None:
+            return m
+        # Prefer one with jingcai_id
+        if not existing.get('jingcai_id') and m.get('jingcai_id'):
+            return m
+        if existing.get('jingcai_id') and not m.get('jingcai_id'):
+            return existing
+        # Prefer more companies
+        if len(m.get('companies', {})) > len(existing.get('companies', {})):
+            return m
+        return existing
+
+    for src_name, src_matches in old_sources:
+        for fid, m in src_matches.items():
+            if not m.get('home') or not m.get('away'):
+                continue
+            # newest source first, so don't overwrite
+            if fid not in hist_matches:
+                hist_matches[fid] = m
+            nk = _name_key(m)
+            # Find if an existing name record refers to the same match via prefix
+            found_idx = -1
+            for i, (enk, erec) in enumerate(hist_name_records):
+                if _names_match(nk, enk):
+                    found_idx = i
+                    break
+            if found_idx >= 0:
+                enk, erec = hist_name_records[found_idx]
+                hist_name_records[found_idx] = (enk, _merge_hist_record(erec, m))
+            else:
+                hist_name_records.append((nk, m))
+
+    hist_by_name = dict(hist_name_records)
+
+    # Build fuzzy name index
+    hist_name_list = hist_name_records
+
+    def _find_hist(nm):
+        nnk = _name_key(nm)
+        # exact
+        if nnk in hist_by_name:
+            return hist_by_name[nnk]
+        # fuzzy prefix
+        for nk, hm in hist_name_list:
+            if _names_match(nnk, nk):
+                return hm
+        return None
+
+    id_restored = 0
+    kept_count = 0
+    matched_hist_fids = set()
+
+    # 3a. Restore jingcai_id/beidan_id for matches present in new scrape
+    for nfid, nm in results.items():
+        hm = _find_hist(nm)
+        if hm is not None:
+            matched_hist_fids.add(nfid)
+            # track which hist fids match (fuzzy)
+            for hfid, hhm in hist_matches.items():
+                if _names_match(_name_key(nm), _name_key(hhm)):
+                    matched_hist_fids.add(hfid)
+            changed = False
+            if not nm.get('jingcai_id') and hm.get('jingcai_id'):
+                nm['jingcai_id'] = hm['jingcai_id']
+                changed = True
+            if not nm.get('beidan_id') and hm.get('beidan_id'):
+                nm['beidan_id'] = hm['beidan_id']
+                changed = True
+            if changed:
+                id_restored += 1
+
+    # 3b. Retain historical matches completely missing from new scrape (by fid and name)
+    new_name_keys = [_name_key(nm) for nm in results.values()]
+    for hfid, hm in hist_matches.items():
+        if hfid in results:
+            continue
+        if hfid in matched_hist_fids:
+            continue
+        hnk = _name_key(hm)
+        if any(_names_match(hnk, nnk) for nnk in new_name_keys):
+            continue
+        results[hfid] = {
+            'match_name': hm.get('match_name', ''),
+            'home': hm.get('home', ''),
+            'away': hm.get('away', ''),
+            'league': hm.get('league', ''),
+            'match_time': hm.get('match_time', ''),
+            'jingcai_id': hm.get('jingcai_id', ''),
+            'beidan_id': hm.get('beidan_id', ''),
+            'companies': hm.get('companies', {}),
+            'fixture_id': hfid,
+            'source': '500.com',
+            'data_source': '500com_merged',
+        }
+        kept_count += 1
+
+    if id_restored > 0 or kept_count > 0:
+        print(f"  📦 合并旧数据: 恢复编号{id_restored}场 + 保留旧{kept_count}场 = {len(results)}场")
+
+    # Step 3.5: 格式转换与保存
     zgzcw_output = build_zgzcw_output(results, date_str, scrape_time)
     output_500com = build_500com_output(results, date_str, scrape_time)
     zgzcw_path, kelly_full_path = save_all_data(zgzcw_output, output_500com, date_str)
