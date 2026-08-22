@@ -1,0 +1,13 @@
+{
+  "name": "蛙跳盘回测记录",
+  "description": "记录澳门亚盘蛙跳盘（初盘→终盘跳级≥0.5）的预测与实际赛果，追踪上盘/下盘命中率",
+  "rule": "latest*(latest-init)>0 → 上盘；latest=0且init<0 → 上盘；其余→下盘",
+  "threshold": 0.5,
+  "total": 0,
+  "up_total": 0,
+  "up_hit": 0,
+  "down_total": 0,
+  "down_hit": 0,
+  "hit_rate": null,
+  "records": []
+}
