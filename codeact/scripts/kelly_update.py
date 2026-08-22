@@ -330,6 +330,7 @@ def update_locked_predictions(date_str):
                         'latest_handicap_str': macau.get('latest_handicap_str'),
                         'initial_handicap_val': macau.get('initial_handicap_val'),
                         'latest_handicap_val': macau.get('latest_handicap_val'),
+                        'handicap_path': macau.get('handicap_path'),
                     }
                 }
             }
