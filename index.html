@@ -956,7 +956,7 @@ function classifyV6(match) {
     var ah = match.macau_ah;
     var diff = Math.abs(ah.latest - ah.init);
     if (diff >= 0.5) {
-      var frogDir = Math.abs(ah.latest) > Math.abs(ah.init) ? 'up' : 'down';
+      var frogDir = ah.latest * (ah.latest - ah.init) > 0 ? 'up' : 'down';
       var frogPred = frogDir === 'up' ? '上盘' : '下盘';
       return {
         scenario: '蛙跳', subGroup: '蛙跳',
