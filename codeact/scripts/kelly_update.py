@@ -253,10 +253,6 @@ def main():
     print(f"{'='*50}")
 
 
-if __name__ == '__main__':
-    main()
-
-
 def update_locked_predictions(date_str):
     """
     赛前60分钟锁定预测。
@@ -376,3 +372,7 @@ def push_locked_to_github(date_str):
     except Exception as e:
         print(f"  [锁定] 推送失败: {e}")
     return False
+
+
+if __name__ == '__main__':
+    main()
