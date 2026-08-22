@@ -282,6 +282,7 @@ footer{text-align:center;padding:32px 20px 16px;color:var(--text-muted);font-siz
 .card-refresh.loading .refresh-spinner{display:inline-block}
 .refresh-spinner{display:none;width:14px;height:14px;border:2px solid transparent;border-top-color:var(--primary);border-radius:50%;animation:spin .6s linear infinite}
 .card-stale-badge{font-size:.62rem;color:var(--warn);background:rgba(255,184,107,.1);padding:2px 6px;border-radius:4px;white-space:nowrap}
+.card-locked-badge{font-size:.62rem;color:#7c5cff;background:rgba(124,92,255,.15);padding:2px 6px;border-radius:4px;white-space:nowrap;font-weight:600}
 
 /* Card Loading Overlay */
 .card-loading-overlay{position:absolute;top:0;left:0;right:0;bottom:0;background:rgba(10,14,26,.85);display:none;align-items:center;justify-content:center;border-radius:14px;z-index:3;flex-direction:column;gap:8px}
@@ -445,6 +446,7 @@ const V6_STATE_MAP = {
 // ========== V6.7 Strategy (67 subgroups with home/away split) ==========
 let _v67Table = null; // {AA主:{pred,count,wdl,hitRate}, ...}
 let _frogTrack = null; // {total, up_total, up_hit, down_total, down_hit, hit_rate, records}
+let _lockedPreds = null; // {matchId: {locked_at, companies: {...}}}
 const V67_URL = 'v67_subgroup_stats.json';
 
 async function loadV67Table() {
@@ -470,6 +472,39 @@ async function loadFrogTrack() {
     _frogTrack = await r.json();
     return _frogTrack;
   } catch(e) { return null; }
+}
+
+async function loadLockedPreds(dateKey) {
+  if (_lockedPreds) return _lockedPreds;
+  try {
+    var r = await fetch('data/500com_daily/'+dateKey+'/locked_predictions.json?t='+Date.now(), {cache: 'no-cache'});
+    if (!r.ok) return null;
+    _lockedPreds = await r.json();
+    return _lockedPreds;
+  } catch(e) { return null; }
+}
+
+function applyLockedPrediction(match) {
+  if (!_lockedPreds || !match || !match.id) return match;
+  var lock = _lockedPreds[match.id];
+  if (!lock) return match;
+  // 用锁定时刻的Kelly和亚盘数据覆盖实时数据
+  var comps = lock.companies || {};
+  var b365 = comps.bet365 || {}, wd = comps.weide || {}, mac = comps.macau || {};
+  if (b365.kelly) match.bet365_kelly = {h:b365.kelly[0], d:b365.kelly[1], a:b365.kelly[2]};
+  if (b365.payout) match.bet365_payout = b365.payout;
+  if (b365.odds) match.odds_365 = {w:b365.odds[0], d:b365.odds[1], l:b365.odds[2]};
+  if (wd.kelly) match.weide_kelly = {h:wd.kelly[0], d:wd.kelly[1], a:wd.kelly[2]};
+  if (wd.payout) match.weide_payout = wd.payout;
+  if (mac.initial_handicap_val !== undefined || mac.latest_handicap_val !== undefined) {
+    match.macau_ah = {
+      init: mac.initial_handicap_val, latest: mac.latest_handicap_val,
+      initStr: mac.initial_handicap_str, latestStr: mac.latest_handicap_str
+    };
+  }
+  match._locked = true;
+  match._lockedAt = lock.locked_at;
+  return match;
 }
 
 function updateHeaderStats() {
@@ -1276,6 +1311,7 @@ function renderMatchCard(match, result, idx) {
   var matchId = match.id || '';
   var showRefresh = !_isRealtime;
   var staleBadge = showRefresh ? '<span class="card-stale-badge">数据待更新</span>' : '';
+  var lockedBadge = match._locked ? '<span class="card-locked-badge" title="预测已于赛前60分钟锁定：'+(match._lockedAt||'')+'">🔒 已锁定</span>' : '';
   var refreshBtn = showRefresh ? '<button class="card-refresh" onclick="refreshMatch(this,\''+matchId.replace(/'/g,'')+'\')" title="点击获取最新凯利数据"><span class="refresh-icon">🔄</span><span class="refresh-text">获取实时</span><span class="refresh-spinner"></span></button>' : '';
   var loadingOverlay = '<div class="card-loading-overlay"><div class="spinner-sm"></div><div class="load-text">抓取中...</div></div>';
 
@@ -1294,7 +1330,7 @@ function renderMatchCard(match, result, idx) {
 
   if (!result) {
     return '<div class="match-card'+expiredClass+'" data-match-id="'+matchId+'">'+loadingOverlay+
-      '<div class="card-header-top"><span class="match-id">'+matchId+'</span>'+statusHtml+refreshBtn+staleBadge+
+      '<div class="card-header-top"><span class="match-id">'+matchId+'</span>'+statusHtml+refreshBtn+staleBadge+lockedBadge+
       '<span class="league-tag '+getLeagueTag(match.league)+'">'+(match.league||'未知')+'</span></div>'+
       '<div class="teams">'+match.home+' vs '+match.away+'</div>'+
       '<div class="time">'+(match.time||'')+' '+countdownHtml+'</div>'+
@@ -1342,7 +1378,7 @@ function renderMatchCard(match, result, idx) {
       '<div class="stat"><div class="num">'+wdl+'</div><div class="lbl">胜/平/负</div></div>';
 
   return '<div class="match-card'+expiredClass+(isFrog?' frog-jump-card':'')+'" data-match-id="'+matchId+'">'+loadingOverlay+
-    '<div class="card-header-top"><span class="match-id">'+matchId+'</span>'+statusHtml+refreshBtn+staleBadge+
+    '<div class="card-header-top"><span class="match-id">'+matchId+'</span>'+statusHtml+refreshBtn+staleBadge+lockedBadge+
     '<span class="league-tag '+getLeagueTag(match.league)+'">'+(match.league||'未知')+'</span>'+getConfLabel(confLevel)+'</div>'+
     '<div class="teams">'+match.home+' vs '+match.away+'</div>'+
     '<div class="time">'+(match.time||'')+' '+countdownHtml+'</div>'+
@@ -1353,6 +1389,11 @@ function renderMatchCard(match, result, idx) {
 
 // Single match refresh
 async function refreshMatch(btn, matchId) {
+  // 已锁定场次不允许刷新，赛前60分钟预测不可更改
+  if (_lockedPreds && _lockedPreds[matchId]) {
+    showToast('🔒 该场预测已于赛前60分钟锁定，不接受刷新');
+    return;
+  }
   btn.classList.add('loading');
   var card = btn.closest('.match-card');
   var overlay = card.querySelector('.card-loading-overlay');
@@ -1514,8 +1555,14 @@ async function init() {
   await loadBacktestStats();
   await loadFrogTrack();
 
-  // Classify & enrich
+  // 加载赛前60分钟锁定预测，锁定场次用锁定时刻数据覆盖
+  var nowDk = new Date();
+  var todayKey = nowDk.getFullYear()+String(nowDk.getMonth()+1).padStart(2,'0')+String(nowDk.getDate()).padStart(2,'0');
+  await loadLockedPreds(todayKey);
+
+  // Classify & enrich（先应用锁定再分类，保证锁定场次预测不变）
   for (var i=0; i<kellyData.length; i++) {
+    if (_lockedPreds) applyLockedPrediction(kellyData[i]);
     kellyData[i]._result = classifyV6(kellyData[i]);
   }
 
