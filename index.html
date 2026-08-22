@@ -512,14 +512,15 @@ function updateHeaderStats() {
   var totalCount = 0, totalHit = 0, subCount = 0;
   Object.keys(_v67Table).forEach(function(k){
     var v = _v67Table[k];
-    if (v && v.pred) {
-      // 统计策略子组数（含0样本的预定义策略）
-      subCount++;
-      if (v.count) {
-        totalCount += v.count;
-        if (typeof v.hitRate === 'number') {
-          totalHit += Math.round(v.count * v.hitRate / 100);
-        }
+    if (!v) return;
+    // v67_subgroup_stats.json 字段: total, double_hit_rate, double_select
+    var count = v.total || v.count || 0;
+    var hitRate = v.double_hit_rate || v.hitRate || 0;
+    subCount++;
+    if (count > 0) {
+      totalCount += count;
+      if (typeof hitRate === 'number') {
+        totalHit += Math.round(count * hitRate / 100);
       }
     }
   });
@@ -1032,10 +1033,10 @@ function classifyV6(match) {
   // Try V6.7 subgroup table first
   if (_v67Table && _v67Table[subGroupKey]) {
     var v67 = _v67Table[subGroupKey];
-    prediction = v67.pred;
-    hitRate = v67.hitRate;
-    sampleCount = v67.count;
-    wdl = v67.wdl;
+    prediction = v67.double_select || v67.pred;
+    hitRate = v67.double_hit_rate != null ? v67.double_hit_rate : v67.hitRate;
+    sampleCount = v67.total || v67.count || 0;
+    wdl = v67.wdl || (v67.win != null ? v67.win + '/' + v67.draw + '/' + v67.lose : null);
   } else {
     // Fallback to old 36-scenario table
     var strategy = V6_FALLBACK_TABLE[scenarioKey];
