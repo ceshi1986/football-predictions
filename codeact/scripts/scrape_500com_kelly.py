@@ -109,12 +109,58 @@ def parse_handicap_value(h_str):
     return -val if is_reverse else val
 
 
+def fetch_macau_handicap_path(fixture_id):
+    """抓取澳门亚盘完整变化历史（时间顺序，早→晚）。
+    返回 [{"val": float, "time": "MM-DD HH:MM", "home_water": float, "away_water": float}, ...] 或 []。
+    数据来源：500万亚指页面点击公司行展开的变化接口。
+    """
+    url = f'https://odds.500.com/fenxi1/inc/yazhiajax.php'
+    params = {'fid': str(fixture_id), 'id': '5', 't': str(int(time.time() * 1000)), 'r': '1'}
+    try:
+        resp = req_lib.get(url, params=params, headers={
+            **HEADERS,
+            'Referer': f'https://odds.500.com/fenxi/yazhi-{fixture_id}.shtml',
+            'X-Requested-With': 'XMLHttpRequest',
+        }, timeout=10)
+        if resp.status_code != 200:
+            return []
+        # 接口返回GBK编码的JSON
+        text = resp.content.decode('gbk', errors='replace')
+        data = json.loads(text)
+        if not isinstance(data, list) or not data:
+            return []
+        path = []
+        for row in data:
+            tds = re.findall(r'<td[^>]*>(.*?)</td>', row, re.S)
+            if len(tds) < 4:
+                continue
+            home_water = _safe_float(re.sub(r'<[^>]+>', '', tds[0]))
+            handicap_str = re.sub(r'<[^>]+>', '', tds[1]).replace('&nbsp;', ' ').strip()
+            away_water = _safe_float(re.sub(r'<[^>]+>', '', tds[2]))
+            t = tds[3].strip()
+            val = parse_handicap_value(handicap_str)
+            if val is not None:
+                path.append({
+                    'val': val,
+                    'time': t,
+                    'home_water': home_water,
+                    'away_water': away_water,
+                    'str': handicap_str,
+                })
+        # 接口返回是最新→最旧，反转为时间顺序（早→晚）
+        path.reverse()
+        return path
+    except Exception:
+        return []
+
+
 def fetch_macau_asian_handicap(fixture_id):
-    """抓取澳门亚盘初盘和即时盘口数据。
+    """抓取澳门亚盘初盘、即时盘口及完整变化路径。
     返回 {'initial_handicap_str', 'latest_handicap_str',
           'initial_handicap_val', 'latest_handicap_val',
           'initial_water_home', 'initial_water_away',
-          'latest_water_home', 'latest_water_away'} 或 None。
+          'latest_water_home', 'latest_water_away',
+          'handicap_path': [...]} 或 None。
     """
     url = f'https://odds.500.com/fenxi/yazhi-{fixture_id}.shtml'
     try:
@@ -180,6 +226,15 @@ def fetch_macau_asian_handicap(fixture_id):
     if init_val is None or latest_val is None:
         return None
 
+    # 抓取完整变化历史（蛙跳盘新规则用）
+    handicap_path = fetch_macau_handicap_path(fixture_id)
+    # 若接口没返回，用初盘+即时盘凑两点（不足以判断蛙跳，但保留向后兼容）
+    if not handicap_path:
+        handicap_path = [
+            {'val': init_val, 'time': '', 'home_water': iw_home, 'away_water': iw_away, 'str': init_str},
+            {'val': latest_val, 'time': '', 'home_water': lw_home, 'away_water': lw_away, 'str': latest_str},
+        ]
+
     return {
         'initial_handicap_str': init_str,
         'latest_handicap_str': latest_str,
@@ -189,6 +244,7 @@ def fetch_macau_asian_handicap(fixture_id):
         'initial_water_away': iw_away,
         'latest_water_home': lw_home,
         'latest_water_away': lw_away,
+        'handicap_path': handicap_path,
     }
 
 # GitHub配置
