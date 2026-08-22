@@ -309,6 +309,10 @@ def update_locked_predictions(date_str):
         mins_to_kickoff = (kickoff - now).total_seconds() / 60
         # 60-90分钟窗口：首次进入就锁定
         if 60 <= mins_to_kickoff <= 90:
+            companies = m.get('companies', {})
+            macau = companies.get('macau', {})
+            def extract(key):
+                return companies.get(key, {})
             # 锁定数据按所有可用ID各存一份（竞彩/北单/fixture），前端按哪个ID都能匹配
             lock_data = {
                 'home': m.get('home'),
