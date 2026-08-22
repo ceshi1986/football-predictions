@@ -444,6 +444,7 @@ const V6_STATE_MAP = {
 
 // ========== V6.7 Strategy (67 subgroups with home/away split) ==========
 let _v67Table = null; // {AA主:{pred,count,wdl,hitRate}, ...}
+let _frogTrack = null; // {total, up_total, up_hit, down_total, down_hit, hit_rate, records}
 const V67_URL = 'v67_subgroup_stats.json';
 
 async function loadV67Table() {
@@ -459,6 +460,16 @@ async function loadV67Table() {
     console.warn('loadV67Table failed:', e);
     return null;
   }
+}
+
+async function loadFrogTrack() {
+  if (_frogTrack) return _frogTrack;
+  try {
+    var r = await fetch('frog_jump_track.json?t=' + Date.now(), {cache: 'no-cache'});
+    if (!r.ok) return null;
+    _frogTrack = await r.json();
+    return _frogTrack;
+  } catch(e) { return null; }
 }
 
 function updateHeaderStats() {
@@ -877,13 +888,17 @@ function updateSummaryAndAdvice(cat, matches) {
   secEl.style.display = 'block';
   document.getElementById('summary-'+cat+'-body').innerHTML = withResult.map(function(m){
     var r = m._result;
+    if (r.isFrogJump) {
+      return '<tr class="frog-jump-row"><td>'+m.id+'</td><td>'+m.home+' vs '+m.away+'</td><td><span class="scenario-tag frog-tag">蛙跳</span></td><td class="'+getPickClass(r.prediction)+'">'+r.prediction+'</td><td>—</td><td class="'+getPickClass(r.prediction)+'">'+r.prediction+'</td><td>—</td><td>—</td><td>'+getConfText(r.confLevel)+'</td></tr>';
+    }
     return '<tr><td>'+m.id+'</td><td>'+m.home+' vs '+m.away+'</td><td><span class="scenario-tag">'+(r.subGroup||r.scenario)+'</span></td><td class="'+getPickClass(r.prediction)+'">'+r.prediction+'</td><td>'+r.hitRate+'%</td><td class="'+getPickClass(r.singlePick)+'">'+(r.singlePick||'—')+'</td><td>'+(r.singlePick?r.singleRate+'%':'—')+'</td><td>'+r.sampleCount+'</td><td>'+getConfText(r.confLevel)+'</td></tr>';
   }).join('');
   advEl.style.display = 'grid';
   var singleList=[], doubleList=[], skipList=[];
   withResult.forEach(function(m){
     var r = m._result;
-    if (r.confLevel==='high' && r.hitRate>=80 && r.singlePick && !r.singleTied) singleList.push('<li><strong>'+m.id+'</strong> '+m.home+' vs '+m.away+'<br>单选 '+r.singlePick+' 命中率 '+r.singleRate+'%</li>');
+    if (r.isFrogJump) { doubleList.push('<li><strong>'+m.id+'</strong> '+m.home+' vs '+m.away+'<br>🐸 蛙跳盘 → '+r.prediction+'（'+(r.frogDetail||'')+'）</li>'); }
+    else if (r.confLevel==='high' && r.hitRate>=80 && r.singlePick && !r.singleTied) singleList.push('<li><strong>'+m.id+'</strong> '+m.home+' vs '+m.away+'<br>单选 '+r.singlePick+' 命中率 '+r.singleRate+'%</li>');
     else if (r.confLevel==='low' || r.hitRate<70) skipList.push('<li><strong>'+m.id+'</strong> '+m.home+' vs '+m.away+'<br>场景 '+r.scenario+' · 样本 '+r.sampleCount+'</li>');
     else doubleList.push('<li><strong>'+m.id+'</strong> '+m.home+' vs '+m.away+'<br>双选 '+r.prediction+' 命中率 '+r.hitRate+'%</li>');
   });
@@ -1298,10 +1313,25 @@ function renderMatchCard(match, result, idx) {
 
   // 蛙跳盘特殊渲染
   var isFrog = result.isFrogJump;
-  var predRowHtml = isFrog
-    ? '<div class="pred-box" style="flex:1"><div class="label">🐸 澳门蛙跳盘</div><div class="value '+pickClass+'" style="font-size:1.6rem">'+prediction+'</div><div class="sub">澳门亚盘 '+result.frogDetail+'</div></div>'
-    : '<div class="pred-box"><div class="label">V6.7 双选</div><div class="value '+pickClass+'">'+prediction+'</div><div class="sub">双选命中率 '+hitRate+'%</div></div>'+
+  var frogHitHtml = '';
+  if (isFrog && _frogTrack && _frogTrack.total > 0) {
+    var frogDirKey = result.frogDirection === 'up' ? 'up' : 'down';
+    var dirTotal = frogDirKey === 'up' ? _frogTrack.up_total : _frogTrack.down_total;
+    var dirHit = frogDirKey === 'up' ? _frogTrack.up_hit : _frogTrack.down_hit;
+    if (dirTotal > 0) {
+      frogHitHtml = '<div class="sub">'+(frogDirKey==='up'?'上盘':'下盘')+'历史 '+dirHit+'/'+dirTotal+' = '+Math.round(dirHit/dirTotal*100)+'%</div>';
+    }
+  }
+  var predRowHtml;
+  if (isFrog) {
+    var frogSubHtml = '<div class="sub">澳门亚盘 '+result.frogDetail+'</div>';
+    if (frogHitHtml) frogSubHtml += frogHitHtml;
+    else frogSubHtml += '<div class="sub">历史追踪中</div>';
+    predRowHtml = '<div class="pred-box" style="flex:1"><div class="label">🐸 澳门蛙跳盘</div><div class="value '+pickClass+'" style="font-size:1.6rem">'+prediction+'</div>'+frogSubHtml+'</div>';
+  } else {
+    predRowHtml = '<div class="pred-box"><div class="label">V6.7 双选</div><div class="value '+pickClass+'">'+prediction+'</div><div class="sub">双选命中率 '+hitRate+'%</div></div>'+
       '<div class="pred-box"><div class="label">单选推荐</div><div class="value '+singleClass+'" style="'+(singleTied?'color:var(--text-muted);font-size:1.05rem;':(!singlePick?'color:var(--text-muted);':''))+'">'+(singlePick||'—')+'</div><div class="sub">'+(singlePick?'单选命中率 '+singleRate+'%':'样本不足')+'</div></div>';
+  }
 
   var statsRowHtml = isFrog
     ? '<div class="stat"><span class="scenario-tag frog-tag">蛙跳盘</span></div>'+
@@ -1482,6 +1512,7 @@ async function init() {
   // Load V6.7 strategy table (67 subgroups) and backtest stats
   await loadV67Table();
   await loadBacktestStats();
+  await loadFrogTrack();
 
   // Classify & enrich
   for (var i=0; i<kellyData.length; i++) {
