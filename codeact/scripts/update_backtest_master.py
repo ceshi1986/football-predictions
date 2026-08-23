@@ -49,7 +49,7 @@ V68_STRATEGY = {
     ('BA', True):  '胜负', ('BA', False): '平负',
     ('BB', True):  '胜负', ('BB', False): '负胜',
     ('BC', True):  '胜平', ('BC', False): '负胜',
-    ('BW', True):  '胜负', ('BW', False): '负胜',
+    ('BW', True):  '胜平', ('BW', False): '负胜',
     ('BY', True):  '胜平', ('BY', False): '平负',
     ('BZ', True):  '胜负', ('BZ', False): '胜平',
     ('CA', True):  '胜负', ('CA', False): '负胜',
