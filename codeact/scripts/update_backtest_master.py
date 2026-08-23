@@ -3,7 +3,7 @@
 每日自动更新回测主表 backtest_master_table_dedup.json
 
 从Kelly数据中提取已完赛比赛（有365+韦德Kelly + 有赛果），
-按 V6.8 策略（72 子组策略表 _V67_STRATEGY）判定场景与推荐，
+按 V6.9 策略（72 子组策略表 _V67_STRATEGY）判定场景与推荐，
 去重后追加到回测主表，并推送GitHub。
 
 参数：
@@ -35,11 +35,11 @@ MASTER_TABLE_PATH = os.path.join(FP_REPO_DIR, "backtest_master_table_dedup.json"
 MATCH_RESULTS_PATH = os.path.join(DATA_DIR, "match_results.json")
 
 # ============================================================
-# V6.8 策略核心逻辑（与 daily_predictions.py 的 _V67_STRATEGY 保持一致）
+# V6.9 策略核心逻辑（与 daily_predictions.py 的 _V67_STRATEGY 保持一致）
 # 72 子组策略表：(scenario_code, is_home_strong) → 主队视角双选
 # ============================================================
 
-V68_STRATEGY = {
+V69_STRATEGY = {
     ('AA', True):  '胜平', ('AA', False): '负平',
     ('AB', True):  '平胜', ('AB', False): '负平',
     ('AC', True):  '胜平', ('AC', False): '胜平',
@@ -328,8 +328,8 @@ def resolve_d_state(kh, kd, ka, is_strong_home):
 
 
 def get_recommendation(scene_code, is_home_strong):
-    """获取场景推荐（主队视角），直接查 V6.8 72 子组策略表。"""
-    prediction = V68_STRATEGY.get((scene_code, is_home_strong))
+    """获取场景推荐（主队视角），直接查 V6.9 72 子组策略表。"""
+    prediction = V69_STRATEGY.get((scene_code, is_home_strong))
     if prediction is None:
         return '未知', 0.0
     return prediction, 0.0
@@ -499,7 +499,7 @@ def process_match(result, km, date_str):
     # 子组
     subgroup = f"{scenario}{'主' if is_strong_home else '客'}"
 
-    # V6.8 推荐与命中
+    # V6.9 推荐与命中
     prediction, _ = get_recommendation(scenario, is_strong_home)
     hit = check_hit(prediction, score_h, score_a) if prediction != '未知' else None
 
@@ -519,7 +519,7 @@ def process_match(result, km, date_str):
         'sig_365_raw': sig_365_raw,
         'sig_weide_raw': sig_weide_raw,
         'prediction': prediction,
-        'pred_type': 'V6.8',
+        'pred_type': 'V6.9',
         'hit': hit,
     }
 
@@ -711,7 +711,7 @@ async def main():
         scenario_counter = Counter(r['scenario'] for r in new_records)
         subgroup_counter = Counter(r['subgroup'] for r in new_records)
 
-        # 计算整体命中率（基于V6.8推荐）
+        # 计算整体命中率（基于V6.9推荐）
         if new_records:
             hit_count = 0
             for r in new_records:
@@ -731,7 +731,7 @@ async def main():
             msg_lines = [
                 f"✅ 回测主表更新完成（{target_date}）",
                 f"新增 {len(new_records)} 场 | 总场次 {len(detail)} 场",
-                f"V6.8推荐命中: {hit_count}/{len(new_records)} ({hit_rate:.1f}%)",
+                f"V6.9推荐命中: {hit_count}/{len(new_records)} ({hit_rate:.1f}%)",
                 f"场景分布: {scenario_str}",
             ]
             if git_ok:
