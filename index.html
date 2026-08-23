@@ -536,17 +536,46 @@ async function loadFrogTrack() {
 
 async function loadLockedPreds(dateKey) {
   if (_lockedPreds) return _lockedPreds;
-  try {
-    var r = await fetch('data/500com_daily/'+dateKey+'/locked_predictions.json?t='+Date.now(), {cache: 'no-cache'});
-    if (!r.ok) return null;
-    _lockedPreds = await r.json();
-    return _lockedPreds;
-  } catch(e) { return null; }
+  _lockedPreds = await loadLocksForDate(dateKey);
+  return _lockedPreds;
 }
 
-function applyLockedPrediction(match) {
-  if (!_lockedPreds || !match || !match.id) return match;
-  var lock = _lockedPreds[match.id];
+async function loadLocksForDate(folderDk) {
+  try {
+    var r = await fetch('data/500com_daily/'+folderDk+'/locked_predictions.json?t='+Date.now(), {cache: 'no-cache'});
+    if (!r.ok) return {};
+    return await r.json();
+  } catch(e) { return {}; }
+}
+
+function getRecentFolderDates(days) {
+  var arr = [];
+  var now = new Date();
+  for (var i = 0; i < days; i++) {
+    var d = new Date(now.getTime() - i * 86400000);
+    arr.push(d.getFullYear() + String(d.getMonth()+1).padStart(2,'0') + String(d.getDate()).padStart(2,'0'));
+  }
+  return arr;
+}
+
+function normalizeKellyRaw(raw) {
+  if (!raw) return [];
+  if (Array.isArray(raw.matches)) return raw.matches;
+  if (raw.matches) return convertZgzcwKelly(raw) || [];
+  return Array.isArray(raw) ? raw : [];
+}
+
+function dedupMatchKey(m) {
+  return m.id || m.fixture_id || m.jingcai_id || m.beidan_id || ((m.home||'')+'|'+(m.away||'')+'|'+(m.time||''));
+}
+
+function applyLockedPrediction(match, locks) {
+  locks = locks || _lockedPreds;
+  if (!locks || !match) return match;
+  var lock = locks[match.id]
+    || (match.fixture_id && locks[match.fixture_id])
+    || (match.beidan_id && locks[match.beidan_id])
+    || (match.jingcai_id && locks[match.jingcai_id]);
   if (!lock) return match;
   // 用锁定时刻的Kelly和亚盘数据覆盖实时数据
   var comps = lock.companies || {};
@@ -571,18 +600,13 @@ function applyLockedPrediction(match) {
 async function loadMatchResults(dateKey) {
   if (_matchResults) return _matchResults;
   _matchResults = {};
-  try {
-    var r = await fetch('data/500com_daily/'+dateKey+'/match_results.json?t='+Date.now(), {cache:'no-cache'});
-    if (r.ok) { var d = await r.json(); if (d.results) Object.assign(_matchResults, d.results); }
-  } catch(e) {}
-  try {
-    var y = new Date(); y.setDate(y.getDate()-1);
-    var yk = y.getFullYear()+String(y.getMonth()+1).padStart(2,'0')+String(y.getDate()).padStart(2,'0');
-    if (yk !== dateKey) {
-      var r2 = await fetch('data/500com_daily/'+yk+'/match_results.json?t='+Date.now(), {cache:'no-cache'});
-      if (r2.ok) { var d2 = await r2.json(); if (d2.results) Object.assign(_matchResults, d2.results); }
-    }
-  } catch(e) {}
+  var folders = getRecentFolderDates(14);
+  for (var i = 0; i < folders.length; i++) {
+    try {
+      var r = await fetch('data/500com_daily/'+folders[i]+'/match_results.json?t='+Date.now(), {cache:'no-cache'});
+      if (r.ok) { var d = await r.json(); if (d.results) Object.assign(_matchResults, d.results); }
+    } catch(e) {}
+  }
   var total=0, hits=0;
   for (var k in _matchResults) {
     var v = _matchResults[k];
@@ -1255,6 +1279,7 @@ function convertZgzcwKelly(data) {
     }
     result.push({
       id: m.jingcai_id || keys[i],
+      fixture_id: keys[i],
       jingcai_id: m.jingcai_id || '',
       beidan_id: m.beidan_id || '',
       home: teams[0], away: teams[1],
@@ -1333,12 +1358,39 @@ async function fetchKellyData() {
   var now = new Date();
   var dk = now.getFullYear()+String(now.getMonth()+1).padStart(2,'0')+String(now.getDate()).padStart(2,'0');
   if (_kellyCache && _kellyCacheDate===dk && _kellyFetchedAt && (Date.now()-_kellyFetchedAt)<5*60*1000) return _kellyCache;
-  var result = await fetchWithRealtimeCheck(dk);
-  if (result) return result;
-  var y = new Date(now.getTime()-86400000);
-  var yk = y.getFullYear()+String(y.getMonth()+1).padStart(2,'0')+String(y.getDate()).padStart(2,'0');
-  if (yk!==dk) { result = await fetchWithRealtimeCheck(yk); if (result) return result; }
-  return null;
+
+  var folders = getRecentFolderDates(14);
+  var map = new Map();
+  for (var i = 0; i < folders.length; i++) {
+    var folder = folders[i];
+    var list;
+    if (i === 0) {
+      list = await fetchWithRealtimeCheck(folder) || [];
+    } else {
+      var raw = await fetchOnce('data/500com_daily/'+folder+'/zgzcw_kelly_data.json');
+      list = normalizeKellyRaw(raw);
+    }
+    var locks = await loadLocksForDate(folder);
+    for (var j = 0; j < list.length; j++) {
+      var m = list[j];
+      applyLockedPrediction(m, locks);
+      m._sourceDate = folder;
+      var key = dedupMatchKey(m);
+      var existing = map.get(key);
+      if (!existing) { map.set(key, m); continue; }
+      if (existing._locked && !m._locked) continue;
+      if (!existing._locked && m._locked) { map.set(key, m); continue; }
+      var existingOk = !!(existing.bet365_kelly && existing.weide_kelly);
+      var matchOk = !!(m.bet365_kelly && m.weide_kelly);
+      if (matchOk && !existingOk) map.set(key, m);
+    }
+  }
+
+  _kellyCache = Array.from(map.values());
+  _kellyCacheDate = dk;
+  _kellyFetchedAt = Date.now();
+  console.log('Kelly multi-day loaded: '+_kellyCache.length+' matches from '+folders.length+' days');
+  return _kellyCache;
 }
 
 function formatRelativeTime(ts) {
