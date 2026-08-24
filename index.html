@@ -640,7 +640,7 @@ function updateHeaderStats() {
     if (!v) return;
     // v67_subgroup_stats.json 字段: total, double_hit_rate, double_select
     var count = v.total || v.count || 0;
-    var hitRate = v.double_hit_rate || v.hitRate || 0;
+    var hitRate = v.double_hit_rate || v.hitRate || v.rate || 0;
     subCount++;
     if (count > 0) {
       totalCount += count;
@@ -1152,7 +1152,7 @@ function classifyV6(match) {
   if (_v67Table && _v67Table[subGroupKey]) {
     var v67 = _v67Table[subGroupKey];
     prediction = v67.double_select || v67.pred;
-    hitRate = v67.double_hit_rate != null ? v67.double_hit_rate : v67.hitRate;
+    hitRate = v67.double_hit_rate != null ? v67.double_hit_rate : (v67.hitRate != null ? v67.hitRate : v67.rate);
     sampleCount = v67.total || v67.count || 0;
     wdl = v67.wdl || (v67.win != null ? v67.win + '/' + v67.draw + '/' + v67.lose : null);
   } else {
