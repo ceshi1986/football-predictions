@@ -509,11 +509,12 @@ async function loadV67Table() {
     var r = await fetch(V67_URL + '?t=' + Date.now(), {cache: 'no-cache'});
     if (!r.ok) return null;
     var raw = await r.json();
-    // 解码混淆key → 原始子组名
+    // JSON可能是嵌套结构(subgroups键下)或扁平结构
+    var subgroupsObj = raw.subgroups || raw;
     _v67Table = {};
-    Object.keys(raw).forEach(function(k){
+    Object.keys(subgroupsObj).forEach(function(k){
       var origKey = _V67_DECODE[k] || k;
-      _v67Table[origKey] = raw[k];
+      _v67Table[origKey] = subgroupsObj[k];
     });
     // 动态更新头部统计数字（避免硬编码失真）
     updateHeaderStats();
