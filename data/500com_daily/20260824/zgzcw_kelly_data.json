@@ -1,6 +1,6 @@
 {
   "date": "20260824",
-  "scrape_time": "2026-08-24 08:17:30",
+  "scrape_time": "2026-08-24 08:45:19",
   "source": "zgzcw.com",
   "version": "500com_v1",
   "dongqiudi_fallback_count": 0,
@@ -234,8 +234,8 @@
             63.28
           ],
           "kelly": [
-            1.01,
             1.0,
+            0.99,
             0.82
           ],
           "payout": 0.8859
@@ -282,9 +282,9 @@
             56.17
           ],
           "kelly": [
-            0.78,
+            0.77,
             0.91,
-            0.92
+            0.93
           ],
           "payout": 0.8875,
           "initial_handicap_str": "受一球",
@@ -348,7 +348,7 @@
           ],
           "kelly": [
             0.84,
-            0.89,
+            0.88,
             0.92
           ],
           "payout": 0.8945
@@ -361,21 +361,21 @@
             1.6
           ],
           "latest_odds": [
-            4.8,
-            4.1,
+            5.0,
+            4.2,
             1.56
           ],
           "probability": [
-            19.06,
-            22.31,
-            58.63
+            18.53,
+            22.06,
+            59.4
           ],
           "kelly": [
+            0.97,
             0.93,
-            0.91,
             0.91
           ],
-          "payout": 0.9147
+          "payout": 0.9267
         },
         "weide": {
           "name": "伟*",
@@ -385,19 +385,19 @@
             1.55
           ],
           "latest_odds": [
-            4.8,
+            5.0,
             4.1,
-            1.55
+            1.53
           ],
           "probability": [
-            18.98,
-            22.23,
-            58.79
+            18.22,
+            22.22,
+            59.55
           ],
           "kelly": [
-            0.93,
+            0.97,
             0.91,
-            0.91
+            0.9
           ],
           "payout": 0.9112
         }
@@ -1037,7 +1037,7 @@
             17.19
           ],
           "kelly": [
-            0.88,
+            0.87,
             0.88,
             0.93
           ],
@@ -1183,7 +1183,7 @@
           "kelly": [
             0.96,
             0.9,
-            0.88
+            0.89
           ],
           "payout": 0.9318
         },
@@ -1245,7 +1245,7 @@
           "kelly": [
             0.81,
             0.87,
-            1.12
+            1.13
           ],
           "payout": 0.8855
         },
@@ -1257,21 +1257,21 @@
             4.5
           ],
           "latest_odds": [
-            1.91,
+            1.95,
             3.6,
-            3.5
+            3.4
           ],
           "probability": [
-            48.16,
-            25.55,
-            26.28
+            47.28,
+            25.61,
+            27.11
           ],
           "kelly": [
+            0.95,
             0.93,
-            0.93,
-            0.88
+            0.86
           ],
-          "payout": 0.9199
+          "payout": 0.9219
         },
         "macau": {
           "name": "*门",
@@ -1341,7 +1341,7 @@
           "kelly": [
             0.9,
             0.85,
-            0.88
+            0.89
           ],
           "payout": 0.8855
         },
@@ -1353,21 +1353,21 @@
             4.5
           ],
           "latest_odds": [
-            1.85,
-            3.4,
-            3.7
+            1.9,
+            3.3,
+            3.6
           ],
           "probability": [
-            48.92,
-            26.62,
-            24.46
+            47.54,
+            27.37,
+            25.09
           ],
           "kelly": [
-            0.9,
-            0.88,
-            0.93
+            0.93,
+            0.85,
+            0.91
           ],
-          "payout": 0.905
+          "payout": 0.9032
         },
         "ysb": {
           "name": "易**",
@@ -1389,7 +1389,7 @@
           "kelly": [
             0.91,
             0.93,
-            0.88
+            0.89
           ],
           "payout": 0.9105
         },
@@ -4182,10 +4182,17 @@
           "handicap_path": [
             {
               "val": 0.75,
-              "time": "08-18 22:57",
+              "time": "",
               "home_water": 0.89,
               "away_water": 0.89,
               "str": "半球/一球"
+            },
+            {
+              "val": 1.0,
+              "time": "",
+              "home_water": 1.0,
+              "away_water": 0.78,
+              "str": "一球"
             }
           ]
         },
@@ -5164,28 +5171,14 @@
           "handicap_path": [
             {
               "val": 0.5,
-              "time": "08-16 18:56",
+              "time": "",
               "home_water": 0.86,
               "away_water": 0.98,
               "str": "半球"
             },
             {
-              "val": 0.5,
-              "time": "08-23 19:16",
-              "home_water": 0.8,
-              "away_water": 1.04,
-              "str": "半球"
-            },
-            {
               "val": 0.75,
-              "time": "08-23 22:50",
-              "home_water": 0.96,
-              "away_water": 0.88,
-              "str": "半球/一球"
-            },
-            {
-              "val": 0.75,
-              "time": "08-23 23:01",
+              "time": "",
               "home_water": 1.02,
               "away_water": 0.82,
               "str": "半球/一球"
@@ -7524,38 +7517,17 @@
           "handicap_path": [
             {
               "val": 0.25,
-              "time": "08-16 19:39",
+              "time": "",
               "home_water": 1.01,
               "away_water": 0.83,
               "str": "平手/半球"
             },
             {
-              "val": 0.25,
-              "time": "08-18 15:48",
-              "home_water": 0.96,
-              "away_water": 0.88,
-              "str": "平手/半球"
-            },
-            {
-              "val": 0.25,
-              "time": "08-23 11:21",
-              "home_water": 0.82,
-              "away_water": 1.02,
-              "str": "平手/半球"
-            },
-            {
-              "val": 0.5,
-              "time": "08-23 23:38",
-              "home_water": 0.9,
-              "away_water": 0.94,
-              "str": "半球"
-            },
-            {
-              "val": 0.5,
-              "time": "08-24 00:03",
-              "home_water": 0.8,
-              "away_water": 1.04,
-              "str": "半球"
+              "val": 0.75,
+              "time": "",
+              "home_water": 1.02,
+              "away_water": 0.82,
+              "str": "半球/一球"
             }
           ]
         },
@@ -9599,42 +9571,14 @@
           "handicap_path": [
             {
               "val": 0.5,
-              "time": "08-16 18:57",
+              "time": "",
               "home_water": 0.98,
               "away_water": 0.86,
               "str": "半球"
             },
             {
-              "val": 0.5,
-              "time": "08-17 07:43",
-              "home_water": 1.04,
-              "away_water": 0.8,
-              "str": "半球"
-            },
-            {
-              "val": 0.5,
-              "time": "08-18 15:49",
-              "home_water": 1.12,
-              "away_water": 0.72,
-              "str": "半球"
-            },
-            {
               "val": 0.25,
-              "time": "08-23 07:32",
-              "home_water": 0.88,
-              "away_water": 0.96,
-              "str": "平手/半球"
-            },
-            {
-              "val": 0.25,
-              "time": "08-24 01:22",
-              "home_water": 0.96,
-              "away_water": 0.88,
-              "str": "平手/半球"
-            },
-            {
-              "val": 0.25,
-              "time": "08-24 01:31",
+              "time": "",
               "home_water": 0.94,
               "away_water": 0.88,
               "str": "平手/半球"
@@ -11155,49 +11099,14 @@
           "handicap_path": [
             {
               "val": -0.75,
-              "time": "08-16 19:41",
+              "time": "",
               "home_water": 0.8,
               "away_water": 1.04,
               "str": "受半球/一球"
             },
             {
               "val": -0.5,
-              "time": "08-23 16:40",
-              "home_water": 0.92,
-              "away_water": 0.92,
-              "str": "受半球"
-            },
-            {
-              "val": -0.5,
-              "time": "08-23 23:54",
-              "home_water": 0.98,
-              "away_water": 0.86,
-              "str": "受半球"
-            },
-            {
-              "val": -0.5,
-              "time": "08-24 02:06",
-              "home_water": 0.88,
-              "away_water": 0.96,
-              "str": "受半球"
-            },
-            {
-              "val": -0.5,
-              "time": "08-24 02:15",
-              "home_water": 1.0,
-              "away_water": 0.84,
-              "str": "受半球"
-            },
-            {
-              "val": -0.5,
-              "time": "08-24 02:42",
-              "home_water": 0.9,
-              "away_water": 0.94,
-              "str": "受半球"
-            },
-            {
-              "val": -0.5,
-              "time": "08-24 02:45",
+              "time": "",
               "home_water": 0.9,
               "away_water": 0.92,
               "str": "受半球"
@@ -11985,31 +11894,7 @@
             0.95,
             0.88
           ],
-          "payout": 0.8906,
-          "initial_handicap_str": "平手",
-          "latest_handicap_str": "平手",
-          "initial_handicap_val": 0,
-          "latest_handicap_val": 0,
-          "initial_water_home": 0.79,
-          "initial_water_away": 0.99,
-          "latest_water_home": 0.88,
-          "latest_water_away": 0.9,
-          "handicap_path": [
-            {
-              "val": 0,
-              "time": "08-20 21:17",
-              "home_water": 0.79,
-              "away_water": 0.99,
-              "str": "平手"
-            },
-            {
-              "val": 0,
-              "time": "08-24 02:24",
-              "home_water": 0.88,
-              "away_water": 0.9,
-              "str": "平手"
-            }
-          ]
+          "payout": 0.8906
         },
         "libo": {
           "name": "立*",
@@ -12893,6 +12778,188 @@
             0.92
           ],
           "payout": 0.9485
+        }
+      },
+      "asian_handicap": null
+    },
+    "1429119": {
+      "match_name": "特内里费 vs 阿尔梅里亚",
+      "home": "特内里费",
+      "away": "阿尔梅里亚",
+      "league": "西乙",
+      "match_time": "08-24 03:20",
+      "jingcai_id": "",
+      "beidan_id": "北单298",
+      "source": "500.com",
+      "data_source": "500com_playwright",
+      "companies": {
+        "william_hill": {
+          "name": "威***",
+          "initial_odds": [
+            2.7,
+            3.1,
+            2.45
+          ],
+          "latest_odds": [
+            2.63,
+            2.9,
+            2.63
+          ],
+          "probability": [
+            34.4,
+            31.2,
+            34.4
+          ],
+          "kelly": [
+            0.9,
+            0.86,
+            0.95
+          ],
+          "payout": 0.9047
+        },
+        "macau": {
+          "name": "*门",
+          "initial_odds": [
+            2.82,
+            3.23,
+            2.18
+          ],
+          "latest_odds": [
+            2.58,
+            3.23,
+            2.36
+          ],
+          "probability": [
+            34.58,
+            27.62,
+            37.8
+          ],
+          "kelly": [
+            0.88,
+            0.96,
+            0.85
+          ],
+          "payout": 0.8921,
+          "initial_handicap_str": "受平手/半球",
+          "latest_handicap_str": "平手",
+          "initial_handicap_val": -0.25,
+          "latest_handicap_val": 0,
+          "initial_water_home": 0.83,
+          "initial_water_away": 0.95,
+          "latest_water_home": 0.94,
+          "latest_water_away": 0.84,
+          "handicap_path": [
+            {
+              "val": -0.25,
+              "time": "08-19 19:29",
+              "home_water": 0.83,
+              "away_water": 0.95,
+              "str": "受平手/半球"
+            },
+            {
+              "val": -0.25,
+              "time": "08-23 13:04",
+              "home_water": 0.7,
+              "away_water": 1.08,
+              "str": "受平手/半球"
+            }
+          ]
+        },
+        "libo": {
+          "name": "立*",
+          "initial_odds": [
+            2.62,
+            3.1,
+            2.37
+          ],
+          "latest_odds": [
+            2.62,
+            3.0,
+            2.45
+          ],
+          "probability": [
+            33.98,
+            29.68,
+            36.34
+          ],
+          "kelly": [
+            0.9,
+            0.89,
+            0.88
+          ],
+          "payout": 0.8903
+        },
+        "bet365": {
+          "name": "B*****",
+          "initial_odds": [
+            2.7,
+            3.2,
+            2.5
+          ],
+          "latest_odds": [
+            2.7,
+            3.1,
+            2.7
+          ],
+          "probability": [
+            34.83,
+            30.34,
+            34.83
+          ],
+          "kelly": [
+            0.93,
+            0.92,
+            0.97
+          ],
+          "payout": 0.9404
+        },
+        "ysb": {
+          "name": "易**",
+          "initial_odds": [
+            3.1,
+            3.2,
+            2.23
+          ],
+          "latest_odds": [
+            2.7,
+            3.1,
+            2.6
+          ],
+          "probability": [
+            34.37,
+            29.94,
+            35.69
+          ],
+          "kelly": [
+            0.93,
+            0.92,
+            0.94
+          ],
+          "payout": 0.928
+        },
+        "weide": {
+          "name": "伟*",
+          "initial_odds": [
+            2.7,
+            3.2,
+            2.45
+          ],
+          "latest_odds": [
+            2.63,
+            3.13,
+            2.55
+          ],
+          "probability": [
+            34.82,
+            29.26,
+            35.92
+          ],
+          "kelly": [
+            0.9,
+            0.93,
+            0.92
+          ],
+          "payout": 0.9159
         }
       },
       "asian_handicap": null
@@ -15181,19 +15248,19 @@
           "latest_odds": [
             3.0,
             2.8,
-            2.5
+            2.45
           ],
           "probability": [
-            30.57,
-            32.75,
-            36.68
+            30.34,
+            32.51,
+            37.15
           ],
           "kelly": [
-            0.91,
-            0.9,
-            0.94
+            0.92,
+            0.89,
+            0.91
           ],
-          "payout": 0.917
+          "payout": 0.9102
         },
         "macau": {
           "name": "*门",
@@ -15213,9 +15280,9 @@
             37.87
           ],
           "kelly": [
-            0.87,
+            0.89,
             0.91,
-            0.89
+            0.88
           ],
           "payout": 0.89,
           "initial_handicap_str": "受平手/半球",
@@ -15224,8 +15291,8 @@
           "latest_handicap_val": -0.25,
           "initial_water_home": 0.73,
           "initial_water_away": 1.05,
-          "latest_water_home": 0.76,
-          "latest_water_away": 1.02,
+          "latest_water_home": 0.7,
+          "latest_water_away": 1.06,
           "handicap_path": [
             {
               "val": -0.25,
@@ -15254,6 +15321,13 @@
               "home_water": 0.76,
               "away_water": 1.02,
               "str": "受平手/半球"
+            },
+            {
+              "val": -0.25,
+              "time": "08-24 08:31",
+              "home_water": 0.7,
+              "away_water": 1.06,
+              "str": "受平手/半球"
             }
           ]
         },
@@ -15275,9 +15349,9 @@
             38.36
           ],
           "kelly": [
-            0.94,
+            0.95,
             0.96,
-            0.92
+            0.91
           ],
           "payout": 0.9398
         },
@@ -15289,21 +15363,21 @@
             2.75
           ],
           "latest_odds": [
-            3.1,
+            3.2,
             2.8,
             2.63
           ],
           "probability": [
-            30.43,
-            33.69,
-            35.87
+            29.77,
+            34.02,
+            36.22
           ],
           "kelly": [
-            0.94,
-            0.9,
-            0.99
+            0.98,
+            0.89,
+            0.98
           ],
-          "payout": 0.9434
+          "payout": 0.9525
         },
         "ysb": {
           "name": "易**",
@@ -15323,9 +15397,9 @@
             37.88
           ],
           "kelly": [
-            0.94,
+            0.95,
             0.96,
-            0.94
+            0.93
           ],
           "payout": 0.947
         },
@@ -15347,9 +15421,9 @@
             38.36
           ],
           "kelly": [
-            0.94,
+            0.95,
             0.96,
-            0.92
+            0.91
           ],
           "payout": 0.9398
         }
@@ -15375,21 +15449,21 @@
             3.8
           ],
           "latest_odds": [
-            1.85,
+            1.91,
             3.3,
-            3.4
+            3.3
           ],
           "probability": [
-            47.51,
-            26.64,
-            25.85
+            46.35,
+            26.83,
+            26.83
           ],
           "kelly": [
-            0.89,
+            0.91,
             0.86,
-            0.88
+            0.86
           ],
-          "payout": 0.879
+          "payout": 0.8853
         },
         "macau": {
           "name": "*门",
@@ -15409,7 +15483,7 @@
             27.98
           ],
           "kelly": [
-            0.92,
+            0.91,
             0.91,
             0.83
           ],
@@ -15450,9 +15524,9 @@
             26.45
           ],
           "kelly": [
-            0.92,
+            0.91,
             0.89,
-            0.88
+            0.89
           ],
           "payout": 0.8994
         },
@@ -15475,7 +15549,7 @@
           ],
           "kelly": [
             0.93,
-            0.96,
+            0.97,
             0.99
           ],
           "payout": 0.9558
@@ -15488,21 +15562,21 @@
             3.6
           ],
           "latest_odds": [
-            1.96,
+            2.0,
             3.6,
             3.7
           ],
           "probability": [
-            48.21,
-            26.25,
-            25.54
+            47.71,
+            26.5,
+            25.79
           ],
           "kelly": [
+            0.96,
             0.94,
-            0.94,
-            0.96
+            0.97
           ],
-          "payout": 0.945
+          "payout": 0.9542
         },
         "weide": {
           "name": "伟*",
@@ -15522,8 +15596,8 @@
             26.05
           ],
           "kelly": [
-            0.93,
-            0.96,
+            0.92,
+            0.97,
             0.94
           ],
           "payout": 0.9379
@@ -17848,7 +17922,7 @@
           ],
           "kelly": [
             0.91,
-            0.9,
+            0.89,
             0.91
           ],
           "payout": 0.9066
@@ -17913,7 +17987,7 @@
           ],
           "kelly": [
             0.9,
-            0.9,
+            0.89,
             0.84
           ],
           "payout": 0.8895
@@ -17926,21 +18000,21 @@
             4.75
           ],
           "latest_odds": [
-            1.67,
-            3.6,
-            5.25
+            1.62,
+            3.75,
+            5.5
           ],
           "probability": [
-            56.12,
-            26.03,
-            17.85
+            57.92,
+            25.02,
+            17.06
           ],
           "kelly": [
-            0.94,
-            0.92,
-            0.96
+            0.91,
+            0.96,
+            1.0
           ],
-          "payout": 0.9372
+          "payout": 0.9383
         },
         "ysb": {
           "name": "易**",
@@ -17985,7 +18059,7 @@
           ],
           "kelly": [
             0.9,
-            0.9,
+            0.89,
             0.88
           ],
           "payout": 0.8967
@@ -18198,7 +18272,7 @@
           ],
           "kelly": [
             0.91,
-            0.91,
+            0.9,
             0.88
           ],
           "payout": 0.9032
@@ -18222,7 +18296,7 @@
           ],
           "kelly": [
             0.9,
-            0.9,
+            0.89,
             0.85
           ],
           "payout": 0.8874,
@@ -18301,20 +18375,20 @@
           ],
           "latest_odds": [
             1.71,
-            3.6,
-            4.6
+            3.9,
+            4.3
           ],
           "probability": [
-            54.15,
-            25.72,
-            20.13
+            54.46,
+            23.88,
+            21.66
           ],
           "kelly": [
             0.93,
-            0.88,
-            0.96
+            0.95,
+            0.9
           ],
-          "payout": 0.926
+          "payout": 0.9313
         },
         "weide": {
           "name": "伟*",
@@ -18326,19 +18400,19 @@
           "latest_odds": [
             1.67,
             3.7,
-            4.6
+            4.5
           ],
           "probability": [
-            55.11,
-            24.88,
-            20.01
+            54.87,
+            24.77,
+            20.36
           ],
           "kelly": [
             0.91,
-            0.91,
-            0.96
+            0.9,
+            0.95
           ],
-          "payout": 0.9204
+          "payout": 0.9163
         }
       },
       "asian_handicap": null
@@ -18696,188 +18770,6 @@
             0.94
           ],
           "payout": 0.9515
-        }
-      },
-      "asian_handicap": null
-    },
-    "1429119": {
-      "match_name": "特内里费 vs 阿尔梅里亚",
-      "home": "特内里费",
-      "away": "阿尔梅里亚",
-      "league": "西乙",
-      "match_time": "08-24 03:20",
-      "jingcai_id": "",
-      "beidan_id": "北单298",
-      "source": "500.com",
-      "data_source": "500com_merged",
-      "companies": {
-        "william_hill": {
-          "name": "威***",
-          "initial_odds": [
-            2.7,
-            3.1,
-            2.45
-          ],
-          "latest_odds": [
-            2.63,
-            2.9,
-            2.63
-          ],
-          "probability": [
-            34.4,
-            31.2,
-            34.4
-          ],
-          "kelly": [
-            0.9,
-            0.86,
-            0.95
-          ],
-          "payout": 0.9047
-        },
-        "macau": {
-          "name": "*门",
-          "initial_odds": [
-            2.82,
-            3.23,
-            2.18
-          ],
-          "latest_odds": [
-            2.58,
-            3.23,
-            2.36
-          ],
-          "probability": [
-            34.58,
-            27.62,
-            37.8
-          ],
-          "kelly": [
-            0.88,
-            0.96,
-            0.85
-          ],
-          "payout": 0.8921,
-          "initial_handicap_str": "受平手/半球",
-          "latest_handicap_str": "平手",
-          "initial_handicap_val": -0.25,
-          "latest_handicap_val": 0,
-          "initial_water_home": 0.83,
-          "initial_water_away": 0.95,
-          "latest_water_home": 0.94,
-          "latest_water_away": 0.84,
-          "handicap_path": [
-            {
-              "val": -0.25,
-              "time": "08-19 19:29",
-              "home_water": 0.83,
-              "away_water": 0.95,
-              "str": "受平手/半球"
-            },
-            {
-              "val": -0.25,
-              "time": "08-23 13:04",
-              "home_water": 0.7,
-              "away_water": 1.08,
-              "str": "受平手/半球"
-            }
-          ]
-        },
-        "libo": {
-          "name": "立*",
-          "initial_odds": [
-            2.62,
-            3.1,
-            2.37
-          ],
-          "latest_odds": [
-            2.62,
-            3.0,
-            2.45
-          ],
-          "probability": [
-            33.98,
-            29.68,
-            36.34
-          ],
-          "kelly": [
-            0.9,
-            0.89,
-            0.88
-          ],
-          "payout": 0.8903
-        },
-        "bet365": {
-          "name": "B*****",
-          "initial_odds": [
-            2.7,
-            3.2,
-            2.5
-          ],
-          "latest_odds": [
-            2.7,
-            3.1,
-            2.7
-          ],
-          "probability": [
-            34.83,
-            30.34,
-            34.83
-          ],
-          "kelly": [
-            0.93,
-            0.92,
-            0.97
-          ],
-          "payout": 0.9404
-        },
-        "ysb": {
-          "name": "易**",
-          "initial_odds": [
-            3.1,
-            3.2,
-            2.23
-          ],
-          "latest_odds": [
-            2.7,
-            3.1,
-            2.6
-          ],
-          "probability": [
-            34.37,
-            29.94,
-            35.69
-          ],
-          "kelly": [
-            0.93,
-            0.92,
-            0.94
-          ],
-          "payout": 0.928
-        },
-        "weide": {
-          "name": "伟*",
-          "initial_odds": [
-            2.7,
-            3.2,
-            2.45
-          ],
-          "latest_odds": [
-            2.63,
-            3.13,
-            2.55
-          ],
-          "probability": [
-            34.82,
-            29.26,
-            35.92
-          ],
-          "kelly": [
-            0.9,
-            0.93,
-            0.92
-          ],
-          "payout": 0.9159
         }
       },
       "asian_handicap": null
