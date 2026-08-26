@@ -1102,6 +1102,16 @@ function classifyV6(match) {
   ['h','d','a'].forEach(function(d){ if((k365[d]||1.0)<=p365) favored365.add(d) });
   var favoredW = new Set();
   ['h','d','a'].forEach(function(d){ if((kw[d]||1.0)<=pw) favoredW.add(d) });
+
+  // Kelly≥1.0排除规则（回测验证，韦德平K≥1.0除外）
+  var kellyExcluded = new Set();
+  if ((kw.h || 0) >= 1.0) kellyExcluded.add('h');
+  if ((kw.a || 0) >= 1.0) kellyExcluded.add('a');
+  ['h','a'].forEach(function(d){
+    if ((k365[d]||0) >= 1.0 && (kw[d]||0) >= 1.0) kellyExcluded.add(d);
+  });
+  kellyExcluded.forEach(function(d){ favored365.delete(d); favoredW.delete(d); });
+
   var state365 = getV6StateLetter(favored365, isHomeStrong);
   var stateW = getV6StateLetter(favoredW, isHomeStrong);
   if (state365==='D' && stateW==='D') return null;
@@ -1275,7 +1285,8 @@ function convertZgzcwKelly(data) {
       }
       if (ck[j]==='macau' && c.initial_handicap_val!=null && c.latest_handicap_val!=null) {
         macau_ah = {init:c.initial_handicap_val, latest:c.latest_handicap_val,
-                    initStr:c.initial_handicap_str||'', latestStr:c.latest_handicap_str||''};
+                    initStr:c.initial_handicap_str||'', latestStr:c.latest_handicap_str||'',
+                    path:c.handicap_path||null};
       }
     }
     result.push({
