@@ -1110,7 +1110,13 @@ function classifyV6(match) {
   ['h','a'].forEach(function(d){
     if ((k365[d]||0) >= 1.0 && (kw[d]||0) >= 1.0) kellyExcluded.add(d);
   });
+  // 保存排除前的favored集合，用于排除后为空时回退
+  var favored365Before = new Set(favored365);
+  var favoredWBefore = new Set(favoredW);
   kellyExcluded.forEach(function(d){ favored365.delete(d); favoredW.delete(d); });
+  // 排除后如果某家favored集合为空，说明Kelly排除过度（该方向本是唯一favor），回退到不排除
+  if (favored365.size === 0) favored365 = favored365Before;
+  if (favoredW.size === 0) favoredW = favoredWBefore;
 
   var state365 = getV6StateLetter(favored365, isHomeStrong);
   var stateW = getV6StateLetter(favoredW, isHomeStrong);
