@@ -1243,6 +1243,21 @@ async def run():
             if not nm.get('beidan_id') and hm.get('beidan_id'):
                 nm['beidan_id'] = hm['beidan_id']
                 changed = True
+            # 保护handicap_path：如果旧数据路径更长，保留旧的（防止API失败降级为2节点覆盖完整路径）
+            old_macau = hm.get('companies', {}).get('macau', {})
+            new_macau = nm.get('companies', {}).get('macau', {})
+            if old_macau and new_macau:
+                old_path = old_macau.get('handicap_path', [])
+                new_path = new_macau.get('handicap_path', [])
+                if len(old_path) > len(new_path) and old_path:
+                    new_macau['handicap_path'] = old_path
+                    # 同步更新initial/latest（如果旧的更完整）
+                    if old_macau.get('initial_handicap_str') and not new_macau.get('initial_handicap_str'):
+                        for k in ['initial_handicap_str', 'latest_handicap_str', 'initial_handicap_val', 'latest_handicap_val',
+                                   'initial_water_home', 'initial_water_away', 'latest_water_home', 'latest_water_away']:
+                            if old_macau.get(k) is not None:
+                                new_macau[k] = old_macau[k]
+                    changed = True
             if changed:
                 id_restored += 1
 
