@@ -228,12 +228,14 @@ def fetch_macau_asian_handicap(fixture_id):
 
     # 抓取完整变化历史（蛙跳盘新规则用）
     handicap_path = fetch_macau_handicap_path(fixture_id)
+    path_degraded = False  # 标记：True=API失败降级为2节点假路径，False=API成功返回的真实路径
     # 若接口没返回，用初盘+即时盘凑两点（不足以判断蛙跳，但保留向后兼容）
     if not handicap_path:
         handicap_path = [
             {'val': init_val, 'time': '', 'home_water': iw_home, 'away_water': iw_away, 'str': init_str},
             {'val': latest_val, 'time': '', 'home_water': lw_home, 'away_water': lw_away, 'str': latest_str},
         ]
+        path_degraded = True
 
     return {
         'initial_handicap_str': init_str,
@@ -245,6 +247,7 @@ def fetch_macau_asian_handicap(fixture_id):
         'latest_water_home': lw_home,
         'latest_water_away': lw_away,
         'handicap_path': handicap_path,
+        'handicap_path_degraded': path_degraded,
     }
 
 # GitHub配置
@@ -1243,14 +1246,19 @@ async def run():
             if not nm.get('beidan_id') and hm.get('beidan_id'):
                 nm['beidan_id'] = hm['beidan_id']
                 changed = True
-            # 保护handicap_path：如果旧数据路径更长，保留旧的（防止API失败降级为2节点覆盖完整路径）
+            # 保护handicap_path：区分"抓取失败降级"和"真实数据变化"
+            # - 新数据path_degraded=True → API失败降级为2节点假路径 → 保留旧长路径
+            # - 新数据path_degraded=False → API成功返回的真实路径 → 接受新数据（即使更短）
             old_macau = hm.get('companies', {}).get('macau', {})
             new_macau = nm.get('companies', {}).get('macau', {})
             if old_macau and new_macau:
                 old_path = old_macau.get('handicap_path', [])
                 new_path = new_macau.get('handicap_path', [])
-                if len(old_path) > len(new_path) and old_path:
+                new_is_degraded = new_macau.get('handicap_path_degraded', False)
+                if new_is_degraded and len(old_path) > len(new_path) and old_path:
+                    # 抓取失败降级：保留旧的完整路径
                     new_macau['handicap_path'] = old_path
+                    new_macau['handicap_path_degraded'] = False  # 恢复后标记为可信
                     # 同步更新initial/latest（如果旧的更完整）
                     if old_macau.get('initial_handicap_str') and not new_macau.get('initial_handicap_str'):
                         for k in ['initial_handicap_str', 'latest_handicap_str', 'initial_handicap_val', 'latest_handicap_val',
@@ -1258,6 +1266,9 @@ async def run():
                             if old_macau.get(k) is not None:
                                 new_macau[k] = old_macau[k]
                     changed = True
+                elif not new_is_degraded and len(new_path) <= len(old_path):
+                    # API成功返回但路径没变长/变短了：真实数据变化，正常接受
+                    pass  # 新数据已经是正确的，不需要额外处理
             if changed:
                 id_restored += 1
 
