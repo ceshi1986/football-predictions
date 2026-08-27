@@ -1092,11 +1092,28 @@ function classifyV6(match) {
   var p365 = match.bet365_payout || 0.93;
   var pw = match.weide_payout || 0.93;
   if (!k365 || !kw) return null;
+
   var isHomeStrong = true;
   if (match.odds_365) {
     var w = match.odds_365.w || 0;
     var l = match.odds_365.l || 0;
     if (w > 1 && l > 1) isHomeStrong = w <= l;
+  }
+
+  // 蛙跳盘V2检测（最高优先级 — 在Kelly分类之前执行，仅依赖澳门盘口路径）
+  if (match.macau_ah) {
+    var frogResult = _detectFrogJumpV2(match.macau_ah);
+    if (frogResult.jump) {
+      var frogPred = frogResult.direction === 'up' ? '上盘' : '下盘';
+      return {
+        scenario: '蛙跳', subGroup: '蛙跳',
+        prediction: frogPred, hitRate: 100, confLevel: 'high',
+        singlePick: frogPred, singleRate: 0, singleTied: false,
+        isHomeStrong: isHomeStrong, sampleCount: 0, wdl: '0/0/0',
+        isFrogJump: true, frogDirection: frogResult.direction,
+        frogDetail: frogResult.detail
+      };
+    }
   }
   var favored365 = new Set();
   ['h','d','a'].forEach(function(d){ if((k365[d]||1.0)<=p365) favored365.add(d) });
@@ -1143,22 +1160,6 @@ function classifyV6(match) {
   }
   if (state365==='X' || stateW==='X') return null;
 
-  // 蛙跳盘V2检测（基于完整盘口变化路径，连续同向跳两级且不跨让受界限，最高优先级）
-  if (match.macau_ah) {
-    var frogResult = _detectFrogJumpV2(match.macau_ah);
-    if (frogResult.jump) {
-      var frogPred = frogResult.direction === 'up' ? '上盘' : '下盘';
-      return {
-        scenario: '蛙跳', subGroup: '蛙跳',
-        state365: state365, stateW: stateW,
-        prediction: frogPred, hitRate: 100, confLevel: 'high',
-        singlePick: frogPred, singleRate: 0, singleTied: false,
-        isHomeStrong: isHomeStrong, sampleCount: 0, wdl: '0/0/0',
-        isFrogJump: true, frogDirection: frogResult.direction,
-        frogDetail: frogResult.detail
-      };
-    }
-  }
 
   var scenarioKey = state365+','+stateW;
   var subGroupKey = state365 + stateW + (isHomeStrong ? '主' : '客');
