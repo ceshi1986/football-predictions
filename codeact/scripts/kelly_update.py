@@ -38,12 +38,14 @@ def get_output_path(date_str):
     return os.path.join(DATA_DIR, date_str, "zgzcw_kelly_data.json")
 
 
-def run_script(script_path, label, extra_args=None):
+def run_script(script_path, label, extra_args=None, use_requests_args=True):
     """运行抓取脚本，返回(成功与否, 比赛数, 目标公司条数)"""
     print(f"\n{'='*50}")
     print(f"  数据源: {label}")
     print(f"{'='*50}")
-    cmd = [sys.executable, script_path, '--no-github', '--use-requests']
+    cmd = [sys.executable, script_path]
+    if use_requests_args:
+        cmd.extend(['--no-github', '--use-requests'])
     if extra_args:
         cmd.extend(extra_args)
     try:
@@ -217,9 +219,9 @@ def main():
     else:
         print("  ⚠️ 500万网脚本不存在，跳过")
 
-    # 第二步：zgzcw（兜底）
+    # 第二步：zgzcw（兜底）—— 使用Playwright，不传--no-github/--use-requests
     if not success and os.path.exists(SCRAPE_ZGZCW):
-        ok, mc, tc = run_script(SCRAPE_ZGZCW, "zgzcw中国足彩网")
+        ok, mc, tc = run_script(SCRAPE_ZGZCW, "zgzcw中国足彩网", use_requests_args=False)
         if ok:
             success = True
             match_count = mc
@@ -243,11 +245,6 @@ def main():
     print(f"\n[推送] GitHub...")
     push_ok = push_to_github(date_str)
     push_locked_to_github(date_str)
-
-    # 导出并推送赛果
-    print(f"\n[赛果] 导出已完赛结果...")
-    export_match_results(date_str)
-    push_results_to_github(date_str)
 
     # 汇总
     print(f"\n{'='*50}")
@@ -336,6 +333,7 @@ def update_locked_predictions(date_str):
                         'initial_handicap_val': macau.get('initial_handicap_val'),
                         'latest_handicap_val': macau.get('latest_handicap_val'),
                         'handicap_path': macau.get('handicap_path'),
+                        'handicap_path_degraded': macau.get('handicap_path_degraded', False),
                     }
                 }
             }
@@ -381,113 +379,6 @@ def push_locked_to_github(date_str):
             return True
     except Exception as e:
         print(f"  [锁定] 推送失败: {e}")
-    return False
-
-
-
-
-def export_match_results(date_str=None):
-    """
-    从回测表导出已完赛结果为前端可用的JSON文件。
-    生成 data/500com_daily/{date}/match_results.json
-    前端加载后在预测卡片上标注命中/未中。
-    """
-    # 加载回测表
-    bt_path = os.path.join(BASE_DIR, "backtest_master_table_dedup.json")
-    if not os.path.exists(bt_path):
-        print("  [赛果] 回测表不存在")
-        return False
-    try:
-        with open(bt_path, 'r', encoding='utf-8') as f:
-            bt = json.load(f)
-    except Exception as e:
-        print(f"  [赛果] 读取回测表失败: {e}")
-        return False
-
-    # 收集有比分的记录（最近3天）
-    from datetime import timedelta as _td
-    dates_to_export = set()
-    if date_str:
-        dates_to_export.add(date_str)
-    else:
-        today = datetime.now()
-        for delta in range(3):
-            d = today - _td(days=delta)
-            dates_to_export.add(d.strftime('%Y%m%d'))
-
-    results = {}
-    for r in bt.get("detail", []):
-        if r.get("score_h") is None:
-            continue
-        rdate = r.get("date", "")
-        if rdate not in dates_to_export:
-            continue
-        # 用home+away作为key
-        key = f"{r.get('home','')}|{r.get('away','')}"
-        results[key] = {
-            "home": r.get("home"),
-            "away": r.get("away"),
-            "score_h": r.get("score_h"),
-            "score_a": r.get("score_a"),
-            "result": r.get("result"),
-            "scenario": r.get("scenario"),
-            "subgroup": r.get("subgroup"),
-            "prediction": r.get("prediction"),
-            "pred_type": r.get("pred_type"),
-            "hit": r.get("hit"),
-        }
-
-    # 为每个日期写文件
-    success = False
-    for ds in dates_to_export:
-        day_results = {k: v for k, v in results.items() if True}  # all results
-        out_dir = os.path.join(DATA_DIR, ds)
-        os.makedirs(out_dir, exist_ok=True)
-        out_path = os.path.join(out_dir, "match_results.json")
-        output = {
-            "date": ds,
-            "generated_at": datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
-            "total": len(results),
-            "results": results,
-        }
-        try:
-            with open(out_path, 'w', encoding='utf-8') as f:
-                json.dump(output, f, ensure_ascii=False, indent=2)
-            if results:
-                print(f"  [赛果] 导出 {len(results)} 场结果到 {ds}/match_results.json")
-            success = True
-        except Exception as e:
-            print(f"  [赛果] 写入失败 {ds}: {e}")
-
-    return success
-
-
-def push_results_to_github(date_str):
-    """推送赛果文件到GitHub"""
-    results_path = os.path.join(DATA_DIR, date_str, "match_results.json")
-    if not os.path.exists(results_path):
-        return False
-    repo_path = f'data/500com_daily/{date_str}/match_results.json'
-    with open(results_path, 'rb') as f:
-        content_b64 = base64.b64encode(f.read()).decode('utf-8')
-    headers = {'Authorization': f'token {GITHUB_TOKEN}', 'Accept': 'application/vnd.github.v3+json'}
-    sha = None
-    try:
-        check = req_lib.get(f'{GITHUB_API}/{repo_path}', headers=headers, timeout=10)
-        if check.status_code == 200:
-            sha = check.json().get('sha')
-    except:
-        pass
-    payload = {'message': f'⚽ 赛果 {date_str} - {datetime.now().strftime("%H:%M")}', 'content': content_b64}
-    if sha:
-        payload['sha'] = sha
-    try:
-        resp = req_lib.put(f'{GITHUB_API}/{repo_path}', headers=headers, json=payload, timeout=30)
-        if resp.status_code in (200, 201):
-            print(f"  ✅ 赛果已推送GitHub")
-            return True
-    except Exception as e:
-        print(f"  [赛果] 推送失败: {e}")
     return False
 
 
