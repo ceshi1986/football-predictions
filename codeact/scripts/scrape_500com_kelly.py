@@ -115,43 +115,47 @@ def fetch_macau_handicap_path(fixture_id):
     数据来源：500万亚指页面点击公司行展开的变化接口。
     """
     url = f'https://odds.500.com/fenxi1/inc/yazhiajax.php'
-    params = {'fid': str(fixture_id), 'id': '5', 't': str(int(time.time() * 1000)), 'r': '1'}
-    try:
-        resp = req_lib.get(url, params=params, headers={
-            **HEADERS,
-            'Referer': f'https://odds.500.com/fenxi/yazhi-{fixture_id}.shtml',
-            'X-Requested-With': 'XMLHttpRequest',
-        }, timeout=10)
-        if resp.status_code != 200:
-            return []
-        # 接口返回GBK编码的JSON
-        text = resp.content.decode('gbk', errors='replace')
-        data = json.loads(text)
-        if not isinstance(data, list) or not data:
-            return []
-        path = []
-        for row in data:
-            tds = re.findall(r'<td[^>]*>(.*?)</td>', row, re.S)
-            if len(tds) < 4:
+    # r=0 返回完整变化历史；r=1 返回空（接口行为）
+    params = {'fid': str(fixture_id), 'id': '5', 't': str(int(time.time() * 1000)), 'r': '0'}
+    for attempt in range(3):
+        try:
+            resp = req_lib.get(url, params=params, headers={
+                **HEADERS,
+                'Referer': f'https://odds.500.com/fenxi/yazhi-{fixture_id}.shtml',
+                'X-Requested-With': 'XMLHttpRequest',
+            }, timeout=10)
+            if resp.status_code != 200:
+                time.sleep(1)
                 continue
-            home_water = _safe_float(re.sub(r'<[^>]+>', '', tds[0]))
-            handicap_str = re.sub(r'<[^>]+>', '', tds[1]).replace('&nbsp;', ' ').strip()
-            away_water = _safe_float(re.sub(r'<[^>]+>', '', tds[2]))
-            t = tds[3].strip()
-            val = parse_handicap_value(handicap_str)
-            if val is not None:
-                path.append({
-                    'val': val,
-                    'time': t,
-                    'home_water': home_water,
-                    'away_water': away_water,
-                    'str': handicap_str,
-                })
-        # 接口返回是最新→最旧，反转为时间顺序（早→晚）
-        path.reverse()
-        return path
-    except Exception:
-        return []
+            # 接口返回GBK编码的JSON
+            text = resp.content.decode('gbk', errors='replace')
+            data = json.loads(text)
+            if not isinstance(data, list) or not data:
+                return []
+            path = []
+            for row in data:
+                tds = re.findall(r'<td[^>]*>(.*?)</td>', row, re.S)
+                if len(tds) < 4:
+                    continue
+                home_water = _safe_float(re.sub(r'<[^>]+>', '', tds[0]))
+                handicap_str = re.sub(r'<[^>]+>', '', tds[1]).replace('&nbsp;', ' ').strip()
+                away_water = _safe_float(re.sub(r'<[^>]+>', '', tds[2]))
+                t = tds[3].strip()
+                val = parse_handicap_value(handicap_str)
+                if val is not None:
+                    path.append({
+                        'val': val,
+                        'time': t,
+                        'home_water': home_water,
+                        'away_water': away_water,
+                        'str': handicap_str,
+                    })
+            # 接口返回是最新→最旧，反转为时间顺序（早→晚）
+            path.reverse()
+            return path
+        except Exception:
+            time.sleep(1)
+    return []
 
 
 def fetch_macau_asian_handicap(fixture_id):
