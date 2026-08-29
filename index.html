@@ -1396,8 +1396,15 @@ async function fetchKellyData() {
       var key = dedupMatchKey(m);
       var existing = map.get(key);
       if (!existing) { map.set(key, m); continue; }
+      // 锁定优先级：同场比赛才允许锁定覆盖，不同周的同编号竞彩不是同一场
       if (existing._locked && !m._locked) continue;
-      if (!existing._locked && m._locked) { map.set(key, m); continue; }
+      if (!existing._locked && m._locked) {
+        // 新数据被锁定但需确认是同一场比赛（同主队+同客队），否则保留更新的数据
+        if (existing.home === m.home && existing.away === m.away) {
+          map.set(key, m); continue;
+        }
+        continue; // 不同比赛共享相同编号（如不同周的周六009），保留先加载的更新数据
+      }
       var existingOk = !!(existing.bet365_kelly && existing.weide_kelly);
       var matchOk = !!(m.bet365_kelly && m.weide_kelly);
       if (matchOk && !existingOk) map.set(key, m);
