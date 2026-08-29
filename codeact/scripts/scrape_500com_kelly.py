@@ -28,6 +28,7 @@ import time
 import base64
 import argparse
 import requests as req_lib
+import aiohttp
 from datetime import datetime, timedelta
 from bs4 import BeautifulSoup
 
@@ -109,13 +110,65 @@ def parse_handicap_value(h_str):
     return -val if is_reverse else val
 
 
+def _parse_handicap_path_data(text):
+    """解析亚盘变化历史JSON文本为path列表（公共逻辑）。"""
+    try:
+        data = json.loads(text)
+    except Exception:
+        return None
+    if not isinstance(data, list) or not data:
+        return []
+    path = []
+    for row in data:
+        tds = re.findall(r'<td[^>]*>(.*?)</td>', row, re.S)
+        if len(tds) < 4:
+            continue
+        home_water = _safe_float(re.sub(r'<[^>]+>', '', tds[0]))
+        handicap_str = re.sub(r'<[^>]+>', '', tds[1]).replace('&nbsp;', ' ').strip()
+        away_water = _safe_float(re.sub(r'<[^>]+>', '', tds[2]))
+        t = tds[3].strip()
+        val = parse_handicap_value(handicap_str)
+        if val is not None:
+            path.append({
+                'val': val,
+                'time': t,
+                'home_water': home_water,
+                'away_water': away_water,
+                'str': handicap_str,
+            })
+    path.reverse()
+    return path
+
+
+async def fetch_macau_handicap_path_async(session, fixture_id):
+    """【异步版】抓取澳门亚盘完整变化历史，使用aiohttp，不阻塞事件循环。"""
+    url = 'https://odds.500.com/fenxi1/inc/yazhiajax.php'
+    params = {'fid': str(fixture_id), 'id': '5', 't': str(int(time.time() * 1000)), 'r': '0'}
+    hdrs = {
+        **HEADERS,
+        'Referer': f'https://odds.500.com/fenxi/yazhi-{fixture_id}.shtml',
+        'X-Requested-With': 'XMLHttpRequest',
+    }
+    for attempt in range(2):
+        try:
+            async with session.get(url, params=params, headers=hdrs,
+                                   timeout=aiohttp.ClientTimeout(total=8)) as resp:
+                if resp.status != 200:
+                    await asyncio.sleep(0.5)
+                    continue
+                raw = await resp.read()
+                text = raw.decode('gbk', errors='replace')
+                result = _parse_handicap_path_data(text)
+                if result is not None:
+                    return result
+        except Exception:
+            await asyncio.sleep(0.5)
+    return []
+
+
 def fetch_macau_handicap_path(fixture_id):
-    """抓取澳门亚盘完整变化历史（时间顺序，早→晚）。
-    返回 [{"val": float, "time": "MM-DD HH:MM", "home_water": float, "away_water": float}, ...] 或 []。
-    数据来源：500万亚指页面点击公司行展开的变化接口。
-    """
+    """抓取澳门亚盘完整变化历史（时间顺序，早→晚）。【同步版，Playwright模式用】"""
     url = f'https://odds.500.com/fenxi1/inc/yazhiajax.php'
-    # r=0 返回完整变化历史；r=1 返回空（接口行为）
     params = {'fid': str(fixture_id), 'id': '5', 't': str(int(time.time() * 1000)), 'r': '0'}
     for attempt in range(3):
         try:
@@ -127,58 +180,21 @@ def fetch_macau_handicap_path(fixture_id):
             if resp.status_code != 200:
                 time.sleep(1)
                 continue
-            # 接口返回GBK编码的JSON
             text = resp.content.decode('gbk', errors='replace')
-            data = json.loads(text)
-            if not isinstance(data, list) or not data:
-                return []
-            path = []
-            for row in data:
-                tds = re.findall(r'<td[^>]*>(.*?)</td>', row, re.S)
-                if len(tds) < 4:
-                    continue
-                home_water = _safe_float(re.sub(r'<[^>]+>', '', tds[0]))
-                handicap_str = re.sub(r'<[^>]+>', '', tds[1]).replace('&nbsp;', ' ').strip()
-                away_water = _safe_float(re.sub(r'<[^>]+>', '', tds[2]))
-                t = tds[3].strip()
-                val = parse_handicap_value(handicap_str)
-                if val is not None:
-                    path.append({
-                        'val': val,
-                        'time': t,
-                        'home_water': home_water,
-                        'away_water': away_water,
-                        'str': handicap_str,
-                    })
-            # 接口返回是最新→最旧，反转为时间顺序（早→晚）
-            path.reverse()
-            return path
+            result = _parse_handicap_path_data(text)
+            if result is not None:
+                return result
         except Exception:
             time.sleep(1)
     return []
 
 
-def fetch_macau_asian_handicap(fixture_id):
-    """抓取澳门亚盘初盘、即时盘口及完整变化路径。
-    返回 {'initial_handicap_str', 'latest_handicap_str',
-          'initial_handicap_val', 'latest_handicap_val',
-          'initial_water_home', 'initial_water_away',
-          'latest_water_home', 'latest_water_away',
-          'handicap_path': [...]} 或 None。
+def _parse_macau_handicap_html(html, fixture_id):
+    """解析澳门亚盘HTML页面，提取初盘/即时盘口数据（公共解析逻辑）。
+    返回 {'initial_handicap_str', 'latest_handicap_str', ..., 'handicap_path': None} 或 None。
+    注意：返回的 handicap_path 为 None，需要调用者另行填充。
     """
-    url = f'https://odds.500.com/fenxi/yazhi-{fixture_id}.shtml'
-    try:
-        resp = req_lib.get(url, headers=HEADERS, timeout=15)
-        if resp.status_code != 200:
-            return None
-        html = resp.content.decode('gb2312', errors='replace')
-        if len(html) < 5000:
-            return None
-    except Exception:
-        return None
-
     soup = BeautifulSoup(html, 'html.parser')
-    # 找澳门(cid=5)行
     macau_tr = None
     for tr in soup.find_all('tr'):
         a = tr.find('a', href=re.compile(r'yazhi\.php\?cid=5(?:&|$)'))
@@ -192,21 +208,12 @@ def fetch_macau_asian_handicap(fixture_id):
     if len(tds) < 6:
         return None
 
-    # td[2] = 即时盘口: "水|盘口|水" 或 "水↓|半球|降|水↑|1"
-    # td[4] = 初始盘口: "水|盘口|水"
     def _parse_handicap_td(td):
         """从td中提取(主队水位, 盘口字符串, 客队水位)。"""
-        # 用<br>分割
-        parts = []
-        for elem in td.descendants:
-            if getattr(elem, 'name', None) == 'br':
-                continue
         text = td.get_text(separator='\n', strip=True)
         lines = [l.strip() for l in text.split('\n') if l.strip()]
-        # 过滤掉"升""降""1""2"等变化计数标记
         filtered = []
         for l in lines:
-            # 纯数字(变化次数)或单字升降标记跳过
             if re.match(r'^\d+$', l):
                 continue
             if l in ('升', '降'):
@@ -230,17 +237,6 @@ def fetch_macau_asian_handicap(fixture_id):
     if init_val is None or latest_val is None:
         return None
 
-    # 抓取完整变化历史（蛙跳盘新规则用）
-    handicap_path = fetch_macau_handicap_path(fixture_id)
-    path_degraded = False  # 标记：True=API失败降级为2节点假路径，False=API成功返回的真实路径
-    # 若接口没返回，用初盘+即时盘凑两点（不足以判断蛙跳，但保留向后兼容）
-    if not handicap_path:
-        handicap_path = [
-            {'val': init_val, 'time': '', 'home_water': iw_home, 'away_water': iw_away, 'str': init_str},
-            {'val': latest_val, 'time': '', 'home_water': lw_home, 'away_water': lw_away, 'str': latest_str},
-        ]
-        path_degraded = True
-
     return {
         'initial_handicap_str': init_str,
         'latest_handicap_str': latest_str,
@@ -250,9 +246,81 @@ def fetch_macau_asian_handicap(fixture_id):
         'initial_water_away': iw_away,
         'latest_water_home': lw_home,
         'latest_water_away': lw_away,
-        'handicap_path': handicap_path,
-        'handicap_path_degraded': path_degraded,
+        'handicap_path': None,
+        'handicap_path_degraded': False,
+        '_init_water': iw_home, '_init_str': init_str,
+        '_latest_water': lw_home, '_latest_str': latest_str,
+        '_init_val': init_val, '_latest_val': latest_val,
     }
+
+
+def _finalize_handicap_result(parsed, handicap_path):
+    """填充handicap_path并清理临时字段。"""
+    if not handicap_path:
+        iw_home = parsed.pop('_init_water')
+        init_str = parsed.pop('_init_str')
+        init_val = parsed.pop('_init_val')
+        lw_home = parsed.pop('_latest_water')
+        latest_str = parsed.pop('_latest_str')
+        latest_val = parsed.pop('_latest_val')
+        parsed['handicap_path'] = [
+            {'val': init_val, 'time': '', 'home_water': iw_home, 'away_water': parsed.get('initial_water_away'), 'str': init_str},
+            {'val': latest_val, 'time': '', 'home_water': lw_home, 'away_water': parsed.get('latest_water_away'), 'str': latest_str},
+        ]
+        parsed['handicap_path_degraded'] = True
+    else:
+        parsed.pop('_init_water', None)
+        parsed.pop('_init_str', None)
+        parsed.pop('_init_val', None)
+        parsed.pop('_latest_water', None)
+        parsed.pop('_latest_str', None)
+        parsed.pop('_latest_val', None)
+        parsed['handicap_path'] = handicap_path
+    return parsed
+
+
+async def fetch_macau_asian_handicap_async(session, fixture_id):
+    """【异步版】抓取澳门亚盘初盘、即时盘口及完整变化路径。使用aiohttp，不阻塞事件循环。"""
+    url = f'https://odds.500.com/fenxi/yazhi-{fixture_id}.shtml'
+    try:
+        async with session.get(url, headers=HEADERS,
+                               timeout=aiohttp.ClientTimeout(total=8)) as resp:
+            if resp.status != 200:
+                return None
+            raw = await resp.read()
+            html = raw.decode('gb2312', errors='replace')
+        if len(html) < 5000:
+            return None
+    except Exception:
+        return None
+
+    parsed = _parse_macau_handicap_html(html, fixture_id)
+    if not parsed:
+        return None
+
+    handicap_path = await fetch_macau_handicap_path_async(session, fixture_id)
+    return _finalize_handicap_result(parsed, handicap_path)
+
+
+def fetch_macau_asian_handicap(fixture_id):
+    """抓取澳门亚盘初盘、即时盘口及完整变化路径。【同步版，Playwright模式用】"""
+    url = f'https://odds.500.com/fenxi/yazhi-{fixture_id}.shtml'
+    try:
+        resp = req_lib.get(url, headers=HEADERS, timeout=8)
+        if resp.status_code != 200:
+            return None
+        html = resp.content.decode('gb2312', errors='replace')
+        if len(html) < 5000:
+            return None
+    except Exception:
+        return None
+
+    parsed = _parse_macau_handicap_html(html, fixture_id)
+    if not parsed:
+        return None
+
+    handicap_path = fetch_macau_handicap_path(fixture_id)
+    return _finalize_handicap_result(parsed, handicap_path)
 
 # GitHub配置
 GITHUB_TOKEN = os.environ.get('GITHUB_TOKEN', '')
@@ -269,9 +337,13 @@ def parse_args():
     parser.add_argument('--no-github', action='store_true',
                         help='不推送GitHub')
     parser.add_argument('--use-requests', action='store_true',
-                        help='使用纯requests模式（更快，无反检测）')
+                        help='使用纯requests模式（更快，并发）')
     parser.add_argument('--no-headless', action='store_true',
                         help='显示浏览器窗口（调试用）')
+    parser.add_argument('--concurrency', type=int, default=10,
+                        help='requests模式下的并发数(默认10)')
+    parser.add_argument('--timeout', type=int, default=0,
+                        help='脚本整体超时秒数，0=不限制')
     return parser.parse_args()
 
 
@@ -554,40 +626,96 @@ async def fetch_page_with_playwright(page, fixture_id):
     return None
 
 
-async def scrape_all_matches(fixture_ids, match_info_map, use_requests_mode=False):
-    """批量抓取比赛数据"""
-    print(f"\n[2/4] 抓取赔率数据 ({len(fixture_ids)}场, {'requests模式' if use_requests_mode else 'Playwright模式'})...")
+async def scrape_all_matches(fixture_ids, match_info_map, use_requests_mode=False, concurrency=10):
+    """批量抓取比赛数据
+
+    Args:
+        use_requests_mode: True=纯requests并发模式(更快)，False=Playwright反检测模式
+        concurrency: requests模式下的并发数
+    """
+    print(f"\n[2/4] 抓取赔率数据 ({len(fixture_ids)}场, "
+          f"{'requests并发('+str(concurrency)+')模式' if use_requests_mode else 'Playwright模式'})...")
     results = {}
 
     if use_requests_mode:
-        # requests快速通道
-        session = req_lib.Session()
-        for i, fid in enumerate(fixture_ids):
-            m_info = match_info_map.get(fid, {})
-            print(f"  [{i+1}/{len(fixture_ids)}] fixture={fid} "
-                  f"{m_info.get('home','')}-{m_info.get('away','')} ...", end=' ', flush=True)
+        # requests并发模式（aiohttp + asyncio.Semaphore，全异步无阻塞）
+        sem = asyncio.Semaphore(concurrency)
+        completed = 0
+        total = len(fixture_ids)
+        lock = asyncio.Lock()
 
-            html = fetch_page_with_requests(fid)
-            if html:
-                parsed = parse_ouzhi_html(html, fid, m_info)
-                if parsed and parsed.get('companies'):
-                    # 抓取澳门亚盘（蛙跳盘检测用）
-                    ah = fetch_macau_asian_handicap(fid)
+        async def _scrape_one(session, fid):
+            nonlocal completed
+            m_info = match_info_map.get(fid, {})
+            async with sem:
+                try:
+                    # 抓取欧赔HTML（纯异步aiohttp，不阻塞）
+                    url = f'https://odds.500.com/fenxi/ouzhi-{fid}.shtml'
+                    async with session.get(url, headers=HEADERS, timeout=aiohttp.ClientTimeout(total=10)) as resp:
+                        if resp.status != 200:
+                            async with lock:
+                                completed += 1
+                            return None, fid, m_info
+                        raw = await resp.read()
+                        html = raw.decode('gb2312', errors='replace')
+                    if len(html) < 10000:
+                        async with lock:
+                            completed += 1
+                        return None, fid, m_info
+
+                    # CPU密集解析放到executor（解析是纯CPU操作，很快）
+                    loop = asyncio.get_event_loop()
+                    parsed = await loop.run_in_executor(
+                        None, parse_ouzhi_html, html, fid, m_info
+                    )
+                    if not parsed or not parsed.get('companies'):
+                        async with lock:
+                            completed += 1
+                        return None, fid, m_info
+
+                    # 澳门亚盘（全异步aiohttp版本，不再阻塞线程池）
+                    ah = await fetch_macau_asian_handicap_async(session, fid)
                     if ah and 'macau' in parsed['companies']:
                         parsed['companies']['macau'].update(ah)
                         parsed['macau_asian_handicap'] = ah
-                    results[fid] = parsed
+
                     n_target = len([k for k in TARGET_COMPANIES if k in parsed['companies']])
                     ah_tag = ' +亚盘' if ah else ''
-                    print(f"✓ {len(parsed['companies'])}家公司, {n_target}家目标{ah_tag}")
-                else:
-                    print("✗ 解析无数据")
-            else:
-                print("✗ 无HTML")
+                    async with lock:
+                        completed += 1
+                        c = completed
+                    print(f"  [{c}/{total}] fixture={fid} "
+                          f"{m_info.get('home','')}-{m_info.get('away','')} "
+                          f"✓ {len(parsed['companies'])}家, {n_target}目标{ah_tag}",
+                          flush=True)
+                    return parsed, fid, m_info
 
-            time.sleep(0.3)
+                except Exception as e:
+                    async with lock:
+                        completed += 1
+                        c = completed
+                    print(f"  [{c}/{total}] fixture={fid} ✗ 异常:{e}", flush=True)
+                    return None, fid, m_info
+
+        timeout = aiohttp.ClientTimeout(total=30, connect=10)
+        connector = aiohttp.TCPConnector(limit=concurrency * 2)
+        async with aiohttp.ClientSession(timeout=timeout, connector=connector) as session:
+            # 为每个任务包装超时保护（单个任务最多25秒）
+            async def _with_timeout(task_coro, fid):
+                try:
+                    return await asyncio.wait_for(task_coro, timeout=25)
+                except asyncio.TimeoutError:
+                    print(f"  [超时] fixture={fid} 超过25秒，跳过")
+                    return None, fid, match_info_map.get(fid, {})
+            
+            tasks = [_with_timeout(_scrape_one(session, fid), fid) for fid in fixture_ids]
+            results_list = await asyncio.gather(*tasks)
+
+        for parsed, fid, m_info in results_list:
+            if parsed:
+                results[fid] = parsed
     else:
-        # Playwright模式
+        # Playwright模式（单页顺序，但反检测能力强）
         from playwright.async_api import async_playwright
 
         async with async_playwright() as p:
@@ -1118,9 +1246,21 @@ async def run():
 
         print(f"  共 {len(fixture_ids)} 场赛事 (竞彩在售{len(jc_matches)}+已开赛{live_added} + 北单新增{bd_count}，含兼售)")
 
-    # Step 2: 抓取数据
+    # Step 2: 抓取数据（支持并发和超时）
     use_requests_mode = args.use_requests
-    results = await scrape_all_matches(fixture_ids, match_info_map, use_requests_mode)
+    concurrency = args.concurrency if use_requests_mode else 1
+    scrape_coro = scrape_all_matches(fixture_ids, match_info_map, use_requests_mode, concurrency)
+
+    if args.timeout and args.timeout > 0:
+        try:
+            results = await asyncio.wait_for(scrape_coro, timeout=args.timeout)
+        except asyncio.TimeoutError:
+            print(f"\n  ⚠️ 抓取阶段超时({args.timeout}s)，提前结束")
+            # results会是空的，但下面可能已存部分结果——这里只能整体失败
+            print("  ❌ 超时，未产出完整数据，退出")
+            sys.exit(1)
+    else:
+        results = await scrape_coro
 
     if not results:
         print("\n  ❌ 未抓取到任何数据，退出")
