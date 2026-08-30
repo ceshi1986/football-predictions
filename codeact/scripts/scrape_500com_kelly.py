@@ -269,12 +269,23 @@ def _finalize_handicap_result(parsed, handicap_path):
         ]
         parsed['handicap_path_degraded'] = True
     else:
+        latest_val = parsed.pop('_latest_val', None)
+        latest_str = parsed.pop('_latest_str', None)
+        lw_home = parsed.pop('_latest_water', None)
         parsed.pop('_init_water', None)
         parsed.pop('_init_str', None)
         parsed.pop('_init_val', None)
-        parsed.pop('_latest_water', None)
-        parsed.pop('_latest_str', None)
-        parsed.pop('_latest_val', None)
+        # 修复：若path最后一个val与最新盘口不同（API返回路径不全），补充最新值
+        if latest_val is not None and handicap_path:
+            last_path_val = handicap_path[-1].get('val') if handicap_path else None
+            if last_path_val is not None and abs(latest_val - last_path_val) > 0.001:
+                handicap_path.append({
+                    'val': latest_val,
+                    'time': '',
+                    'home_water': lw_home,
+                    'away_water': parsed.get('latest_water_away'),
+                    'str': latest_str or '',
+                })
         parsed['handicap_path'] = handicap_path
     return parsed
 
