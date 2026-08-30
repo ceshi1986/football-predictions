@@ -454,8 +454,15 @@ function _detectFrogJumpV2(ah) {
       if (v !== null && !isNaN(v)) vals.push(v);
     });
   }
+  // 修复：若 ah.latest 与 path 最后一个值不同（API延迟/遗漏），补充最新盘口值
+  if (ah.latest !== undefined && ah.latest !== null && vals.length > 0) {
+    var _lastV = vals[vals.length - 1];
+    if (Math.abs(ah.latest - _lastV) > 0.001) {
+      vals.push(parseFloat(ah.latest));
+    }
+  }
   // 路径不足3点，降级不触发（安全默认）
-  if (vals.length < 3) return {jump:false, direction:null, detail:'路径不足'};
+  if (vals.length < 3) return {jump:false, direction:null, detail:'路径不足('+vals.length+'点)'};
   // 压缩相邻相同值
   var comp = [vals[0]];
   for (var i=1; i<vals.length; i++) {
