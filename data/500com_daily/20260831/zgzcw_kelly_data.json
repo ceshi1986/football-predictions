@@ -1,6 +1,6 @@
 {
   "date": "20260831",
-  "scrape_time": "2026-08-31 08:46:10",
+  "scrape_time": "2026-08-31 09:13:18",
   "source": "zgzcw.com",
   "version": "500com_v1",
   "dongqiudi_fallback_count": 0,
@@ -606,7 +606,7 @@
           ],
           "kelly": [
             0.92,
-            0.9,
+            0.91,
             0.97
           ],
           "payout": 0.9278
@@ -729,21 +729,21 @@
             3.9
           ],
           "latest_odds": [
-            1.85,
-            3.75,
-            3.8
+            1.9,
+            3.7,
+            3.7
           ],
           "probability": [
-            50.5,
-            24.91,
-            24.59
+            49.33,
+            25.33,
+            25.33
           ],
           "kelly": [
-            0.93,
-            0.89,
-            0.98
+            0.96,
+            0.88,
+            0.96
           ],
-          "payout": 0.9343
+          "payout": 0.9373
         },
         "ysb": {
           "name": "易**",
@@ -1251,21 +1251,21 @@
             1.83
           ],
           "latest_odds": [
-            4.1,
+            4.2,
             3.5,
-            1.8
+            1.83
           ],
           "probability": [
-            22.48,
-            26.33,
-            51.2
+            22.25,
+            26.7,
+            51.06
           ],
           "kelly": [
-            0.93,
+            0.95,
             0.94,
-            0.91
+            0.92
           ],
-          "payout": 0.9215
+          "payout": 0.9344
         }
       },
       "asian_handicap": null
@@ -1325,7 +1325,7 @@
           "kelly": [
             0.89,
             0.89,
-            0.96
+            0.97
           ],
           "payout": 0.9367
         },
@@ -1371,7 +1371,7 @@
             62.18
           ],
           "kelly": [
-            0.93,
+            0.92,
             0.97,
             0.95
           ],
@@ -1395,7 +1395,7 @@
             62.07
           ],
           "kelly": [
-            0.93,
+            0.92,
             0.94,
             0.94
           ],
@@ -1593,7 +1593,7 @@
           "kelly": [
             0.83,
             0.94,
-            0.97
+            0.96
           ],
           "payout": 0.8852
         },
@@ -1605,21 +1605,21 @@
             4.8
           ],
           "latest_odds": [
-            1.73,
+            1.75,
             3.5,
             4.6
           ],
           "probability": [
-            53.47,
-            26.43,
-            20.11
+            53.18,
+            26.59,
+            20.23
           ],
           "kelly": [
-            0.93,
+            0.94,
             0.91,
-            0.94
+            0.93
           ],
-          "payout": 0.9249
+          "payout": 0.9306
         },
         "libo": {
           "name": "立*",
@@ -1641,7 +1641,7 @@
           "kelly": [
             0.94,
             0.96,
-            0.9
+            0.89
           ],
           "payout": 0.9355
         },
@@ -1689,7 +1689,7 @@
           "kelly": [
             0.93,
             0.91,
-            0.94
+            0.93
           ],
           "payout": 0.9249
         },
@@ -1713,7 +1713,7 @@
           "kelly": [
             0.91,
             0.91,
-            0.92
+            0.91
           ],
           "payout": 0.9123
         }
@@ -1751,7 +1751,7 @@
           "kelly": [
             0.95,
             0.9,
-            1.0
+            1.01
           ],
           "payout": 0.9477
         },
@@ -1799,7 +1799,7 @@
           "kelly": [
             0.95,
             0.95,
-            0.89
+            0.9
           ],
           "payout": 0.948
         },
@@ -1823,7 +1823,7 @@
           "kelly": [
             0.93,
             0.9,
-            0.84
+            0.85
           ],
           "payout": 0.925
         },
@@ -1846,8 +1846,8 @@
           ],
           "kelly": [
             0.93,
-            1.06,
-            1.1
+            1.05,
+            1.11
           ],
           "payout": 0.9463
         }
@@ -16687,7 +16687,25 @@
             0.91,
             0.82
           ],
-          "payout": 0.8907
+          "payout": 0.8907,
+          "initial_handicap_str": "半球",
+          "latest_handicap_str": "半球",
+          "initial_handicap_val": 0.5,
+          "latest_handicap_val": 0.5,
+          "initial_water_home": 0.83,
+          "initial_water_away": 0.95,
+          "latest_water_home": 0.83,
+          "latest_water_away": 0.95,
+          "handicap_path": [
+            {
+              "val": 0.5,
+              "time": "08-27 20:56",
+              "home_water": 0.83,
+              "away_water": 0.95,
+              "str": "半球"
+            }
+          ],
+          "handicap_path_degraded": false
         },
         "libo": {
           "name": "立*",
@@ -16845,7 +16863,32 @@
             0.85,
             0.93
           ],
-          "payout": 0.8886
+          "payout": 0.8886,
+          "initial_handicap_str": "受半球",
+          "latest_handicap_str": "受半球/一球",
+          "initial_handicap_val": -0.5,
+          "latest_handicap_val": -0.75,
+          "initial_water_home": 1.0,
+          "initial_water_away": 0.78,
+          "latest_water_home": 0.88,
+          "latest_water_away": 0.9,
+          "handicap_path": [
+            {
+              "val": -0.5,
+              "time": "08-26 23:17",
+              "home_water": 1.0,
+              "away_water": 0.78,
+              "str": "受半球"
+            },
+            {
+              "val": -0.75,
+              "time": "",
+              "home_water": 0.88,
+              "away_water": 0.9,
+              "str": "受半球/一球"
+            }
+          ],
+          "handicap_path_degraded": false
         },
         "libo": {
           "name": "立*",
@@ -16942,6 +16985,189 @@
             0.92
           ],
           "payout": 0.9354
+        }
+      },
+      "asian_handicap": null
+    },
+    "1384189": {
+      "match_name": "阿瓦伊 vs 戈亚尼亚竞技",
+      "home": "阿瓦伊",
+      "away": "戈亚尼亚竞技",
+      "league": "巴西乙",
+      "match_time": "08-31 02:50",
+      "jingcai_id": "",
+      "beidan_id": "北单353",
+      "source": "500.com",
+      "data_source": "500com_playwright",
+      "companies": {
+        "william_hill": {
+          "name": "威***",
+          "initial_odds": [
+            2.7,
+            2.88,
+            2.7
+          ],
+          "latest_odds": [
+            2.8,
+            2.9,
+            2.5
+          ],
+          "probability": [
+            32.41,
+            31.29,
+            36.3
+          ],
+          "kelly": [
+            0.92,
+            0.9,
+            0.9
+          ],
+          "payout": 0.9075
+        },
+        "macau": {
+          "name": "*门",
+          "initial_odds": [
+            2.25,
+            2.9,
+            2.58
+          ],
+          "latest_odds": [
+            2.52,
+            2.9,
+            2.3
+          ],
+          "probability": [
+            33.73,
+            29.31,
+            36.96
+          ],
+          "kelly": [
+            0.83,
+            0.9,
+            0.83
+          ],
+          "payout": 0.85,
+          "initial_handicap_str": "平手",
+          "latest_handicap_str": "平手",
+          "initial_handicap_val": 0,
+          "latest_handicap_val": 0,
+          "initial_water_home": 0.72,
+          "initial_water_away": 0.98,
+          "latest_water_home": 1.0,
+          "latest_water_away": 0.7,
+          "handicap_path": [
+            {
+              "val": 0,
+              "time": "08-29 21:44",
+              "home_water": 0.72,
+              "away_water": 0.98,
+              "str": "平手"
+            },
+            {
+              "val": 0,
+              "time": "08-30 23:41",
+              "home_water": 0.82,
+              "away_water": 0.88,
+              "str": "平手"
+            }
+          ],
+          "handicap_path_degraded": false
+        },
+        "libo": {
+          "name": "立*",
+          "initial_odds": [
+            2.6,
+            2.8,
+            2.62
+          ],
+          "latest_odds": [
+            2.7,
+            2.9,
+            2.45
+          ],
+          "probability": [
+            32.97,
+            30.7,
+            36.33
+          ],
+          "kelly": [
+            0.89,
+            0.9,
+            0.88
+          ],
+          "payout": 0.8902
+        },
+        "bet365": {
+          "name": "B*****",
+          "initial_odds": [
+            2.7,
+            3.0,
+            2.7
+          ],
+          "latest_odds": [
+            2.9,
+            3.1,
+            2.55
+          ],
+          "probability": [
+            32.54,
+            30.44,
+            37.01
+          ],
+          "kelly": [
+            0.96,
+            0.96,
+            0.92
+          ],
+          "payout": 0.9438
+        },
+        "ysb": {
+          "name": "易**",
+          "initial_odds": [
+            2.6,
+            3.0,
+            2.8
+          ],
+          "latest_odds": [
+            2.9,
+            3.1,
+            2.6
+          ],
+          "probability": [
+            32.78,
+            30.66,
+            36.56
+          ],
+          "kelly": [
+            0.96,
+            0.96,
+            0.94
+          ],
+          "payout": 0.9505
+        },
+        "weide": {
+          "name": "伟*",
+          "initial_odds": [
+            2.6,
+            2.9,
+            2.6
+          ],
+          "latest_odds": [
+            2.8,
+            2.9,
+            2.45
+          ],
+          "probability": [
+            32.17,
+            31.06,
+            36.77
+          ],
+          "kelly": [
+            0.92,
+            0.9,
+            0.88
+          ],
+          "payout": 0.9008
         }
       },
       "asian_handicap": null
@@ -17089,7 +17315,7 @@
       "jingcai_id": "周日023",
       "beidan_id": "北单355",
       "source": "500.com",
-      "data_source": "500com_playwright",
+      "data_source": "500com_merged",
       "companies": {
         "china_sports": {
           "name": "官*",
@@ -17331,7 +17557,7 @@
       "jingcai_id": "",
       "beidan_id": "北单356",
       "source": "500.com",
-      "data_source": "500com_playwright",
+      "data_source": "500com_merged",
       "companies": {
         "william_hill": {
           "name": "威***",
@@ -17507,7 +17733,7 @@
       "jingcai_id": "",
       "beidan_id": "北单357",
       "source": "500.com",
-      "data_source": "500com_playwright",
+      "data_source": "500com_merged",
       "companies": {
         "china_sports": {
           "name": "官*",
@@ -17676,164 +17902,6 @@
             0.9
           ],
           "payout": 0.9115
-        }
-      },
-      "asian_handicap": null
-    },
-    "1384189": {
-      "match_name": "阿瓦伊 vs 戈亚尼亚竞技",
-      "home": "阿瓦伊",
-      "away": "戈亚尼亚竞技",
-      "league": "巴西乙",
-      "match_time": "08-31 02:50",
-      "jingcai_id": "",
-      "beidan_id": "北单353",
-      "source": "500.com",
-      "data_source": "500com_merged",
-      "companies": {
-        "william_hill": {
-          "name": "威***",
-          "initial_odds": [
-            2.7,
-            2.88,
-            2.7
-          ],
-          "latest_odds": [
-            2.8,
-            2.9,
-            2.5
-          ],
-          "probability": [
-            32.41,
-            31.29,
-            36.3
-          ],
-          "kelly": [
-            0.92,
-            0.9,
-            0.9
-          ],
-          "payout": 0.9075
-        },
-        "macau": {
-          "name": "*门",
-          "initial_odds": [
-            2.25,
-            2.9,
-            2.58
-          ],
-          "latest_odds": [
-            2.52,
-            2.9,
-            2.3
-          ],
-          "probability": [
-            33.73,
-            29.31,
-            36.96
-          ],
-          "kelly": [
-            0.83,
-            0.9,
-            0.83
-          ],
-          "payout": 0.85
-        },
-        "libo": {
-          "name": "立*",
-          "initial_odds": [
-            2.6,
-            2.8,
-            2.62
-          ],
-          "latest_odds": [
-            2.7,
-            2.9,
-            2.45
-          ],
-          "probability": [
-            32.97,
-            30.7,
-            36.33
-          ],
-          "kelly": [
-            0.89,
-            0.9,
-            0.88
-          ],
-          "payout": 0.8902
-        },
-        "bet365": {
-          "name": "B*****",
-          "initial_odds": [
-            2.7,
-            3.0,
-            2.7
-          ],
-          "latest_odds": [
-            2.9,
-            3.1,
-            2.55
-          ],
-          "probability": [
-            32.54,
-            30.44,
-            37.01
-          ],
-          "kelly": [
-            0.96,
-            0.96,
-            0.92
-          ],
-          "payout": 0.9438
-        },
-        "ysb": {
-          "name": "易**",
-          "initial_odds": [
-            2.6,
-            3.0,
-            2.8
-          ],
-          "latest_odds": [
-            2.9,
-            3.1,
-            2.6
-          ],
-          "probability": [
-            32.78,
-            30.66,
-            36.56
-          ],
-          "kelly": [
-            0.96,
-            0.96,
-            0.94
-          ],
-          "payout": 0.9505
-        },
-        "weide": {
-          "name": "伟*",
-          "initial_odds": [
-            2.6,
-            2.9,
-            2.6
-          ],
-          "latest_odds": [
-            2.8,
-            2.9,
-            2.45
-          ],
-          "probability": [
-            32.17,
-            31.06,
-            36.77
-          ],
-          "kelly": [
-            0.92,
-            0.9,
-            0.88
-          ],
-          "payout": 0.9008
         }
       },
       "asian_handicap": null
