@@ -47,10 +47,11 @@ Windows电脑(DESKTOP-H4LFT0G)
 4. **脚本下发通道**（国内网络GitHub直连不稳）：
    - 云端对 scraper_v6.py 调 `file_to_url` 生成 coze.cn 短链
    - Windows PowerShell：`(New-Object Net.WebClient).DownloadFile("<短链>", "$env:USERPROFILE\football-scraper\scrape_500com.py")`
-5. **首次人工验证（关键）**：
-   - 不带 --hidden 直接运行：`python scrape_500com.py`
-   - 弹出Chrome → 出现EdgeOne"确认您是真人"页 → **点复选框** → 进数据页
-   - cookie存入chrome_profile，之后自动通过
+5. **人机验证（2026-09-02起全自动）**：
+   - "确认您是真人"是**腾讯防水墙**（验证码iframe来自 captcha.eo.gtimg.com），复选框=iframe内 `DIV#verifyCheckbox`
+   - 脚本 `_pass_captcha()`：检测到约1.6万字符验证页 → 进iframe → 真人鼠标随机轨迹 → 点复选框；窗口移屏外亦可一次放行，点完直接进数据页、无滑块
+   - 启动验证阶段 + 抓取中撞到验证页都会自动点；Chrome参数带 `--disable-backgrounding-occluded-windows --disable-renderer-backgrounding` 防离屏渲染被后台化
+   - 仅当出现**滑块**（极罕见）时退出码2，需不带 --hidden 手动跑一次点验证；cookie存入chrome_profile
 6. **计划任务**（PowerShell管理员）：
    - 任务名 `500comKellyScraper`
    - **Principal必须是 Interactive 登录类型**（后台Session 0跑Chrome会被WAF拦，退出码2）
@@ -85,7 +86,7 @@ Windows电脑(DESKTOP-H4LFT0G)
 
 | 现象 | 原因 | 处理 |
 |---|---|---|
-| 计划任务LastTaskResult=2 | cookie过期 或 非交互会话 | 先确认任务是Interactive模式；仍2则手动 `python scrape_500com.py` 跑一次、点验证 |
+| 计划任务LastTaskResult=2 | 自动点验证失败（出现滑块）或 非交互会话 | 先确认任务是Interactive模式；仍2则手动 `python scrape_500com.py`（不带--hidden）跑一次、点验证 |
 | 大量"拦截/空页 len=77" | 比赛未开盘 | 正常，开售后自动有数据 |
 | "拦截/空页 len=1.6万左右" | 软拦截/页面没加载完 | 偶发正常；成片出现检查cookie |
 | 上传失败 SSL CERTIFICATE_VERIFY_FAILED | Windows缺证书链 | 脚本已对GitHub请求关闭证书校验，若复现检查_SSL上下文 |
