@@ -1110,14 +1110,15 @@ function classifyV6(match) {
   var favoredW = new Set();
   ['h','d','a'].forEach(function(d){ if((kw[d]||1.0)<=pw) favoredW.add(d) });
 
-  // V6.9.3 Kelly排除规则（2026-09-03强化）
-  // 规则1: 韦德单方向Kelly≥1.0，该方向排除（含平局）
-  // 规则2: 365单项Kelly>1.03，该方向排除（09-03新增，146场验证0/10打出）
+  // V6.9.3 Kelly排除规则（韦德平局除外 + 365独立排除）
+  // 规则1: 韦德胜/负K≥1.0排除（平局K≥1.0例外不排除，10次4中40%非反向指标）
+  // 规则2: 365单项Kelly>1.03排除（含平局，09-03新增，146场验证0/10打出）
   var kellyExcluded = new Set();
-  var kellyExcludedReasons = {};
+  ['h','a'].forEach(function(d){
+    if ((kw[d] || 0) >= 1.0) kellyExcluded.add(d);
+  });
   ['h','d','a'].forEach(function(d){
-    if ((kw[d] || 0) >= 1.0) { kellyExcluded.add(d); kellyExcludedReasons[d] = (kellyExcludedReasons[d]||'') + '韦德K≥1.0;'; }
-    if ((k365[d] || 0) > 1.03) { kellyExcluded.add(d); kellyExcludedReasons[d] = (kellyExcludedReasons[d]||'') + '365K>1.03;'; }
+    if ((k365[d] || 0) > 1.03) kellyExcluded.add(d);
   });
   // 保存排除前的favored集合，用于排除后为空时回退
   var favored365Before = new Set(favored365);
