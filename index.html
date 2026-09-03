@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>V6.9.2 Kelly 竞彩预测报告</title>
+<title>V6.9.3 Kelly 竞彩预测报告</title>
 <style>
 *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
 :root{
@@ -344,8 +344,8 @@ footer{text-align:center;padding:32px 20px 16px;color:var(--text-muted);font-siz
 <div class="container">
 
 <header>
-  <h1>V6.9.2 Kelly 竞彩预测报告</h1>
-  <p class="subtitle">基于 <span id="stat-sample">—</span> 场回测数据 · <span id="stat-subgroups">—</span> 个主客子组 · V6.9.2 策略表</p>
+  <h1>V6.9.3 Kelly 竞彩预测报告</h1>
+  <p class="subtitle">基于 <span id="stat-sample">—</span> 场回测数据 · <span id="stat-subgroups">—</span> 个主客子组 · V6.9.3 策略表</p>
   <div class="meta">
     <span>日期 <span class="val" id="meta-date">--</span></span>
     <span>策略版本 <span class="val">V6.9.2</span></span>
@@ -363,7 +363,7 @@ footer{text-align:center;padding:32px 20px 16px;color:var(--text-muted);font-siz
 
 <div class="strategy-banner">
   <span class="badge">V6.9.2 策略</span>
-  <p>基于 <strong><span id="stat-sample2">—</span> 场回测</strong>优化 <span id="stat-subgroups2">—</span> 个主客子组，整体双选命中率 <strong><span id="stat-hitrate">—</span></strong>。本场次预测使用最新 V6.9.2 策略表，结合实时 Kelly 数据按主/客子组分类场景。</p>
+  <p>基于 <strong><span id="stat-sample2">—</span> 场回测</strong>优化 <span id="stat-subgroups2">—</span> 个主客子组，整体双选命中率 <strong><span id="stat-hitrate">—</span></strong>。本场次预测使用最新 V6.9.3 策略表，结合实时 Kelly 数据按主/客子组分类场景。</p>
 </div>
 
 <div class="legend">
@@ -1110,12 +1110,14 @@ function classifyV6(match) {
   var favoredW = new Set();
   ['h','d','a'].forEach(function(d){ if((kw[d]||1.0)<=pw) favoredW.add(d) });
 
-  // Kelly≥1.0排除规则（回测验证，韦德平K≥1.0除外）
+  // V6.9.3 Kelly排除规则（2026-09-03强化）
+  // 规则1: 韦德单方向Kelly≥1.0，该方向排除（含平局）
+  // 规则2: 365单项Kelly>1.03，该方向排除（09-03新增，146场验证0/10打出）
   var kellyExcluded = new Set();
-  if ((kw.h || 0) >= 1.0) kellyExcluded.add('h');
-  if ((kw.a || 0) >= 1.0) kellyExcluded.add('a');
-  ['h','a'].forEach(function(d){
-    if ((k365[d]||0) >= 1.0 && (kw[d]||0) >= 1.0) kellyExcluded.add(d);
+  var kellyExcludedReasons = {};
+  ['h','d','a'].forEach(function(d){
+    if ((kw[d] || 0) >= 1.0) { kellyExcluded.add(d); kellyExcludedReasons[d] = (kellyExcludedReasons[d]||'') + '韦德K≥1.0;'; }
+    if ((k365[d] || 0) > 1.03) { kellyExcluded.add(d); kellyExcludedReasons[d] = (kellyExcludedReasons[d]||'') + '365K>1.03;'; }
   });
   // 保存排除前的favored集合，用于排除后为空时回退
   var favored365Before = new Set(favored365);
