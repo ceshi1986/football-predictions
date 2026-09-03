@@ -1060,8 +1060,10 @@ function updateSummaryAndAdvice(cat, matches) {
       return '<tr class="frog-jump-row"><td>'+m.id+'</td><td>'+m.home+' vs '+m.away+'</td><td><span class="scenario-tag frog-tag">蛙跳</span></td><td class="'+getPickClass(r.prediction)+'">'+r.prediction+'</td><td>—</td><td class="'+getPickClass(r.prediction)+'">'+r.prediction+'</td><td>—</td><td>—</td><td>'+getConfText(r.confLevel)+'</td></tr>';
     }
     var _fp = r.finalPick || r.prediction;
-    var _ftag = r.forcedSingle ? ' <span style="font-size:.62rem;color:#e6a23c;font-weight:700">排强单</span>' : '';
-    var _ftitle = r.excludeNote ? (' title="'+r.excludeNote+'"') : '';
+    var _ftag = r.swappedDouble ? ' <span style="font-size:.62rem;color:#e6a23c;font-weight:700">换双选</span>' : '';
+    var _note = r.excludeNote || '';
+    if (r.forcedSingle) _note += (_note?'；':'') + '排强单:'+r.forcedSingle;
+    var _ftitle = _note ? (' title="'+_note+'"') : '';
     var _sp = (r.singlePick && r.singleExcluded) ? '—' : (r.singlePick||'—');
     var _sr = (r.singlePick && r.singleExcluded) ? '—' : (r.singlePick?r.singleRate+'%':'—');
     return '<tr><td>'+m.id+'</td><td>'+m.home+' vs '+m.away+'</td><td><span class="scenario-tag">'+(r.subGroup||r.scenario)+'</span></td><td class="'+getPickClass(_fp)+'"'+_ftitle+'>'+_fp+_ftag+'</td><td>'+r.hitRate+'%</td><td class="'+getPickClass(_sp)+'">'+_sp+'</td><td>'+_sr+'</td><td>'+r.sampleCount+'</td><td>'+getConfText(r.confLevel)+'</td></tr>';
@@ -1073,7 +1075,7 @@ function updateSummaryAndAdvice(cat, matches) {
     if (r.isFrogJump) { doubleList.push('<li><strong>'+m.id+'</strong> '+m.home+' vs '+m.away+'<br>🐸 蛙跳盘 → '+r.prediction+'（'+(r.frogDetail||'')+'）</li>'); }
     else if (r.confLevel==='high' && r.hitRate>=80 && r.singlePick && !r.singleTied && !r.singleExcluded) singleList.push('<li><strong>'+m.id+'</strong> '+m.home+' vs '+m.away+'<br>单选 '+r.singlePick+' 命中率 '+r.singleRate+'%</li>');
     else if (r.confLevel==='low' || r.hitRate<70) skipList.push('<li><strong>'+m.id+'</strong> '+m.home+' vs '+m.away+'<br>场景 '+r.scenario+' · 样本 '+r.sampleCount+'</li>');
-    else doubleList.push('<li><strong>'+m.id+'</strong> '+m.home+' vs '+m.away+'<br>'+(r.forcedSingle?'⚡排强单 ':'双选 ')+(r.finalPick||r.prediction)+(r.altDouble?('（备选双选 '+r.altDouble+'）'):'')+(r.excludeNote?(' <span style="color:#e6a23c;font-size:.7rem">'+r.excludeNote+'</span>'):'')+' 命中率 '+r.hitRate+'%</li>');
+    else doubleList.push('<li><strong>'+m.id+'</strong> '+m.home+' vs '+m.away+'<br>'+(r.swappedDouble?'🔄换双选 ':'双选 ')+(r.finalPick||r.prediction)+(r.excludeNote?(' <span style="color:#e6a23c;font-size:.7rem">'+r.excludeNote+'</span>'):'')+' 命中率 '+r.hitRate+'%</li>');
   });
   document.getElementById('advice-'+cat+'-single').innerHTML = singleList.length ? singleList.join('') : '<li class="empty">无推荐场次</li>';
   document.getElementById('advice-'+cat+'-double').innerHTML = doubleList.length ? doubleList.join('') : '<li class="empty">无推荐场次</li>';
@@ -1225,26 +1227,24 @@ function classifyV6(match) {
     }
   }
   // ===== V6.9.3 推荐层面应用Kelly排除（场景/子组不变，只调整最终推荐） =====
+  // 回测结论(978场)：触发排除时换方向双选命中88.2% > 原双选71.4% > 强制单选58.9%
+  // 故主推荐=换方向双选（备选双选），排强单仅作激进参考
   var _dirLb = {h:'胜',d:'平',a:'负'};
   var _ord = {'胜':0,'平':1,'负':2};
   var finalPick = prediction;
-  var forcedSingle = false, altDouble = null, singleExcluded = false;
+  var swappedDouble = false, forcedSinglePick = null, singleExcluded = false;
   if (kellyExcluded.size > 0 && prediction) {
     var _pk = prediction.split('').map(function(c){ return c==='胜'?'h':(c==='平'?'d':(c==='负'?'a':null)); }).filter(Boolean);
     var _kept = _pk.filter(function(d){ return !kellyExcluded.has(d); });
     var _remaining = ['h','d','a'].filter(function(d){ return !kellyExcluded.has(d); }).map(function(d){ return _dirLb[d]; }).sort(function(a,b){ return _ord[a]-_ord[b]; });
     if (_kept.length === 1) {
-      // 双选其中一个方向被排除 → 强制单选保留方向
-      finalPick = _dirLb[_kept[0]];
-      forcedSingle = true;
-      // 非要双选：补第三个未排除方向
-      if (_remaining.length >= 2) altDouble = _remaining.join('');
+      forcedSinglePick = _dirLb[_kept[0]];
+      // 主推荐：补第三方向保持双选（回测88.2%）
+      if (_remaining.length >= 2) { finalPick = _remaining.join(''); swappedDouble = true; }
+      else { finalPick = forcedSinglePick; }
     } else if (_kept.length === 0) {
-      // 双选两个方向都被排除（极端）→ 取剩余方向单选
       finalPick = _remaining.length ? _remaining[0] : prediction;
-      forcedSingle = true;
     }
-    // 单选被排除 → 标记不推该单选
     if (singlePick && !singleTied) {
       var _sk = singlePick==='胜'?'h':(singlePick==='平'?'d':(singlePick==='负'?'a':null));
       if (_sk && kellyExcluded.has(_sk)) singleExcluded = true;
@@ -1259,8 +1259,8 @@ function classifyV6(match) {
     singlePick:singlePick, singleRate:Math.round(singleRate), singleTied:singleTied,
     isHomeStrong:isHomeStrong, sampleCount:sampleCount, wdl:wdl,
     kellyExcluded: kellyExcluded.size>0,
-    forcedSingle: forcedSingle,
-    altDouble: altDouble,
+    swappedDouble: swappedDouble,
+    forcedSingle: forcedSinglePick,
     singleExcluded: singleExcluded,
     excludeNote: kellyExcludeNotes.join('；')
   };
