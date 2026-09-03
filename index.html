@@ -1059,16 +1059,21 @@ function updateSummaryAndAdvice(cat, matches) {
     if (r.isFrogJump) {
       return '<tr class="frog-jump-row"><td>'+m.id+'</td><td>'+m.home+' vs '+m.away+'</td><td><span class="scenario-tag frog-tag">蛙跳</span></td><td class="'+getPickClass(r.prediction)+'">'+r.prediction+'</td><td>—</td><td class="'+getPickClass(r.prediction)+'">'+r.prediction+'</td><td>—</td><td>—</td><td>'+getConfText(r.confLevel)+'</td></tr>';
     }
-    return '<tr><td>'+m.id+'</td><td>'+m.home+' vs '+m.away+'</td><td><span class="scenario-tag">'+(r.subGroup||r.scenario)+'</span></td><td class="'+getPickClass(r.prediction)+'">'+r.prediction+'</td><td>'+r.hitRate+'%</td><td class="'+getPickClass(r.singlePick)+'">'+(r.singlePick||'—')+'</td><td>'+(r.singlePick?r.singleRate+'%':'—')+'</td><td>'+r.sampleCount+'</td><td>'+getConfText(r.confLevel)+'</td></tr>';
+    var _fp = r.finalPick || r.prediction;
+    var _ftag = r.forcedSingle ? ' <span style="font-size:.62rem;color:#e6a23c;font-weight:700">排强单</span>' : '';
+    var _ftitle = r.excludeNote ? (' title="'+r.excludeNote+'"') : '';
+    var _sp = (r.singlePick && r.singleExcluded) ? '—' : (r.singlePick||'—');
+    var _sr = (r.singlePick && r.singleExcluded) ? '—' : (r.singlePick?r.singleRate+'%':'—');
+    return '<tr><td>'+m.id+'</td><td>'+m.home+' vs '+m.away+'</td><td><span class="scenario-tag">'+(r.subGroup||r.scenario)+'</span></td><td class="'+getPickClass(_fp)+'"'+_ftitle+'>'+_fp+_ftag+'</td><td>'+r.hitRate+'%</td><td class="'+getPickClass(_sp)+'">'+_sp+'</td><td>'+_sr+'</td><td>'+r.sampleCount+'</td><td>'+getConfText(r.confLevel)+'</td></tr>';
   }).join('');
   advEl.style.display = 'grid';
   var singleList=[], doubleList=[], skipList=[];
   withResult.forEach(function(m){
     var r = m._result;
     if (r.isFrogJump) { doubleList.push('<li><strong>'+m.id+'</strong> '+m.home+' vs '+m.away+'<br>🐸 蛙跳盘 → '+r.prediction+'（'+(r.frogDetail||'')+'）</li>'); }
-    else if (r.confLevel==='high' && r.hitRate>=80 && r.singlePick && !r.singleTied) singleList.push('<li><strong>'+m.id+'</strong> '+m.home+' vs '+m.away+'<br>单选 '+r.singlePick+' 命中率 '+r.singleRate+'%</li>');
+    else if (r.confLevel==='high' && r.hitRate>=80 && r.singlePick && !r.singleTied && !r.singleExcluded) singleList.push('<li><strong>'+m.id+'</strong> '+m.home+' vs '+m.away+'<br>单选 '+r.singlePick+' 命中率 '+r.singleRate+'%</li>');
     else if (r.confLevel==='low' || r.hitRate<70) skipList.push('<li><strong>'+m.id+'</strong> '+m.home+' vs '+m.away+'<br>场景 '+r.scenario+' · 样本 '+r.sampleCount+'</li>');
-    else doubleList.push('<li><strong>'+m.id+'</strong> '+m.home+' vs '+m.away+'<br>双选 '+r.prediction+' 命中率 '+r.hitRate+'%</li>');
+    else doubleList.push('<li><strong>'+m.id+'</strong> '+m.home+' vs '+m.away+'<br>'+(r.forcedSingle?'⚡排强单 ':'双选 ')+(r.finalPick||r.prediction)+(r.altDouble?('（备选双选 '+r.altDouble+'）'):'')+(r.excludeNote?(' <span style="color:#e6a23c;font-size:.7rem">'+r.excludeNote+'</span>'):'')+' 命中率 '+r.hitRate+'%</li>');
   });
   document.getElementById('advice-'+cat+'-single').innerHTML = singleList.length ? singleList.join('') : '<li class="empty">无推荐场次</li>';
   document.getElementById('advice-'+cat+'-double').innerHTML = doubleList.length ? doubleList.join('') : '<li class="empty">无推荐场次</li>';
@@ -1110,23 +1115,16 @@ function classifyV6(match) {
   var favoredW = new Set();
   ['h','d','a'].forEach(function(d){ if((kw[d]||1.0)<=pw) favoredW.add(d) });
 
-  // V6.9.3 Kelly排除规则（韦德平局除外 + 365独立排除）
+  // V6.9.3 Kelly排除规则：仅作用于最终推荐层，不参与场景判定（场景独立）
   // 规则1: 韦德胜/负K≥1.0排除（平局K≥1.0例外不排除，10次4中40%非反向指标）
-  // 规则2: 365单项Kelly>1.03排除（含平局，09-03新增，146场验证0/10打出）
+  // 规则2: 365单项K>1.03排除（含平局，146场验证0/10打出）
   var kellyExcluded = new Set();
-  ['h','a'].forEach(function(d){
-    if ((kw[d] || 0) >= 1.0) kellyExcluded.add(d);
-  });
+  var kellyExcludeNotes = [];
   ['h','d','a'].forEach(function(d){
-    if ((k365[d] || 0) > 1.03) kellyExcluded.add(d);
+    var _lb = d==='h'?'胜':(d==='d'?'平':'负');
+    if ((d==='h'||d==='a') && (kw[d] || 0) >= 1.0) { kellyExcluded.add(d); kellyExcludeNotes.push('韦德'+_lb+'K≥1.0'); }
+    if ((k365[d] || 0) > 1.03) { kellyExcluded.add(d); kellyExcludeNotes.push('365'+_lb+'K>1.03'); }
   });
-  // 保存排除前的favored集合，用于排除后为空时回退
-  var favored365Before = new Set(favored365);
-  var favoredWBefore = new Set(favoredW);
-  kellyExcluded.forEach(function(d){ favored365.delete(d); favoredW.delete(d); });
-  // 排除后如果某家favored集合为空，说明Kelly排除过度（该方向本是唯一favor），回退到不排除
-  if (favored365.size === 0) favored365 = favored365Before;
-  if (favoredW.size === 0) favoredW = favoredWBefore;
 
   var state365 = getV6StateLetter(favored365, isHomeStrong);
   var stateW = getV6StateLetter(favoredW, isHomeStrong);
@@ -1226,12 +1224,45 @@ function classifyV6(match) {
       }
     }
   }
+  // ===== V6.9.3 推荐层面应用Kelly排除（场景/子组不变，只调整最终推荐） =====
+  var _dirLb = {h:'胜',d:'平',a:'负'};
+  var _ord = {'胜':0,'平':1,'负':2};
+  var finalPick = prediction;
+  var forcedSingle = false, altDouble = null, singleExcluded = false;
+  if (kellyExcluded.size > 0 && prediction) {
+    var _pk = prediction.split('').map(function(c){ return c==='胜'?'h':(c==='平'?'d':(c==='负'?'a':null)); }).filter(Boolean);
+    var _kept = _pk.filter(function(d){ return !kellyExcluded.has(d); });
+    var _remaining = ['h','d','a'].filter(function(d){ return !kellyExcluded.has(d); }).map(function(d){ return _dirLb[d]; }).sort(function(a,b){ return _ord[a]-_ord[b]; });
+    if (_kept.length === 1) {
+      // 双选其中一个方向被排除 → 强制单选保留方向
+      finalPick = _dirLb[_kept[0]];
+      forcedSingle = true;
+      // 非要双选：补第三个未排除方向
+      if (_remaining.length >= 2) altDouble = _remaining.join('');
+    } else if (_kept.length === 0) {
+      // 双选两个方向都被排除（极端）→ 取剩余方向单选
+      finalPick = _remaining.length ? _remaining[0] : prediction;
+      forcedSingle = true;
+    }
+    // 单选被排除 → 标记不推该单选
+    if (singlePick && !singleTied) {
+      var _sk = singlePick==='胜'?'h':(singlePick==='平'?'d':(singlePick==='负'?'a':null));
+      if (_sk && kellyExcluded.has(_sk)) singleExcluded = true;
+    }
+  }
+
   return {
     scenario: state365+stateW, subGroup: subGroupKey,
     state365:state365, stateW:stateW,
-    prediction:prediction, hitRate:hitRate, confLevel:confLevel,
+    prediction:prediction, finalPick:finalPick,
+    hitRate:hitRate, confLevel:confLevel,
     singlePick:singlePick, singleRate:Math.round(singleRate), singleTied:singleTied,
-    isHomeStrong:isHomeStrong, sampleCount:sampleCount, wdl:wdl
+    isHomeStrong:isHomeStrong, sampleCount:sampleCount, wdl:wdl,
+    kellyExcluded: kellyExcluded.size>0,
+    forcedSingle: forcedSingle,
+    altDouble: altDouble,
+    singleExcluded: singleExcluded,
+    excludeNote: kellyExcludeNotes.join('；')
   };
 }
 
