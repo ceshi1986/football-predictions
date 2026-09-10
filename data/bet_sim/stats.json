@@ -1,16 +1,91 @@
 {
-  "generated_at": "2026-09-11T02:32:43.356161+08:00",
+  "generated_at": "2026-09-11T02:34:50.817016+08:00",
   "overall": {
-    "total_stake_fen": 0,
-    "total_return_fen": 0,
-    "pnl_fen": 0,
-    "roi_pct": 0,
-    "total_bets": 0,
-    "win_bets": 0,
-    "win_rate_pct": 0,
-    "pending_count": 0
+    "total_stake_fen": 385600,
+    "total_return_fen": 283884,
+    "pnl_fen": -101716,
+    "roi_pct": -26.38,
+    "total_bets": 19,
+    "win_bets": 10,
+    "win_rate_pct": 52.6,
+    "pending_count": 8
   },
-  "groups": [],
-  "daily": [],
-  "last_30_curve": []
+  "groups": [
+    {
+      "play_type": "had",
+      "play_name": "胜平负",
+      "parlay_type": "single",
+      "parlay_name": "单关",
+      "bet_count": 19,
+      "win_rate_pct": 52.6,
+      "total_stake_fen": 385600,
+      "total_return_fen": 2837,
+      "pnl_fen": -382763,
+      "roi_pct": -99.26
+    }
+  ],
+  "daily": [
+    {
+      "stat_date": "20260726",
+      "bets": 4,
+      "wins": 2,
+      "stakes_fen": 80000,
+      "returns_fen": 559,
+      "pnl_fen": -79441
+    },
+    {
+      "stat_date": "20260729",
+      "bets": 3,
+      "wins": 2,
+      "stakes_fen": 67600,
+      "returns_fen": 613,
+      "pnl_fen": -66987
+    },
+    {
+      "stat_date": "20260801",
+      "bets": 7,
+      "wins": 4,
+      "stakes_fen": 144400,
+      "returns_fen": 1088,
+      "pnl_fen": -143312
+    },
+    {
+      "stat_date": "20260802",
+      "bets": 4,
+      "wins": 2,
+      "stakes_fen": 75200,
+      "returns_fen": 577,
+      "pnl_fen": -74623
+    },
+    {
+      "stat_date": "20260805",
+      "bets": 1,
+      "wins": 0,
+      "stakes_fen": 18400,
+      "returns_fen": 0,
+      "pnl_fen": -18400
+    }
+  ],
+  "last_30_curve": [
+    {
+      "date": "20260726",
+      "cumulative_pnl_fen": -79441
+    },
+    {
+      "date": "20260729",
+      "cumulative_pnl_fen": -146428
+    },
+    {
+      "date": "20260801",
+      "cumulative_pnl_fen": -289740
+    },
+    {
+      "date": "20260802",
+      "cumulative_pnl_fen": -364363
+    },
+    {
+      "date": "20260805",
+      "cumulative_pnl_fen": -382763
+    }
+  ]
 }
