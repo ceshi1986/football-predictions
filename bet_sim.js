@@ -136,20 +136,31 @@
 
   function renderMatchItem(match){
     var odds = match.odds || {};
-    var playOdds = odds[currentPlay === 'mixed' ? 'had' : currentPlay];
+    var wantPlay = currentPlay === 'mixed' ? 'had' : currentPlay;
+    // 该玩法未开售时，回退到第一个有赔率的玩法（混合过关/避免场次整体消失）
+    var PLAY_ORDER = ['had','hhad','crs','ttg','hafu'];
+    var playOdds = odds[wantPlay];
+    var effPlay = wantPlay;
     if(!playOdds){
-      return ''; // 该玩法无赔率，不显示
+      for(var pi = 0; pi < PLAY_ORDER.length; pi++){
+        if(odds[PLAY_ORDER[pi]]){ effPlay = PLAY_ORDER[pi]; playOdds = odds[PLAY_ORDER[pi]]; break; }
+      }
+    }
+    if(!playOdds){
+      return ''; // 该场所有玩法均无赔率，不显示
     }
 
-    var singleAvail = getSingleAvailable(match, currentPlay === 'mixed' ? 'had' : currentPlay);
-    var allupAvail = getAllupAvailable(match, currentPlay === 'mixed' ? 'had' : currentPlay);
+    var singleAvail = getSingleAvailable(match, effPlay);
+    var allupAvail = getAllupAvailable(match, effPlay);
 
     var singleBadge = singleAvail ? '<span class="calc-single-badge">单关</span>' : '';
+    // 当前选中玩法无赔率、回退到其他玩法时，标注实际显示的玩法
+    var playFallbackTag = effPlay !== wantPlay ? '<span class="calc-play-fallback">' + PLAY_NAMES[effPlay] + '</span>' : '';
 
-    var oddsHtml = renderOddsButtons(match, currentPlay === 'mixed' ? 'had' : currentPlay, playOdds);
+    var oddsHtml = renderOddsButtons(match, effPlay, playOdds);
 
     var handicap = '';
-    if(currentPlay === 'hhad' && playOdds.goalLine){
+    if(effPlay === 'hhad' && playOdds.goalLine){
       handicap = ' (让' + playOdds.goalLine + '球)';
     }
 
@@ -157,7 +168,7 @@
       '<div class="calc-match-header">' +
         '<div>' +
           '<span class="calc-match-id">' + (match.matchNumStr || '') + '</span>' +
-          singleBadge +
+          singleBadge + playFallbackTag +
         '</div>' +
         '<span class="calc-match-league">' + (match.league || '') + '</span>' +
       '</div>' +
