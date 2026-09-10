@@ -279,7 +279,7 @@
     // 查找投注单中是否已有这场
     var slipItem = null;
     for(var i = 0; i < betSlip.length; i++){
-      if(betSlip[i].matchId === matchNum && betSlip[i].play === play){
+      if(String(betSlip[i].matchId) === String(matchNum) && betSlip[i].play === play){
         slipItem = betSlip[i];
         break;
       }
@@ -360,17 +360,16 @@
     for(var i = 0; i < betSlip.length; i++){
       var item = betSlip[i];
       var selLabels = item.selections.map(function(s){
-        return getSelectionLabel(item.play, s);
+        var sp = item.oddsMap[s];
+        return getSelectionLabel(item.play, s) + (sp ? ' <span class="bsi-sp">' + fenToYuan(sp) + '</span>' : '');
       }).join('、');
-      var maxOdds = Math.max.apply(null, item.selections.map(function(s){ return item.oddsMap[s] || 0; }));
       html += '<div class="bet-slip-item">' +
         '<div class="bsi-header">' +
           '<span class="bsi-match">' + item.matchNumStr + ' ' + item.home + ' vs ' + item.away + '</span>' +
           '<button class="bsi-remove" onclick="removeSlipItem(' + i + ')" title="移除">×</button>' +
         '</div>' +
         '<div class="bsi-detail">' +
-          '<span>' + selLabels + '</span>' +
-          '<span>最高' + fenToYuan(maxOdds) + '</span>' +
+          '<span class="bsi-selline">' + selLabels + '</span>' +
         '</div>' +
         '<div class="bsi-detail" style="margin-top:4px">' +
           '<span class="bsi-play">' + PLAY_NAMES[item.play] + '</span>' +
