@@ -1161,7 +1161,20 @@ function normalizeKellyRaw(raw) {
 }
 
 function dedupMatchKey(m) {
-  return m.id || m.fixture_id || m.jingcai_id || m.beidan_id || ((m.home||'')+'|'+(m.away||'')+'|'+(m.time||''));
+  // 竞彩编号"周X+序号"每周循环复用，近14天数据合并时跨周同编号会撞车互相覆盖，
+  // 必须加比赛日期维度区分不同周的同编号场次
+  if (m.jingcai_id) {
+    var dt = parseMatchTime(m.time);
+    var dateTok = dt ? dateKeyStr(dt) : (m.time || '').split(' ')[0];
+    return 'jc:' + m.jingcai_id + '@' + dateTok;
+  }
+  // 北单/其他：fixture_id 为数据源全局唯一ID
+  if (m.fixture_id) return 'fx:' + m.fixture_id;
+  if (m.beidan_id) {
+    var dt2 = parseMatchTime(m.time);
+    return 'bd:' + m.beidan_id + '@' + (dt2 ? dateKeyStr(dt2) : (m.time || '').split(' ')[0]);
+  }
+  return (m.home||'')+'|'+(m.away||'')+'|'+(m.time||'');
 }
 
 function applyLockedPrediction(match, locks) {
