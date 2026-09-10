@@ -74,7 +74,42 @@
       p.classList.toggle('active', p.id === 'btab-' + tab);
     });
     if(tab === 'stats'){ loadStats(); }
-    if(tab === 'auto-bets'){ loadAutoBetsDates(); }
+    if(tab === 'auto-bets'){
+      if(!isAuthed()){
+        renderAutoBetGate();
+      } else {
+        loadAutoBetsDates();
+      }
+    }
+  };
+
+  // ─── 自动模拟单：仅注册/登录用户可见 ───
+  function isAuthed(){
+    return !!(window.FP_CONFIG && window.FP_CONFIG.currentUser);
+  }
+
+  function renderAutoBetGate(){
+    var sel = document.getElementById('auto-bets-date-select');
+    var list = document.getElementById('auto-bets-list');
+    if(sel) sel.style.display = 'none';
+    if(list){
+      list.innerHTML = '<div class="calc-loading" style="padding:32px 16px;text-align:center">'
+        + '<div style="font-size:2.2rem;margin-bottom:10px">🔒</div>'
+        + '<div style="font-size:.95rem;color:var(--text);margin-bottom:6px">每日自动模拟单仅对注册用户开放</div>'
+        + '<div style="font-size:.78rem;color:var(--text-muted);margin-bottom:16px">注册登录后可查看每日21:00生成的策略模拟单与历史战绩</div>'
+        + '<button onclick="FP_AUTH.showLogin()" style="background:linear-gradient(135deg,#62fad3,#4cc9f0);color:#06121f;border:none;padding:10px 28px;border-radius:8px;font-size:.9rem;font-weight:700;cursor:pointer">登录 / 注册</button>'
+        + '</div>';
+    }
+  }
+
+  window.refreshAutoBetGate = function(){
+    // 登录成功后由 auth 流程调用，解锁自动模拟单
+    var active = document.querySelector('#btab-auto-bets.active');
+    if(active && isAuthed()){
+      var sel = document.getElementById('auto-bets-date-select');
+      if(sel) sel.style.display = '';
+      loadAutoBetsDates();
+    }
   };
 
   // ─── 玩法切换 ───
