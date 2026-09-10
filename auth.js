@@ -261,6 +261,10 @@
     if(window.FP_FORUM && window.FP_FORUM.refresh){
       window.FP_FORUM.refresh();
     }
+    // 解锁自动模拟单（登录后可见）
+    if(window.refreshAutoBetGate){
+      try{ window.refreshAutoBetGate(); }catch(e){}
+    }
   }
 
   // ─── 更新顶部 UI ───
