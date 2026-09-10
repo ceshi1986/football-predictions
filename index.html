@@ -432,8 +432,10 @@ footer{text-align:center;padding:32px 20px 16px;color:var(--text-muted);font-siz
 }
 .calc-odds-btn:hover{border-color:var(--primary);background:rgba(124,92,255,.1)}
 .calc-odds-btn.selected{
-  border-color:var(--success);background:rgba(98,250,211,.15);color:var(--success);font-weight:600;
+  border-color:var(--success);background:rgba(98,250,211,.28);color:var(--success);
+  font-weight:700;box-shadow:0 0 10px rgba(98,250,211,.35),inset 0 0 6px rgba(98,250,211,.15);
 }
+.calc-odds-btn.selected .odds-val{color:var(--success)}
 .calc-odds-btn .odds-val{display:block;font-weight:700;font-size:.95rem;margin-top:2px}
 .crs-grid{grid-template-columns:repeat(6,1fr)!important;gap:4px!important}
 .crs-grid .calc-odds-btn{padding:6px 2px;font-size:.7rem}
