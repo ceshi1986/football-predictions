@@ -5,6 +5,7 @@
 数据源：
   - trade.500.com/jczq/ (竞彩比赛列表)
   - odds.500.com/fenxi/ouzhi-{id}.shtml (欧赔Kelly数据)
+  - odds.500.com/fenxi/rangqiu-{id}.shtml (让球指数Kelly数据)
   - live.500.com/weekfixture.php (备选赛事列表)
 
 输出（zgzcw格式兼容，daily_predictions.py直接消费）：
@@ -332,6 +333,190 @@ def fetch_macau_asian_handicap(fixture_id):
 
     handicap_path = fetch_macau_handicap_path(fixture_id)
     return _finalize_handicap_result(parsed, handicap_path)
+
+# ============================================================
+# 让球指数（rangqiu）抓取与解析
+# ============================================================
+
+def _parse_goal_line(text):
+    """解析让球值文本为数值（主队视角，负数表示主队让球）。
+    '-1' → -1, '+1' → 1, '平手' → 0
+    """
+    if not text:
+        return None
+    text = text.strip().replace('\xa0', ' ')
+    if '平手' in text:
+        return 0
+    # 匹配带符号的整数或小数：-1, +1, -0.5, +0.25 等
+    m = re.match(r'^([+-]?\s*\d+(?:\.\d+)?)$', text)
+    if m:
+        num_str = m.group(1).replace(' ', '')
+        try:
+            val = float(num_str)
+            return int(val) if val == int(val) else val
+        except (ValueError, TypeError):
+            return None
+    # 尝试直接解析数字
+    try:
+        val = float(text)
+        return int(val) if val == int(val) else val
+    except (ValueError, TypeError):
+        return None
+
+
+def parse_rangqiu_html(html, fixture_id, match_info):
+    """解析让球指数页面，提取各公司的让球胜平负凯利指数。
+
+    HTML结构与欧赔页类似：
+    - table#datatb > tr[xls='row'][id='{cid}'] 每行一个公司-盘口组合
+    - 同一公司cid可能有多行（不同让球盘口）
+    - 让球值在单独的td中
+    - 每行内嵌4个 table.pl_table_data（赔率/概率/返还率/凯利）
+
+    返回结构:
+    {
+        'bet365': {
+            'name': 'Bet365',
+            'lines': [
+                {
+                    'goal_line': -1,
+                    'initial_odds': [2.5, 3.2, 2.8],
+                    'latest_odds': [2.4, 3.3, 2.9],
+                    'initial_kelly': [0.91, 0.94, 0.90],  # 从initial_odds估算
+                    'latest_kelly': [0.90, 0.95, 0.89],
+                },
+                ...
+            ]
+        },
+        ...
+    }
+    """
+    soup = BeautifulSoup(html, 'html.parser')
+    result = {}
+
+    table = soup.find('table', id='datatb')
+    if not table:
+        return None
+
+    rows = table.find_all('tr', attrs={'xls': 'row'})
+    for row in rows:
+        cid = row.get('id', '')
+        if cid not in CID_TO_KEY:
+            continue
+
+        company_key = CID_TO_KEY[cid]
+        company_name = CID_TO_NAME.get(cid, '')
+
+        # 提取让球值：从td中查找包含数字或"平手"的单元格
+        tds = row.find_all('td', recursive=False)
+        goal_line = None
+        for td in tds:
+            td_text = td.get_text(strip=True)
+            # 跳过空值和过长文本（不是让球值列）
+            if not td_text or len(td_text) > 15:
+                continue
+            gl = _parse_goal_line(td_text)
+            if gl is not None:
+                goal_line = gl
+                break
+
+        # 提取内嵌的pl_table_data表格
+        pl_tables = row.find_all('table', class_='pl_table_data')
+        if len(pl_tables) < 4:
+            continue
+
+        # 表0: 赔率 (tr0=初始, tr1=即时)
+        odds_trs = pl_tables[0].find_all('tr')
+        init_odds = []
+        instant_odds = []
+        if len(odds_trs) >= 1:
+            init_odds = [_safe_float(td.get_text(strip=True)) for td in odds_trs[0].find_all('td')[:3]]
+        if len(odds_trs) >= 2:
+            instant_odds = [_safe_float(td.get_text(strip=True)) for td in odds_trs[1].find_all('td')[:3]]
+
+        # 表1: 概率
+        prob_trs = pl_tables[1].find_all('tr')
+        instant_prob = []
+        if len(prob_trs) >= 2:
+            instant_prob = [_safe_float(td.get_text(strip=True)) for td in prob_trs[1].find_all('td')[:3]]
+
+        # 表2: 返还率
+        ret_trs = pl_tables[2].find_all('tr')
+        payout = 0.0
+        if len(ret_trs) >= 2:
+            ret_td = ret_trs[1].find('td')
+            if ret_td:
+                ret_text = ret_td.get_text(strip=True)
+                payout = _safe_float(ret_text)
+                if payout > 1:
+                    payout = payout / 100.0
+
+        # 表3: 凯利指数 (tr0=初始, tr1=即时)
+        kelly_trs = pl_tables[3].find_all('tr')
+        init_kelly = [0.0, 0.0, 0.0]
+        instant_kelly = [0.0, 0.0, 0.0]
+        if len(kelly_trs) >= 2:
+            init_kelly = [_safe_float(td.get_text(strip=True)) for td in kelly_trs[0].find_all('td')[:3]]
+            instant_kelly = [_safe_float(td.get_text(strip=True)) for td in kelly_trs[1].find_all('td')[:3]]
+        elif len(kelly_trs) >= 1:
+            instant_kelly = [_safe_float(td.get_text(strip=True)) for td in kelly_trs[0].find_all('td')[:3]]
+            init_kelly = instant_kelly[:]
+
+        # 数据校验
+        valid_odds = all(x > 1 for x in instant_odds) if instant_odds else False
+        valid_kelly = all(0.3 < k < 2.0 for k in instant_kelly if k > 0)
+        if not valid_odds or not valid_kelly:
+            continue
+
+        # 初始化公司条目
+        if company_key not in result:
+            result[company_key] = {
+                'name': company_name,
+                'lines': [],
+            }
+
+        line_data = {
+            'goal_line': goal_line,
+            'initial_odds': init_odds if all(x > 0 for x in init_odds) else instant_odds[:],
+            'latest_odds': instant_odds,
+            'initial_kelly': init_kelly,
+            'latest_kelly': instant_kelly,
+            'probability': instant_prob,
+            'payout': round(payout, 4),
+        }
+        result[company_key]['lines'].append(line_data)
+
+    return result if result else None
+
+
+def fetch_rangqiu_page_with_requests(fixture_id):
+    """用requests获取让球指数页面"""
+    url = f'https://odds.500.com/fenxi/rangqiu-{fixture_id}.shtml'
+    try:
+        resp = req_lib.get(url, headers=HEADERS, timeout=15)
+        if resp.status_code != 200:
+            return None
+        html = resp.content.decode('gb2312', errors='replace')
+        if len(html) > 5000:
+            return html
+    except Exception:
+        pass
+    return None
+
+
+async def fetch_rangqiu_page_with_playwright(page, fixture_id):
+    """用Playwright获取让球指数页面"""
+    url = f'https://odds.500.com/fenxi/rangqiu-{fixture_id}.shtml'
+    try:
+        await page.goto(url, timeout=20000, wait_until='domcontentloaded')
+        await asyncio.sleep(1)
+        html = await page.content()
+        if len(html) > 5000:
+            return html
+    except Exception:
+        pass
+    return None
+
 
 # GitHub配置
 GITHUB_TOKEN = os.environ.get('GITHUB_TOKEN', '')
@@ -690,14 +875,30 @@ async def scrape_all_matches(fixture_ids, match_info_map, use_requests_mode=Fals
                         parsed['companies']['macau'].update(ah)
                         parsed['macau_asian_handicap'] = ah
 
+                    # 让球指数（降级处理，失败不影响欧赔/亚盘结果）
+                    rq_html = None
+                    try:
+                        rq_url = f'https://odds.500.com/fenxi/rangqiu-{fid}.shtml'
+                        async with session.get(rq_url, headers=HEADERS, timeout=aiohttp.ClientTimeout(total=10)) as rq_resp:
+                            if rq_resp.status == 200:
+                                rq_raw = await rq_resp.read()
+                                rq_html = rq_raw.decode('gb2312', errors='replace')
+                    except Exception:
+                        pass
+                    if rq_html:
+                        rq_data = parse_rangqiu_html(rq_html, fid, m_info)
+                        if rq_data:
+                            parsed['rangqiu_kelly'] = rq_data
+
                     n_target = len([k for k in TARGET_COMPANIES if k in parsed['companies']])
                     ah_tag = ' +亚盘' if ah else ''
+                    rq_tag = ' +让球' if parsed.get('rangqiu_kelly') else ''
                     async with lock:
                         completed += 1
                         c = completed
                     print(f"  [{c}/{total}] fixture={fid} "
                           f"{m_info.get('home','')}-{m_info.get('away','')} "
-                          f"✓ {len(parsed['companies'])}家, {n_target}目标{ah_tag}",
+                          f"✓ {len(parsed['companies'])}家, {n_target}目标{ah_tag}{rq_tag}",
                           flush=True)
                     return parsed, fid, m_info
 
@@ -772,10 +973,17 @@ async def scrape_all_matches(fixture_ids, match_info_map, use_requests_mode=Fals
                         if ah and 'macau' in parsed['companies']:
                             parsed['companies']['macau'].update(ah)
                             parsed['macau_asian_handicap'] = ah
+                        # 抓取让球指数（降级处理，失败不影响欧赔/亚盘）
+                        rq_html = fetch_rangqiu_page_with_requests(fid)
+                        if rq_html:
+                            rq_data = parse_rangqiu_html(rq_html, fid, m_info)
+                            if rq_data:
+                                parsed['rangqiu_kelly'] = rq_data
                         results[fid] = parsed
                         n_target = len([k for k in TARGET_COMPANIES if k in parsed['companies']])
                         ah_tag = ' +亚盘' if ah else ''
-                        print(f"✓ {len(parsed['companies'])}家公司, {n_target}家目标{ah_tag}")
+                        rq_tag = ' +让球' if parsed.get('rangqiu_kelly') else ''
+                        print(f"✓ {len(parsed['companies'])}家公司, {n_target}家目标{ah_tag}{rq_tag}")
                     else:
                         print("✗ 解析无数据")
                 else:
@@ -1050,6 +1258,7 @@ def build_zgzcw_output(results, date_str, scrape_time):
             'data_source': ds,
             'companies': data.get('companies', {}),
             'asian_handicap': None,
+            'rangqiu_kelly': data.get('rangqiu_kelly'),
         }
 
     return {
@@ -1074,6 +1283,7 @@ def build_500com_output(results, date_str, scrape_time):
             'away': data.get('away', ''),
             'match_time': data.get('match_time', ''),
             'companies': data.get('companies_500com', {}),
+            'rangqiu_kelly': data.get('rangqiu_kelly'),
         })
 
     total_companies = sum(len(m['companies']) for m in matches_list)
