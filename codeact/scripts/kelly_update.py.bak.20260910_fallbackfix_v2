@@ -1,11 +1,6 @@
 #!/usr/bin/env python3
 """
-Kelly数据更新调度器 v1.0.1
-v1.0.1 修复：
-  - 修复 zgzcw 回退链路参数兼容 bug：run_script 不再硬编码 --no-github --use-requests
-    （scrape_zgzcw_kelly.py 只支持 --match-ids/--output，硬编码会导致退出码2，回退链路直接失败）
-  - 500万脚本显式传 base_args=['--no-github', '--use-requests']，行为不变
-  - zgzcw 脚本传 base_args=[]，避免参数错误
+Kelly数据更新调度器 v1.0
 优先500万网，失败/0数据时回退zgzcw，最后推送GitHub。
 
 用法：
@@ -43,20 +38,12 @@ def get_output_path(date_str):
     return os.path.join(DATA_DIR, date_str, "zgzcw_kelly_data.json")
 
 
-def run_script(script_path, label, extra_args=None, base_args=None):
-    """运行抓取脚本，返回(成功与否, 比赛数, 目标公司条数)
-    
-    Args:
-        base_args: 脚本特定的基础参数列表。
-                   500万脚本传 ['--no-github', '--use-requests']，
-                   zgzcw 脚本传 [] 或 None（zgzcw 不支持这些参数）。
-    """
+def run_script(script_path, label, extra_args=None):
+    """运行抓取脚本，返回(成功与否, 比赛数, 目标公司条数)"""
     print(f"\n{'='*50}")
     print(f"  数据源: {label}")
     print(f"{'='*50}")
-    cmd = [sys.executable, script_path]
-    if base_args:
-        cmd.extend(base_args)
+    cmd = [sys.executable, script_path, '--no-github', '--use-requests']
     if extra_args:
         cmd.extend(extra_args)
     try:
@@ -217,8 +204,7 @@ def main():
 
     # 第一步：500万网（优先）
     if not force_zgzcw and os.path.exists(SCRAPE_500COM):
-        ok, mc, tc = run_script(SCRAPE_500COM, "500万网",
-                                base_args=['--no-github', '--use-requests'])
+        ok, mc, tc = run_script(SCRAPE_500COM, "500万网")
         if ok:
             success = True
             match_count = mc
@@ -233,8 +219,7 @@ def main():
 
     # 第二步：zgzcw（兜底）
     if not success and os.path.exists(SCRAPE_ZGZCW):
-        ok, mc, tc = run_script(SCRAPE_ZGZCW, "zgzcw中国足彩网",
-                                base_args=[])
+        ok, mc, tc = run_script(SCRAPE_ZGZCW, "zgzcw中国足彩网")
         if ok:
             success = True
             match_count = mc
