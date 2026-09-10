@@ -339,7 +339,7 @@
 
   function isSelected(matchId, play, selection){
     for(var i = 0; i < betSlip.length; i++){
-      if(betSlip[i].matchId === matchId && betSlip[i].play === play){
+      if(String(betSlip[i].matchId) === String(matchId) && betSlip[i].play === play){
         return betSlip[i].selections.indexOf(selection) >= 0;
       }
     }
