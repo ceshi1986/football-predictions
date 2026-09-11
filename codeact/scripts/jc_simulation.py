@@ -67,15 +67,23 @@ OUTPUT_DIR = "./codeact/output"
 UNIT_BET = 2               # 每注2元
 
 # 投注策略参数 (按预算比例)
-STRONG_BUDGET_PCT = 0.02   # 强信号预算: 2%
-MEDIUM_BUDGET_PCT = 0.02   # 中等信号预算: 2%
-PARLAY_BUDGET_PCT = 0.025  # 串关预算: 2.5%
-MIN_ODDS_STRONG = 1.40     # 强信号最低赔率
+STRONG_BUDGET_PCT = 0.025  # 强信号预算: 2.5%
+MEDIUM_BUDGET_PCT = 0.015  # 中等信号预算: 1.5%
+PARLAY_BUDGET_PCT = 0.02   # 串关预算: 2%
+MIN_ODDS_STRONG = 1.50     # 强信号最低赔率 (低于此不值得冒险)
 MAX_ODDS_STRONG = 2.50     # 强信号最高赔率
-MAX_PARLAY_MATCHES = 3     # 串关最多场次
-SINGLE_SELECT_CONF = 0.65  # 中等信号→单选的置信度阈值
-HANDICAP_ODDS_MIN = 1.50   # 考虑让球盘的主赔上限
-PARLAY_CONF_MIN = 0.70     # 串关最低置信度
+MAX_PARLAY_MATCHES = 2     # 串关最多场次: 仅2串1
+MIN_ODDS_SINGLE = 1.45     # 单关最低赔率门槛
+MAX_ODDS_SINGLE = 2.80     # 单关最高赔率门槛 (超过则风险过高)
+PARLAY_MIN_COMBINED_ODDS = 2.50  # 2串1最低组合赔率
+PARLAY_MAX_LEG_ODDS = 2.20       # 2串1单腿最高赔率
+HANDICAP_ODDS_MIN = 1.50         # 考虑让球盘的主赔上限
+MIN_EV_THRESHOLD = 0.05    # 最低期望值门槛 (5%正EV才下注)
+PARLAY_MIN_EV_PER_LEG = 0.08    # 串关每腿最低EV (8%)
+
+# 概率估计调整系数 (用于从赔率推算真实概率)
+STRONG_SIGNAL_EDGE = 0.12   # 强信号: 真实概率比隐含概率高12%
+MEDIUM_SIGNAL_EDGE = 0.06   # 中等信号: 真实概率比隐含概率高6%
 
 # Kelly信号阈值
 DISPERSION_STRONG = 0.07
@@ -303,6 +311,9 @@ class KellySignal(BaseModel):
     confidence: float
     dispersion: float
     reason: str
+    b365_weide_agree: bool = True   # 365和韦德方向是否一致
+    libo_reverse: bool = False      # 立博是否反向(与共识方向相反)
+    libo_dir: str = ""              # 立博看好方向
 
 
 def analyze_kelly_signal(kelly_match: dict) -> Optional[KellySignal]:
@@ -337,17 +348,29 @@ def analyze_kelly_signal(kelly_match: dict) -> Optional[KellySignal]:
 
     # 方向不一致
     if b365_min_dir != weide_min_dir:
+        # 计算立博方向(用于分歧场景判断)
+        _libo_dir_div = ""
+        _libo_rev_div = False
+        if libo:
+            _lk = libo.get("kelly", [])
+            if len(_lk) >= 3:
+                _libo_dir_div = dirs[min(range(3), key=lambda i: _lk[i])]
+                # 立博与b365方向不同 = 立博反向
+                _libo_rev_div = (_libo_dir_div != b365_min_dir)
+
         if (b365_kelly[1] < b365_payout and weide_kelly[1] < weide_payout
                 and abs(b365_kelly[1] - weide_kelly[1]) < 0.03):
             return KellySignal(
                 direction="d", direction_name="平", strength="medium",
                 confidence=0.55, dispersion=dispersion,
                 reason=f"bet365({DIR_NAMES[b365_min_dir]})与韦德({DIR_NAMES[weide_min_dir]})分歧，但隐藏平局共识",
+                b365_weide_agree=False, libo_reverse=_libo_rev_div, libo_dir=_libo_dir_div,
             )
         return KellySignal(
             direction=b365_min_dir, direction_name=DIR_NAMES[b365_min_dir],
             strength="weak", confidence=0.35, dispersion=dispersion,
             reason=f"方向分歧(b365={DIR_NAMES[b365_min_dir]},weide={DIR_NAMES[weide_min_dir]})，冷门预警",
+            b365_weide_agree=False, libo_reverse=_libo_rev_div, libo_dir=_libo_dir_div,
         )
 
     # 方向一致
@@ -362,10 +385,15 @@ def analyze_kelly_signal(kelly_match: dict) -> Optional[KellySignal]:
     avg_gap = (min(other_b365) - b365_min_val + min(other_weide) - weide_min_val) / 2
 
     libo_draw_signal = False
+    libo_reverse = False
+    libo_dir = ""
     if libo:
         libo_kelly = libo.get("kelly", [])
         libo_payout = libo.get("payout", 0.90)
         if len(libo_kelly) >= 3:
+            libo_min_idx = min(range(3), key=lambda i: libo_kelly[i])
+            libo_dir = dirs[libo_min_idx]
+            libo_reverse = (libo_dir != consensus_dir)  # 立博与共识方向不同
             if libo_kelly[1] < libo_payout:
                 libo_draw_signal = True
             libo_odds = libo.get("latest_odds", [])
@@ -405,6 +433,9 @@ def analyze_kelly_signal(kelly_match: dict) -> Optional[KellySignal]:
         confidence=round(min(confidence, 0.95), 2),
         dispersion=round(dispersion, 3),
         reason="；".join(reason_parts),
+        b365_weide_agree=True,
+        libo_reverse=libo_reverse,
+        libo_dir=libo_dir,
     )
 
 
@@ -423,10 +454,67 @@ class BetDecision(BaseModel):
     reason: str
     handicap: int = 0          # 让球数(0=非让球, -1=主让1球等)
     handicap_odds: float = 0   # 让球赔率
+    confidence: float = 0.6    # 估计胜率
+    ev: float = 0.0            # 期望值 (EV = prob × odds - 1)
+
+
+def calc_implied_prob(odds: float, payout_rate: float = 0.93) -> float:
+    """从赔率计算隐含概率: p = payout_rate / odds"""
+    if odds <= 0:
+        return 0.0
+    return min(payout_rate / odds, 0.99)
+
+
+def calc_ev(confidence: float, odds: float) -> float:
+    """
+    计算期望值 (Expected Value)
+    EV = 估计胜率 × 赔率 - 1
+    EV > 0 表示正期望，长期可盈利
+    EV > 0.05 表示至少有5%的边际优势
+    """
+    return confidence * odds - 1.0
+
+
+def estimate_true_prob(implied_prob: float, signal_strength: str) -> float:
+    """
+    基于隐含概率和信号强度估计真实胜率
+    - 强信号: 真实概率比隐含概率高12% (相对)
+    - 中等信号: 真实概率比隐含概率高6% (相对)
+    """
+    if signal_strength == "strong":
+        edge = STRONG_SIGNAL_EDGE
+    elif signal_strength == "medium":
+        edge = MEDIUM_SIGNAL_EDGE
+    else:
+        edge = 0.0
+    estimated = implied_prob * (1.0 + edge)
+    return min(estimated, 0.95)  # 上限95%
+
+
+def calc_double_selection_prob(odds_list: list, payout_rate: float = 0.93) -> float:
+    """
+    计算双选的中奖概率 (两个方向至少中一个)
+    P(A或B) = P(A) + P(B) - P(A且B)
+    简化为: 1 - (1-P(A)) × (1-P(B))
+    """
+    probs = [calc_implied_prob(o, payout_rate) for o in odds_list]
+    # 双选概率 = 1 - 两个都不中的概率
+    miss_prob = 1.0
+    for p in probs:
+        miss_prob *= (1.0 - p)
+    return 1.0 - miss_prob
 
 
 def make_bet_decisions(matches: list, kelly_data: dict) -> tuple:
-    """返回 (decisions, strong_jc_nums)"""
+    """
+    基于EV(期望值)的投注决策
+    核心原则: 只买正EV的注，优先单关和2串1，平衡胜率与赔率
+    
+    EV = 估计胜率 × 赔率 - 1
+    只有 EV > MIN_EV_THRESHOLD (5%) 才下注
+    
+    返回 (decisions, strong_jc_nums)
+    """
     decisions = []
     kelly_matches = kelly_data.get("matches", {})
 
@@ -470,111 +558,224 @@ def make_bet_decisions(matches: list, kelly_data: dict) -> tuple:
 
         dir_to_sp = {"w": jc_sp["w"], "d": jc_sp["d"], "l": jc_sp["l"]}
         main_odds = dir_to_sp[signal.direction]
+        implied_prob = calc_implied_prob(main_odds)
+        est_prob = estimate_true_prob(implied_prob, signal.strength)
+        ev = calc_ev(est_prob, main_odds)
 
-        # 强信号: 单选
+        # ===== 强信号: 单选 =====
         if signal.strength == "strong":
+            # 赔率太低不值得冒险
             if main_odds < MIN_ODDS_STRONG:
-                if main_odds >= 1.20:
+                if main_odds >= 1.25:
+                    # 降为中等信号处理
                     signal.strength = "medium"
                     signal.confidence = min(signal.confidence, 0.55)
                 else:
+                    continue  # 赔率太低，跳过
+
+            if signal.strength == "strong":
+                # 赔率太高则风险过大，跳过
+                if main_odds > MAX_ODDS_STRONG:
                     continue
-            elif main_odds > MAX_ODDS_STRONG:
+
+                # 危险场景: 365&韦德分歧+立博反向=不买
+                if not signal.b365_weide_agree and signal.libo_reverse:
+                    continue
+
+                # 重新计算EV (可能降为medium后)
+                est_prob = estimate_true_prob(implied_prob, signal.strength)
+                ev = calc_ev(est_prob, main_odds)
+
+                # EV过滤: 正期望才下注
+                if ev < MIN_EV_THRESHOLD:
+                    print(f"  [EV过滤] {jc_num} 强信号但EV={ev:.3f}<0.05，跳过")
+                    continue
+
+                # 让球盘: 赔率太低时尝试让球
+                handicap_val = 0
+                handicap_odds_val = 0.0
+                sel_odds = main_odds
+                sel_name = DIR_NAMES[signal.direction]
+                sel_codes = [signal.direction]
+                if match.get("jc_rqsp") and main_odds < HANDICAP_ODDS_MIN and main_odds >= 1.50:
+                    rqsp = match["jc_rqsp"]
+                    rq_handicap = match.get("handicap", 0)
+                    if rq_handicap and rq_handicap < 0:
+                        rq_dir_odds = rqsp.get("l", 0)
+                        if rq_dir_odds > main_odds * 1.1 and rq_dir_odds >= 1.60:
+                            rq_ev = calc_ev(est_prob, rq_dir_odds)
+                            if rq_ev > ev:  # 让球EV更高才切换
+                                handicap_val = int(rq_handicap)
+                                handicap_odds_val = rq_dir_odds
+                                sel_odds = rq_dir_odds
+                                sel_name = f"让{rq_handicap}{DIR_NAMES['l']}"
+                                ev = rq_ev
+                                signal.reason += f" | 让球{rq_handicap}赔率{rq_dir_odds:.2f}"
+
+                decisions.append(BetDecision(
+                    match_id=jc_num, home=home, away=away, league=league,
+                    selection=sel_name,
+                    selection_codes=sel_codes,
+                    odds_map={signal.direction: sel_odds},
+                    primary_odds=sel_odds,
+                    signal_strength="strong",
+                    budget_pct=STRONG_BUDGET_PCT,
+                    reason=f"强信号: {signal.reason} | EV={ev:.3f}",
+                    handicap=handicap_val,
+                    handicap_odds=handicap_odds_val,
+                    confidence=est_prob,
+                    ev=ev,
+                ))
+                strong_jc_nums.append(jc_num)
                 continue
 
-        if signal.strength == "strong":
-            handicap_val = 0
-            handicap_odds_val = 0.0
-            sel_dir = signal.direction
-            sel_odds = main_odds
-            sel_name = DIR_NAMES[signal.direction]
-            # 让球盘: 赔率太低时尝试让球
-            if match.get("jc_rqsp") and main_odds < HANDICAP_ODDS_MIN and main_odds >= 1.20:
-                rqsp = match["jc_rqsp"]
-                rq_handicap = match.get("handicap", 0)
-                if rq_handicap and rq_handicap < 0:
-                    rq_dir_odds = rqsp.get("l", 0)
-                    if rq_dir_odds > main_odds * 1.1 and rq_dir_odds >= 1.50:
-                        handicap_val = int(rq_handicap)
-                        handicap_odds_val = rq_dir_odds
-                        sel_odds = rq_dir_odds
-                        sel_name = f"让{rq_handicap}{DIR_NAMES['l']}"
-                        signal.reason += f" | 让球{rq_handicap}赔率{rq_dir_odds:.2f}"
+        # ===== 中等信号: 基于EV决定是否下注 =====
+        handicap = match.get("handicap", 0)
+        agreed = signal.b365_weide_agree
+        libo_rev = signal.libo_reverse
+
+        rqsp = match.get("jc_rqsp")
+        rq_handicap = int(handicap) if handicap else 0
+
+        # ─── 让2球 ──────────────────────────────
+        # 回测: 89%强胜, 0%冷门 → 直接单选
+        rq_dir_odds = 0.0
+        if rqsp and rq_handicap and rq_handicap < 0:
+            rq_dir_odds = rqsp.get("l", 0) or 0
+
+        if rq_handicap <= -2 and rq_dir_odds >= 1.45:
+            est_prob_h = estimate_true_prob(calc_implied_prob(rq_dir_odds), "medium")
+            ev_h = calc_ev(est_prob_h, rq_dir_odds)
+            if ev_h >= MIN_EV_THRESHOLD:
+                decisions.append(BetDecision(
+                    match_id=jc_num, home=home, away=away, league=league,
+                    selection=f"让{rq_handicap}{DIR_NAMES['l']}",
+                    selection_codes=[signal.direction],
+                    odds_map={signal.direction: rq_dir_odds},
+                    primary_odds=rq_dir_odds,
+                    signal_strength="medium",
+                    budget_pct=MEDIUM_BUDGET_PCT,
+                    reason=f"让2球单选(89%强胜): {signal.reason} | EV={ev_h:.3f}",
+                    handicap=rq_handicap,
+                    handicap_odds=rq_dir_odds,
+                    confidence=est_prob_h,
+                    ev=ev_h,
+                ))
+                strong_jc_nums.append(jc_num)
+                continue
+
+        # ─── 让1球 ──────────────────────────────
+        # 回测: 365&韦德一致=100%; 分歧+立博反向=50%
+        if rq_handicap == -1 and rq_dir_odds >= 1.45:
+            if agreed:
+                est_prob_h = estimate_true_prob(calc_implied_prob(rq_dir_odds), "medium")
+                ev_h = calc_ev(est_prob_h, rq_dir_odds)
+                if ev_h >= MIN_EV_THRESHOLD:
+                    decisions.append(BetDecision(
+                        match_id=jc_num, home=home, away=away, league=league,
+                        selection=f"让{rq_handicap}{DIR_NAMES['l']}",
+                        selection_codes=[signal.direction],
+                        odds_map={signal.direction: rq_dir_odds},
+                        primary_odds=rq_dir_odds,
+                        signal_strength="medium",
+                        budget_pct=MEDIUM_BUDGET_PCT,
+                        reason=f"让1球+一致单选(回测100%): {signal.reason} | EV={ev_h:.3f}",
+                        handicap=rq_handicap,
+                        handicap_odds=rq_dir_odds,
+                        confidence=est_prob_h,
+                        ev=ev_h,
+                    ))
+                    strong_jc_nums.append(jc_num)
+                    continue
+            else:
+                if libo_rev:
+                    continue  # 分歧+立博反向=危险
+
+                # 分歧但立博不反向 → 双选覆盖 (需验证EV)
+                second_dir = "d" if signal.direction != "d" else ("w" if jc_sp["w"] < jc_sp["l"] else "l")
+                main_ov = dir_to_sp[signal.direction]
+                sec_ov = dir_to_sp[second_dir]
+                # 双选的有效赔率 = 较低的那个 (因为选了两个方向)
+                effective_odds = min(main_ov, sec_ov)
+                dbl_prob = calc_double_selection_prob([main_ov, sec_ov])
+                dbl_ev = calc_ev(dbl_prob, effective_odds)
+                # 双选成本是单选的2倍，需要EV > 0.10才值得
+                if dbl_ev >= 0.10:
+                    decisions.append(BetDecision(
+                        match_id=jc_num, home=home, away=away, league=league,
+                        selection=f"{DIR_NAMES[signal.direction]}+{DIR_NAMES[second_dir]}",
+                        selection_codes=[signal.direction, second_dir],
+                        odds_map={signal.direction: main_ov, second_dir: sec_ov},
+                        primary_odds=main_ov,
+                        signal_strength="medium",
+                        budget_pct=MEDIUM_BUDGET_PCT,
+                        reason=f"让1球分歧双选: {signal.reason} | EV={dbl_ev:.3f}",
+                        confidence=dbl_prob,
+                        ev=dbl_ev,
+                    ))
+                    continue
+
+        # ─── 平手盘(handicap=0) ──────────────────────
+        if handicap == 0:
+            if agreed:
+                # 一致 → 平局高发(42-45%), 双选覆盖平局
+                if main_odds >= MIN_ODDS_SINGLE and main_odds <= MAX_ODDS_SINGLE:
+                    second_dir = "d"
+                    second_odds = jc_sp["d"]
+                    dbl_prob = calc_double_selection_prob([main_odds, second_odds])
+                    dbl_ev = calc_ev(dbl_prob, min(main_odds, second_odds))
+                    if dbl_ev >= 0.10:
+                        decisions.append(BetDecision(
+                            match_id=jc_num, home=home, away=away, league=league,
+                            selection=f"{DIR_NAMES[signal.direction]}+平",
+                            selection_codes=[signal.direction, "d"],
+                            odds_map={signal.direction: main_odds, "d": second_odds},
+                            primary_odds=main_odds,
+                            signal_strength="medium",
+                            budget_pct=MEDIUM_BUDGET_PCT,
+                            reason=f"平手盘一致+高赔双选(平局率42%): {signal.reason} | EV={dbl_ev:.3f}",
+                            confidence=dbl_prob,
+                            ev=dbl_ev,
+                        ))
+                continue
+            else:
+                # 分歧 → 强队胜率63-70%, 可单选
+                if main_odds >= MIN_ODDS_SINGLE and main_odds <= MAX_ODDS_SINGLE:
+                    if ev >= MIN_EV_THRESHOLD:
+                        decisions.append(BetDecision(
+                            match_id=jc_num, home=home, away=away, league=league,
+                            selection=DIR_NAMES[signal.direction],
+                            selection_codes=[signal.direction],
+                            odds_map={signal.direction: main_odds},
+                            primary_odds=main_odds,
+                            signal_strength="medium",
+                            budget_pct=MEDIUM_BUDGET_PCT,
+                            reason=f"平手盘分歧单选(胜率63-70%): {signal.reason} | EV={ev:.3f}",
+                            confidence=est_prob,
+                            ev=ev,
+                        ))
+                continue
+
+        # ─── 其他: 单选 (非让球盘) ──────────────────────
+        # 只在赔率合理且EV为正时下单选
+        if main_odds < MIN_ODDS_SINGLE:
+            continue  # 赔率太低，长期必亏
+        if main_odds > MAX_ODDS_SINGLE:
+            continue  # 赔率太高，命中率太低
+
+        if ev >= MIN_EV_THRESHOLD:
             decisions.append(BetDecision(
                 match_id=jc_num, home=home, away=away, league=league,
-                selection=sel_name,
+                selection=DIR_NAMES[signal.direction],
                 selection_codes=[signal.direction],
-                odds_map={signal.direction: sel_odds},
-                primary_odds=sel_odds,
-                signal_strength="strong",
-                budget_pct=STRONG_BUDGET_PCT,
-                reason=f"强信号: {signal.reason}",
-                handicap=handicap_val,
-                handicap_odds=handicap_odds_val,
-            ))
-            strong_jc_nums.append(jc_num)
-            continue
-
-        # 中等信号: 高信心→单选, 否则双选
-        handicap_val = 0
-        handicap_odds_val = 0.0
-
-        if signal.confidence >= SINGLE_SELECT_CONF:
-            # 高信心中等信号 → 单选
-            sel_odds = main_odds
-            sel_name = DIR_NAMES[signal.direction]
-            # 让球盘: 赔率太低时尝试让球
-            if match.get("jc_rqsp") and main_odds < HANDICAP_ODDS_MIN and main_odds >= 1.20:
-                rqsp = match["jc_rqsp"]
-                rq_handicap = match.get("handicap", 0)
-                if rq_handicap and rq_handicap < 0:
-                    rq_dir_odds = rqsp.get("l", 0)
-                    if rq_dir_odds > main_odds * 1.1 and rq_dir_odds >= 1.50:
-                        handicap_val = int(rq_handicap)
-                        handicap_odds_val = rq_dir_odds
-                        sel_odds = rq_dir_odds
-                        sel_name = f"让{rq_handicap}{DIR_NAMES['l']}"
-                        signal.reason += f" | 让球{rq_handicap}赔率{rq_dir_odds:.2f}"
-            decisions.append(BetDecision(
-                match_id=jc_num, home=home, away=away, league=league,
-                selection=sel_name,
-                selection_codes=[signal.direction],
-                odds_map={signal.direction: sel_odds},
-                primary_odds=sel_odds,
+                odds_map={signal.direction: main_odds},
+                primary_odds=main_odds,
                 signal_strength="medium",
                 budget_pct=MEDIUM_BUDGET_PCT,
-                reason=f"中等信号(单选@{signal.confidence:.0%}): {signal.reason}",
-                handicap=handicap_val,
-                handicap_odds=handicap_odds_val,
+                reason=f"中等信号单选: {signal.reason} | EV={ev:.3f}",
+                confidence=est_prob,
+                ev=ev,
             ))
-            # 加入串关候选池(需高信心)
-            if signal.confidence >= PARLAY_CONF_MIN:
-                strong_jc_nums.append(jc_num)
-            continue
-
-        if signal.direction == "d":
-            second_dir = "w" if jc_sp["w"] < jc_sp["l"] else "l"
-        else:
-            second_dir = "d"
-
-        main_odds_val = dir_to_sp[signal.direction]
-        second_odds_val = dir_to_sp[second_dir]
-        effective_min = min(main_odds_val, second_odds_val)
-        if effective_min < 1.15:
-            continue
-
-        sel_name = f"{DIR_NAMES[signal.direction]}+{DIR_NAMES[second_dir]}"
-
-        decisions.append(BetDecision(
-            match_id=jc_num, home=home, away=away, league=league,
-            selection=sel_name,
-            selection_codes=[signal.direction, second_dir],
-            odds_map={signal.direction: main_odds_val, second_dir: second_odds_val},
-            primary_odds=main_odds_val,
-            signal_strength="medium",
-            budget_pct=MEDIUM_BUDGET_PCT,
-            reason=f"中等信号: {signal.reason}",
-        ))
 
     return decisions, strong_jc_nums
 
@@ -629,7 +830,16 @@ def build_bet_record(bet_id: str, date: str, bet_type: str, match_details: list,
 # ─── 串关 ───────────────────────────────────────────────────
 def build_parlay_bets(strong_jc_nums: list, decisions: list[BetDecision],
                       capital: float) -> list[dict]:
-    """从信号比赛中组合串关(只包含单选场次)"""
+    """
+    构建2串1串关投注 (仅2串1，不再做3串1+)
+    
+    策略:
+    - 只从强信号单选场次中选取
+    - 每腿赔率不超过 PARLAY_MAX_LEG_ODDS (2.20)
+    - 组合赔率不低于 PARLAY_MIN_COMBINED_ODDS (2.50)
+    - 每腿EV不低于 PARLAY_MIN_EV_PER_LEG (8%)
+    - 按EV从高到低排序选取最优两场
+    """
     if len(strong_jc_nums) < 2:
         return []
 
@@ -643,19 +853,29 @@ def build_parlay_bets(strong_jc_nums: list, decisions: list[BetDecision],
     if len(single_candidates) < 2:
         return []
 
-    # 按置信度排序(高→低), 选最佳场次
-    sorted_nums = sorted(
-        single_candidates.keys(),
-        key=lambda x: single_candidates[x].confidence if hasattr(single_candidates[x], 'confidence') else 0,
-        reverse=True,
-    )
-    parlay_nums = sorted_nums[:MAX_PARLAY_MATCHES]
-    if len(parlay_nums) < 2:
+    # EV过滤: 只保留每腿赔率合理且EV足够的场次
+    qualified = []
+    for mid, d in single_candidates.items():
+        if d.primary_odds > PARLAY_MAX_LEG_ODDS:
+            continue  # 单腿赔率太高，串关风险过大
+        if d.primary_odds < 1.40:
+            continue  # 单腿赔率太低，串关价值不够
+        if d.ev < PARLAY_MIN_EV_PER_LEG:
+            continue  # 单腿EV不足
+        qualified.append(d)
+
+    if len(qualified) < 2:
         return []
 
+    # 按EV从高到低排序，选取最优的两场组成2串1
+    qualified.sort(key=lambda d: d.ev, reverse=True)
+    parlay_nums = [d.match_id for d in qualified[:MAX_PARLAY_MATCHES]]
+
     match_details = []
+    combined_odds = 1.0
+    combined_ev_prob = 1.0  # 串关联合胜率
     for jcn in parlay_nums:
-        d = single_candidates[jcn]
+        d = qualified[[q.match_id for q in qualified].index(jcn)]
         match_details.append({
             "id": d.match_id,
             "home": d.home,
@@ -668,14 +888,22 @@ def build_parlay_bets(strong_jc_nums: list, decisions: list[BetDecision],
             "handicap": d.handicap,
             "handicap_odds": d.handicap_odds,
         })
+        combined_odds *= d.primary_odds
+        combined_ev_prob *= d.confidence
+
+    # 串关EV = 联合胜率 × 组合赔率 - 1
+    parlay_ev = calc_ev(combined_ev_prob, combined_odds)
+    if combined_odds < PARLAY_MIN_COMBINED_ODDS:
+        return []  # 组合赔率太低，不值得串关
+    if parlay_ev < MIN_EV_THRESHOLD:
+        return []  # 串关整体EV不足
 
     budget = round(capital * PARLAY_BUDGET_PCT, 2)
-    n = len(parlay_nums)
-    parlay_label = f"{n}串1"
+    parlay_label = f"{len(parlay_nums)}串1"
     bet = build_bet_record(
         bet_id=None, date=today_str(), bet_type="parlay",
         match_details=match_details, signal_strength="strong",
-        budget=budget, reason=f"串关({parlay_label}): 高信心单选组合",
+        budget=budget, reason=f"2串1(EV={parlay_ev:.3f}): 高信心单选组合",
     )
     bet["parlay_label"] = parlay_label
     return [bet]
@@ -1065,4 +1293,5 @@ async def main():
         )
 
 
-asyncio.run(main())
+if __name__ == "__main__":
+    asyncio.run(main())
