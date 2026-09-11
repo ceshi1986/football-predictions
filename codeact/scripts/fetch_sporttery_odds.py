@@ -9,18 +9,70 @@
 import json
 import os
 import sys
+import base64
 import requests
 from datetime import datetime, timedelta, timezone
 
 CST = timezone(timedelta(hours=8))
 FP_REPO = "/app/data/所有对话/主对话/fp-repo"
 OUTPUT_DIR = os.path.join(FP_REPO, "data", "sporttery_odds")
+GITHUB_REPO = "ceshi1986/football-predictions"
 
 API_URL = "https://webapi.sporttery.cn/gateway/jc/football/getMatchCalculatorV1.qry"
 HEADERS = {
     "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36",
     "Referer": "https://www.sporttery.cn/",
 }
+
+
+def get_github_token():
+    """获取 GitHub Token"""
+    for path in [os.path.expanduser("~/.github_token"),
+                 os.path.join(FP_REPO, ".github_token")]:
+        if os.path.exists(path):
+            with open(path) as f:
+                token = f.read().strip()
+            if token:
+                return token
+    return os.environ.get("GITHUB_TOKEN", "")
+
+
+def push_to_github(token, rel_path, content_str, message):
+    """通过 GitHub Contents API 推送文件"""
+    api_url = f"https://api.github.com/repos/{GITHUB_REPO}/contents/{rel_path}"
+    headers = {
+        "Authorization": f"token {token}",
+        "Accept": "application/vnd.github.v3+json",
+        "Content-Type": "application/json",
+    }
+    # 获取现有 SHA
+    sha = None
+    try:
+        req = requests.get(api_url, headers=headers, timeout=15)
+        if req.status_code == 200:
+            sha = req.json().get("sha")
+    except Exception:
+        pass
+
+    body = {
+        "message": message,
+        "content": base64.b64encode(content_str.encode("utf-8")).decode("ascii"),
+    }
+    if sha:
+        body["sha"] = sha
+
+    try:
+        resp = requests.put(api_url, headers=headers, json=body, timeout=30)
+        if resp.status_code in (200, 201):
+            commit_sha = resp.json().get("commit", {}).get("sha", "ok")
+            print(f"[GitHub] ✅ 推送成功: {rel_path} → {commit_sha[:8]}")
+            return True
+        else:
+            print(f"[GitHub] ❌ 推送失败 ({resp.status_code}): {resp.text[:200]}")
+            return False
+    except Exception as e:
+        print(f"[GitHub] ❌ 推送异常: {e}")
+        return False
 
 
 def odds_to_fen(val_str):
@@ -215,6 +267,17 @@ def fetch_and_generate():
     for d in sorted_dates:
         print(f"  {d}: {len(matches_by_date[d])} 场")
     print(f"  文件: {output_path} ({os.path.getsize(output_path)} bytes)")
+
+    # 推送到 GitHub
+    token = get_github_token()
+    if token:
+        with open(output_path, "r", encoding="utf-8") as f:
+            content_str = f.read()
+        push_to_github(token, "data/sporttery_odds/latest.json", content_str,
+                       f"📊 更新竞彩赔率数据 {now_cst.strftime('%Y-%m-%d %H:%M')}")
+    else:
+        print("[WARN] 未找到 GitHub Token，跳过推送")
+
     return True
 
 
