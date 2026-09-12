@@ -19,6 +19,7 @@ import subprocess
 from datetime import datetime, timedelta, timezone
 from typing import Optional
 
+import base64
 import requests
 
 from codeact_sdk import CodeActSDK
@@ -31,6 +32,7 @@ TOOL_SCHEMA_VERSIONS = {
 CST = timezone(timedelta(hours=8))
 SPORTTERY_API = "https://webapi.sporttery.cn/gateway/jc/football/getMatchCalculatorV1.qry"
 POOL_CODES = "had,hhad,crs,ttg,hafu"
+GITHUB_REPO = "ceshi1986/football-predictions"
 
 # 玩法代码→中文名映射
 PLAY_TYPE_MAP = {
@@ -283,6 +285,78 @@ def save_odds_to_repo(data: dict, repo_dir: str) -> list[str]:
     return saved_files
 
 
+def get_github_token(repo_dir: str) -> str:
+    """获取 GitHub Token"""
+    for path in [os.path.expanduser("~/.github_token"),
+                 os.path.join(repo_dir, ".github_token")]:
+        if os.path.exists(path):
+            with open(path) as f:
+                token = f.read().strip()
+            if token:
+                return token
+    return os.environ.get("GITHUB_TOKEN", "")
+
+
+def push_file_to_github(token: str, local_path: str, repo_rel_path: str, message: str) -> bool:
+    """通过 GitHub Contents API 推送单个文件"""
+    api_url = f"https://api.github.com/repos/{GITHUB_REPO}/contents/{repo_rel_path}"
+    headers = {
+        "Authorization": f"token {token}",
+        "Accept": "application/vnd.github.v3+json",
+        "Content-Type": "application/json",
+    }
+    # 获取现有 SHA
+    sha = None
+    try:
+        req = requests.get(api_url, headers=headers, timeout=15)
+        if req.status_code == 200:
+            sha = req.json().get("sha")
+    except Exception:
+        pass
+
+    with open(local_path, "r", encoding="utf-8") as f:
+        content = f.read()
+
+    body = {
+        "message": message,
+        "content": base64.b64encode(content.encode("utf-8")).decode("ascii"),
+    }
+    if sha:
+        body["sha"] = sha
+
+    try:
+        resp = requests.put(api_url, headers=headers, json=body, timeout=30)
+        if resp.status_code in (200, 201):
+            commit_sha = resp.json().get("commit", {}).get("sha", "ok")
+            print(f"[GitHub] ✅ 推送成功: {repo_rel_path} → {commit_sha[:8]}")
+            return True
+        else:
+            print(f"[GitHub] ❌ 推送失败 ({resp.status_code}): {resp.text[:200]}")
+            return False
+    except Exception as e:
+        print(f"[GitHub] ❌ 推送异常: {e}")
+        return False
+
+
+def push_to_github(repo_dir: str, saved_files: list) -> int:
+    """将所有保存的文件推送到 GitHub"""
+    token = get_github_token(repo_dir)
+    if not token:
+        print("[GitHub] ⚠️ 未找到 GitHub Token，跳过推送")
+        return 0
+
+    pushed = 0
+    commit_msg = f"更新竞彩赔率数据 {now_cst().strftime('%Y-%m-%d %H:%M')}"
+    for filepath in saved_files:
+        # 计算相对于仓库根目录的路径
+        rel_path = os.path.relpath(filepath, repo_dir)
+        if push_file_to_github(token, filepath, rel_path, commit_msg):
+            pushed += 1
+
+    print(f"[GitHub] 共推送 {pushed}/{len(saved_files)} 个文件")
+    return pushed
+
+
 async def main():
     result_mode = sys.argv[1] if len(sys.argv) > 1 else "display_only"
     repo_dir = sys.argv[2] if len(sys.argv) > 2 else "/Coze/Drive/私人助理小策/所有对话/主对话/fp-repo"
@@ -319,7 +393,11 @@ async def main():
         saved = save_odds_to_repo(data, repo_dir)
         print(f"[保存] 已保存 {len(saved)} 个文件到 {os.path.join(repo_dir, 'data', 'sporttery_odds')}/")
 
-        # 4. 提交结果
+        # 4. 推送到 GitHub
+        pushed = push_to_github(repo_dir, saved)
+        print(f"[推送] GitHub 推送完成: {pushed}/{len(saved)} 个文件")
+
+        # 5. 提交结果
         actual_mode = result_mode if result_mode != "auto" else "display_only"
         summary = (
             f"竞彩官方赔率抓取完成：共 {data['total_matches']} 场，覆盖 {len(data['dates'])} 个比赛日\n"
