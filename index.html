@@ -1280,7 +1280,7 @@ function updateHeaderStats() {
 
 // Fallback: old 36-scenario table (used only if V6.7 table fails to load)
 const V6_FALLBACK_TABLE = {
-  'A,A':['胜平',81.0],'A,B':['胜平',90.9],'A,C':['胜平',88.9],
+  'A,A':['胜平',81.0],'A,B':['胜平',90.9],'A,C':['胜负',88.9],
   'B,A':['胜平',69.0],'B,B':['胜平',81.8],'B,C':['胜平',73.9],
   'C,A':['胜负',80.0],'C,B':['胜平',83.3],'C,C':['胜负',85.7],
   'A,W':['胜平',66.7],'A,Y':['胜平',66.7],'A,Z':['胜负',100.0],
@@ -1289,8 +1289,8 @@ const V6_FALLBACK_TABLE = {
   'W,A':['胜平',89.5],'W,B':['胜平',83.3],'W,C':['胜负',72.7],
   'Y,A':['胜负',100.0],'Y,B':['胜平',100.0],'Y,C':['胜负',100.0],
   'Z,A':['胜负',75.0],'Z,B':['胜平',100.0],'Z,C':['胜负',100.0],
-  'W,W':['胜平',76.9],'W,Y':['胜负',100.0],'W,Z':['胜负',90.9],
-  'Y,W':['平负',100.0],'Y,Y':['平胜',0.0],'Y,Z':['胜负',100.0],
+  'W,W':['胜平',76.9],'W,Y':['胜平',100.0],'W,Z':['胜负',90.9],
+  'Y,W':['平负',100.0],'Y,Y':['平胜',0.0],'Y,Z':['平负',100.0],
   'Z,W':['胜负',100.0],'Z,Y':['平负',100.0],'Z,Z':['负胜',100.0],
 };
 
@@ -1814,12 +1814,87 @@ function classifyV6(match) {
       }
     }
   }
+  // ========== Kelly推荐层排除（V6.9.3，V6.9.5策略） ==========
+  var kellyExcluded = [];
+  var kellySwapNote = '';
+  if (prediction && prediction !== '—') {
+    var dirs3 = ['胜','平','负'];
+    var strongChar = isHomeStrong ? '胜' : '负';
+    var weakChar = isHomeStrong ? '负' : '胜';
+    // 方向 → Kelly key映射
+    var kellyKeyMap = {};
+    kellyKeyMap[strongChar] = isHomeStrong ? 'h' : 'a';
+    kellyKeyMap['平'] = 'd';
+    kellyKeyMap[weakChar] = isHomeStrong ? 'a' : 'h';
+
+    var excludedDirs = new Set();
+    var excludeReasons = {};
+
+    // 韦德 K>=1.0 排除（平局例外：不排除）
+    dirs3.forEach(function(dir) {
+      if (dir === '平') return; // 韦德平K>=1.0不排除
+      var kk = kellyKeyMap[dir];
+      var kv = kw[kk] || 0;
+      if (kv >= 1.0) { excludedDirs.add(dir); excludeReasons[dir] = '韦德K' + kv.toFixed(2) + '≥1.0'; }
+    });
+
+    // 365 K>1.03 排除（平局不豁免）
+    dirs3.forEach(function(dir) {
+      var kk = kellyKeyMap[dir];
+      var kv = k365[kk] || 0;
+      if (kv > 1.03 && !excludedDirs.has(dir)) { excludedDirs.add(dir); excludeReasons[dir] = '365K' + kv.toFixed(2) + '>1.03'; }
+    });
+
+    if (excludedDirs.size > 0) {
+      // 处理双选
+      var predChars = prediction.split('');
+      var excludedInPred = predChars.filter(function(c){ return excludedDirs.has(c); });
+
+      if (excludedInPred.length >= 2) {
+        // 两个方向都被排除 → 不推
+        prediction = '—';
+        singlePick = '—';
+        singleRate = 0;
+        kellyExcluded = dirs3.filter(function(d){ return excludedDirs.has(d); });
+        kellySwapNote = '全部排除';
+      } else if (excludedInPred.length === 1) {
+        var excludedChar = excludedInPred[0];
+        // 找第三方向
+        var thirdDir = dirs3.filter(function(d){ return predChars.indexOf(d) === -1; })[0];
+        var newPred = predChars.map(function(c){ return c === excludedChar ? thirdDir : c; });
+        kellySwapNote = excludedChar + '被排除→换' + thirdDir;
+        prediction = newPred.join('');
+        kellyExcluded = [excludedChar];
+
+        // 处理单选
+        if (singlePick && !singleTied) {
+          if (excludedDirs.has(singlePick)) {
+            singlePick = '—';
+            singleRate = 0;
+          }
+        } else if (singleTied) {
+          // 并列中包含被排除方向，移除后重算
+          var tiedParts = singlePick.replace('（并列）','').split('/');
+          var remaining = tiedParts.filter(function(d){ return !excludedDirs.has(d); });
+          if (remaining.length === 0) {
+            singlePick = '—'; singleRate = 0; singleTied = false;
+          } else if (remaining.length === 1) {
+            singlePick = remaining[0]; singleTied = false;
+          } else {
+            singlePick = remaining.join('/') + '（并列）';
+          }
+        }
+      }
+    }
+  }
+
   return {
     scenario: state365+stateW, subGroup: subGroupKey,
     state365:state365, stateW:stateW,
     prediction:prediction, hitRate:hitRate, confLevel:confLevel,
     singlePick:singlePick, singleRate:Math.round(singleRate), singleTied:singleTied,
-    isHomeStrong:isHomeStrong, sampleCount:sampleCount, wdl:wdl
+    isHomeStrong:isHomeStrong, sampleCount:sampleCount, wdl:wdl,
+    kellyExcluded:kellyExcluded, kellySwapNote:kellySwapNote
   };
 }
 
@@ -2104,8 +2179,16 @@ function renderMatchCard(match, result, idx) {
   var pickClass = getPickClass(prediction);
   var singleClass = (singlePick && !singleTied) ? getPickClass(singlePick) : '';
   var isLow = confLevel==='low';
+  var kellyExcluded = result.kellyExcluded || [];
+  var kellySwapNote = result.kellySwapNote || '';
   var warningHtml = '';
-  if (isLow) warningHtml = '<div class="warning-note">⚠️ 样本仅 '+sampleCount+' 场，预测可信度低，建议回避单选。</div>';
+  if (kellyExcluded.length > 0 && kellySwapNote !== '全部排除') {
+    warningHtml += '<div class="warning-note" style="color:#f59e0b">⚡ Kelly排除: '+kellySwapNote+'</div>';
+  }
+  if (kellySwapNote === '全部排除') {
+    warningHtml += '<div class="warning-note" style="color:#ef4444">🚫 Kelly排除: 推荐方向全部被排除，本场不推</div>';
+  }
+  if (isLow) warningHtml += '<div class="warning-note">⚠️ 样本仅 '+sampleCount+' 场，预测可信度低，建议回避单选。</div>';
   if (singleTied) warningHtml += '<div class="warning-note">⚖️ 单选方向并列（各'+singleRate+'%），无统计优势，建议走双选。</div>';
 
   // 蛙跳盘特殊渲染
