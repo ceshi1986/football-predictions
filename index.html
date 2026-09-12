@@ -1143,9 +1143,16 @@ async function loadLocksForDate(folderDk) {
   } catch(e) { return {}; }
 }
 
-function getRecentFolderDates(days) {
+function getRecentFolderDates(days, daysAhead) {
+  daysAhead = daysAhead || 0;
   var arr = [];
   var now = new Date();
+  // Future dates first (newest first)
+  for (var i = daysAhead; i >= 1; i--) {
+    var d = new Date(now.getTime() + i * 86400000);
+    arr.push(d.getFullYear() + String(d.getMonth()+1).padStart(2,'0') + String(d.getDate()).padStart(2,'0'));
+  }
+  // Then past dates (today first, going back)
   for (var i = 0; i < days; i++) {
     var d = new Date(now.getTime() - i * 86400000);
     arr.push(d.getFullYear() + String(d.getMonth()+1).padStart(2,'0') + String(d.getDate()).padStart(2,'0'));
@@ -1208,7 +1215,7 @@ function applyLockedPrediction(match, locks) {
 async function loadMatchResults(dateKey) {
   if (_matchResults) return _matchResults;
   _matchResults = {};
-  var folders = getRecentFolderDates(14);
+  var folders = getRecentFolderDates(14, 5);
   for (var i = 0; i < folders.length; i++) {
     try {
       var r = await fetch('data/500com_daily/'+folders[i]+'/match_results.json?t='+Date.now(), {cache:'no-cache'});
@@ -1967,7 +1974,7 @@ async function fetchKellyData() {
   var dk = now.getFullYear()+String(now.getMonth()+1).padStart(2,'0')+String(now.getDate()).padStart(2,'0');
   if (_kellyCache && _kellyCacheDate===dk && _kellyFetchedAt && (Date.now()-_kellyFetchedAt)<5*60*1000) return _kellyCache;
 
-  var folders = getRecentFolderDates(14);
+  var folders = getRecentFolderDates(14, 5);
   var map = new Map();
   for (var i = 0; i < folders.length; i++) {
     var folder = folders[i];
