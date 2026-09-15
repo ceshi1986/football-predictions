@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-09-13T21:08:52.712654+08:00",
+  "generated_at": "2026-09-15T21:13:38.526075+08:00",
   "total": 27,
   "bets": [
     {
@@ -23,27 +23,9 @@
     {
       "play_type": "had",
       "parlay_type": "single",
-      "status": "pending",
-      "win": null,
-      "pnl_fen": 0,
-      "bet_date": "2026-08-03",
-      "combos": 2,
-      "multiplier": 46,
-      "matches": [
-        {
-          "matchNumStr": "周一001",
-          "matchId": "周一001",
-          "home": "塞纳乔琪",
-          "away": "赫尔辛基"
-        }
-      ]
-    },
-    {
-      "play_type": "had",
-      "parlay_type": "single",
-      "status": "pending",
-      "win": null,
-      "pnl_fen": 0,
+      "status": "settled",
+      "win": true,
+      "pnl_fen": -5704,
       "bet_date": "2026-08-03",
       "combos": 2,
       "multiplier": 46,
@@ -59,9 +41,9 @@
     {
       "play_type": "had",
       "parlay_type": "single",
-      "status": "pending",
-      "win": null,
-      "pnl_fen": 0,
+      "status": "settled",
+      "win": false,
+      "pnl_fen": -27600,
       "bet_date": "2026-08-03",
       "combos": 1,
       "multiplier": 138,
@@ -71,6 +53,24 @@
           "matchId": "周一004",
           "home": "巴竞技",
           "away": "维多利亚"
+        }
+      ]
+    },
+    {
+      "play_type": "had",
+      "parlay_type": "single",
+      "status": "pending",
+      "win": null,
+      "pnl_fen": 0,
+      "bet_date": "2026-08-03",
+      "combos": 2,
+      "multiplier": 46,
+      "matches": [
+        {
+          "matchNumStr": "周一001",
+          "matchId": "周一001",
+          "home": "塞纳乔琪",
+          "away": "赫尔辛基"
         }
       ]
     },
