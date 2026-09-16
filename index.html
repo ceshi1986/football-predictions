@@ -1952,7 +1952,7 @@ function convertSportteryOdds(data, dateKey) {
       home: m.home || '',
       away: m.away || '',
       league: m.league || '',
-      time: (m.matchDate || '') + ' ' + (m.matchTime || ''),
+      time: m.kickoff || ((m.matchDate||'').replace(/(\d{4})(\d{2})(\d{2})/, '$1-$2-$3') + 'T' + (m.matchTime||'') + '+08:00'),
       is_jingcai: true,
       bet365_kelly: null,
       weide_kelly: null,
