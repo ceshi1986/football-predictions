@@ -737,7 +737,7 @@ footer{text-align:center;padding:32px 20px 16px;color:var(--text-muted);font-siz
 
 <header>
   <h1>V6.9.5 Kelly 竞彩预测报告</h1>
-  <p class="subtitle">基于 <span id="stat-sample">—</span> 场回测数据 · <span id="stat-subgroups">—</span> 个主客子组 · 双选命中率 <span id="stat-hitrate-header">—</span> · 单选命中率 <span id="stat-single-rate">—</span></p>
+  <p class="subtitle">基于 <span id="stat-sample">—</span> 场回测数据 · <span id="stat-subgroups">—</span> 个主客子组 · V6.9.5 策略表</p>
   <div class="meta">
     <span>日期 <span class="val" id="meta-date">--</span></span>
     <span>策略版本 <span class="val">V6.9.5</span></span>
@@ -758,7 +758,7 @@ footer{text-align:center;padding:32px 20px 16px;color:var(--text-muted);font-siz
 
 <div class="strategy-banner">
   <span class="badge">V6.9.5 策略</span>
-  <p>基于 <strong><span id="stat-sample2">—</span> 场回测</strong>优化 <span id="stat-subgroups2">—</span> 个主客子组，双选命中率 <strong><span id="stat-hitrate">—</span></strong>，单选命中率 <strong><span id="stat-single-rate2">—</span></strong>。本场次预测使用最新 V6.9.5 策略表，结合实时 Kelly 数据按主/客子组分类场景。</p>
+  <p>基于 <strong><span id="stat-sample2">—</span> 场回测</strong>优化 <span id="stat-subgroups2">—</span> 个主客子组，整体双选命中率 <strong><span id="stat-hitrate">—</span></strong>。本场次预测使用最新 V6.9.5 策略表，结合实时 Kelly 数据按主/客子组分类场景。</p>
 </div>
 
 <div class="legend">
@@ -1110,8 +1110,6 @@ async function loadV67Table() {
       var origKey = _V67_DECODE[k] || k;
       _v67Table[origKey] = subgroupsObj[k];
     });
-    // 保存原始JSON顶层数据用于头部统计
-    window._v67RawData = raw;
     // 动态更新头部统计数字（避免硬编码失真）
     updateHeaderStats();
     return _v67Table;
@@ -1250,54 +1248,39 @@ function getMatchResult(match) {
 
 function updateHeaderStats() {
   if (!_v67Table) return;
-  // Use top-level stats from JSON if available (from raw JSON loaded alongside)
-  var totalCount = 0, totalHit = 0, singleHitRate = 0, subCount = 0;
-  // Try reading raw JSON top-level fields
-  if (window._v67RawData) {
-    totalCount = window._v67RawData.total_matches || 0;
-    totalHit = window._v67RawData.total_hit || 0;
-    singleHitRate = window._v67RawData.single_hit_rate || 0;
-  }
-  if (totalCount === 0) {
-    // Fallback: compute from subgroups
-    Object.keys(_v67Table).forEach(function(k){
-      var v = _v67Table[k];
-      if (!v) return;
-      var count = v.total || v.count || 0;
-      subCount++;
-      if (count > 0) {
-        totalCount += count;
-        totalHit += v.hit || 0;
+  var totalCount = 0, totalHit = 0, subCount = 0;
+  Object.keys(_v67Table).forEach(function(k){
+    var v = _v67Table[k];
+    if (!v) return;
+    // v67_subgroup_stats_obf.json 字段: total, hit, rate, double_select, wdl
+    var count = v.total || v.count || 0;
+    var hitRate = (v.double_hit_rate != null ? v.double_hit_rate : (v.rate != null ? v.rate : v.hitRate)) || 0;
+    subCount++;
+    if (count > 0) {
+      totalCount += count;
+      if (typeof hitRate === 'number') {
+        totalHit += Math.round(count * hitRate / 100);
       }
-    });
-  }
-  subCount = Object.keys(_v67Table).length || subCount;
+    }
+  });
   if (totalCount > 0) {
-    var dRate = (totalHit / totalCount * 100).toFixed(1);
-    var sRate = singleHitRate > 0 ? singleHitRate.toFixed(1) + '%' : '—';
+    var rate = (totalHit / totalCount * 100).toFixed(1);
     var s1 = document.getElementById('stat-sample');
     var s2 = document.getElementById('stat-subgroups');
     var s3 = document.getElementById('stat-hitrate');
     if (s1) s1.textContent = totalCount;
     if (s2) s2.textContent = subCount;
-    if (s3) s3.textContent = dRate + '%';
+    if (s3) s3.textContent = rate + '%';
     var s1b = document.getElementById('stat-sample2');
     var s2b = document.getElementById('stat-subgroups2');
     if (s1b) s1b.textContent = totalCount;
     if (s2b) s2b.textContent = subCount;
-    // Single hit rate
-    var sh1 = document.getElementById('stat-hitrate-header');
-    if (sh1) sh1.textContent = dRate + '%';
-    var sr1 = document.getElementById('stat-single-rate');
-    var sr2 = document.getElementById('stat-single-rate2');
-    if (sr1) sr1.textContent = sRate;
-    if (sr2) sr2.textContent = sRate;
   }
 }
 
 // Fallback: old 36-scenario table (used only if V6.7 table fails to load)
 const V6_FALLBACK_TABLE = {
-  'A,A':['胜平',81.0],'A,B':['胜平',90.9],'A,C':['胜负',88.9],
+  'A,A':['胜平',81.0],'A,B':['胜平',90.9],'A,C':['胜平',88.9],
   'B,A':['胜平',69.0],'B,B':['胜平',81.8],'B,C':['胜平',73.9],
   'C,A':['胜负',80.0],'C,B':['胜平',83.3],'C,C':['胜负',85.7],
   'A,W':['胜平',66.7],'A,Y':['胜平',66.7],'A,Z':['胜负',100.0],
@@ -1306,8 +1289,8 @@ const V6_FALLBACK_TABLE = {
   'W,A':['胜平',89.5],'W,B':['胜平',83.3],'W,C':['胜负',72.7],
   'Y,A':['胜负',100.0],'Y,B':['胜平',100.0],'Y,C':['胜负',100.0],
   'Z,A':['胜负',75.0],'Z,B':['胜平',100.0],'Z,C':['胜负',100.0],
-  'W,W':['胜平',76.9],'W,Y':['胜平',100.0],'W,Z':['胜负',90.9],
-  'Y,W':['平负',100.0],'Y,Y':['平胜',0.0],'Y,Z':['平负',100.0],
+  'W,W':['胜平',76.9],'W,Y':['胜负',100.0],'W,Z':['胜负',90.9],
+  'Y,W':['平负',100.0],'Y,Y':['平胜',0.0],'Y,Z':['胜负',100.0],
   'Z,W':['胜负',100.0],'Z,Y':['平负',100.0],'Z,Z':['负胜',100.0],
 };
 
@@ -1801,13 +1784,9 @@ function classifyV6(match) {
   if (sampleCount >= 10) confLevel = 'high';
   else if (sampleCount >= 5) confLevel = 'mid';
 
-  // 单选：优先从JSON预计算数据取，否则从WDL分布计算
+  // 单选：从子组实际胜平负分布取出现次数最多的结果
   var singlePick = null, singleRate = 0, singleTied = false;
-  if (_v67Table && _v67Table[subGroupKey] && _v67Table[subGroupKey].single_pick) {
-    singlePick = _v67Table[subGroupKey].single_pick;
-    singleRate = _v67Table[subGroupKey].single_rate || 0;
-    singleTied = singlePick.indexOf('（并列）') !== -1;
-  } else if (wdl && sampleCount > 0) {
+  if (wdl && sampleCount > 0) {
     var parts = wdl.split('/');
     var wCount = parseInt(parts[0])||0, dCount = parseInt(parts[1])||0, lCount = parseInt(parts[2])||0;
     var results = [
@@ -1815,11 +1794,14 @@ function classifyV6(match) {
       {key:'平', count:dCount},
       {key:'负', count:lCount}
     ];
+    // 按次数排序，次数最多的为单选（不降级，直接取全局最高频）
     results.sort(function(a,b){return b.count-a.count});
     var best = results[0];
     if (best.count > 0) {
+      // 检测并列：是否有其他结果与最佳次数相同
       var tied = results.filter(function(r){return r.count===best.count && r.key!==best.key;});
       if (tied.length > 0) {
+        // 并列，按胜平负顺序组合展示，标明无单选优势
         var tiedKeys = [best.key].concat(tied.map(function(r){return r.key;}));
         var order = {'胜':0,'平':1,'负':2};
         tiedKeys.sort(function(a,b){return order[a]-order[b];});
@@ -1832,87 +1814,12 @@ function classifyV6(match) {
       }
     }
   }
-  // ========== Kelly推荐层排除（V6.9.3，V6.9.5策略） ==========
-  var kellyExcluded = [];
-  var kellySwapNote = '';
-  if (prediction && prediction !== '—') {
-    var dirs3 = ['胜','平','负'];
-    var strongChar = isHomeStrong ? '胜' : '负';
-    var weakChar = isHomeStrong ? '负' : '胜';
-    // 方向 → Kelly key映射
-    var kellyKeyMap = {};
-    kellyKeyMap[strongChar] = isHomeStrong ? 'h' : 'a';
-    kellyKeyMap['平'] = 'd';
-    kellyKeyMap[weakChar] = isHomeStrong ? 'a' : 'h';
-
-    var excludedDirs = new Set();
-    var excludeReasons = {};
-
-    // 韦德 K>=1.0 排除（平局例外：不排除）
-    dirs3.forEach(function(dir) {
-      if (dir === '平') return; // 韦德平K>=1.0不排除
-      var kk = kellyKeyMap[dir];
-      var kv = kw[kk] || 0;
-      if (kv >= 1.0) { excludedDirs.add(dir); excludeReasons[dir] = '韦德K' + kv.toFixed(2) + '≥1.0'; }
-    });
-
-    // 365 K>1.03 排除（平局不豁免）
-    dirs3.forEach(function(dir) {
-      var kk = kellyKeyMap[dir];
-      var kv = k365[kk] || 0;
-      if (kv > 1.03 && !excludedDirs.has(dir)) { excludedDirs.add(dir); excludeReasons[dir] = '365K' + kv.toFixed(2) + '>1.03'; }
-    });
-
-    if (excludedDirs.size > 0) {
-      // 处理双选
-      var predChars = prediction.split('');
-      var excludedInPred = predChars.filter(function(c){ return excludedDirs.has(c); });
-
-      if (excludedInPred.length >= 2) {
-        // 两个方向都被排除 → 不推
-        prediction = '—';
-        singlePick = '—';
-        singleRate = 0;
-        kellyExcluded = dirs3.filter(function(d){ return excludedDirs.has(d); });
-        kellySwapNote = '全部排除';
-      } else if (excludedInPred.length === 1) {
-        var excludedChar = excludedInPred[0];
-        // 找第三方向
-        var thirdDir = dirs3.filter(function(d){ return predChars.indexOf(d) === -1; })[0];
-        var newPred = predChars.map(function(c){ return c === excludedChar ? thirdDir : c; });
-        kellySwapNote = excludedChar + '被排除→换' + thirdDir;
-        prediction = newPred.join('');
-        kellyExcluded = [excludedChar];
-
-        // 处理单选
-        if (singlePick && !singleTied) {
-          if (excludedDirs.has(singlePick)) {
-            singlePick = '—';
-            singleRate = 0;
-          }
-        } else if (singleTied) {
-          // 并列中包含被排除方向，移除后重算
-          var tiedParts = singlePick.replace('（并列）','').split('/');
-          var remaining = tiedParts.filter(function(d){ return !excludedDirs.has(d); });
-          if (remaining.length === 0) {
-            singlePick = '—'; singleRate = 0; singleTied = false;
-          } else if (remaining.length === 1) {
-            singlePick = remaining[0]; singleTied = false;
-          } else {
-            singlePick = remaining.join('/') + '（并列）';
-          }
-        }
-      }
-    }
-  }
-
   return {
     scenario: state365+stateW, subGroup: subGroupKey,
     state365:state365, stateW:stateW,
     prediction:prediction, hitRate:hitRate, confLevel:confLevel,
     singlePick:singlePick, singleRate:Math.round(singleRate), singleTied:singleTied,
-    isHomeStrong:isHomeStrong, sampleCount:sampleCount, wdl:wdl,
-    kellyExcluded:kellyExcluded, kellySwapNote:kellySwapNote
+    isHomeStrong:isHomeStrong, sampleCount:sampleCount, wdl:wdl
   };
 }
 
@@ -1953,6 +1860,7 @@ async function loadBacktestStats() {
 }
 let _isRealtime = false;
 let _dataTimestamp = null;
+let _latestSporttery = null;
 const STALE_THRESHOLD = 30 * 60 * 1000;
 
 function convertZgzcwKelly(data) {
@@ -2000,6 +1908,53 @@ function convertZgzcwKelly(data) {
     });
   }
   return result;
+}
+
+function convertSportteryOdds(data, dateKey) {
+  // 竞彩赔率数据回退：当Kelly数据不可用时，从sporttery_odds加载赛程
+  if (!data || !data.matches_by_date) return null;
+  var result = [];
+  var dateKeys = Object.keys(data.matches_by_date);
+  for (var di=0; di<dateKeys.length; di++) {
+    var dk = dateKeys[di];
+    var matches = data.matches_by_date[dk] || [];
+    for (var i=0; i<matches.length; i++) {
+      var m = matches[i];
+      var odds = m.odds || {};
+      var had = odds.had || {};
+      var hhad = odds.hhad || {};
+      var crs = odds.crs || {};
+      var ttg = odds.ttg || {};
+      var hafu = odds.hafu || {};
+      // 赔率从"分"转回小数
+      function fenToDec(v) { return v ? (v / 100).toFixed(2) : null; }
+      var odds_365 = {};
+      if (had.h) odds_365.w = parseFloat(fenToDec(had.h));
+      if (had.d) odds_365.d = parseFloat(fenToDec(had.d));
+      if (had.a) odds_365.l = parseFloat(fenToDec(had.a));
+      result.push({
+        id: m.matchNumStr || ('jd_'+m.matchNum),
+        fixture_id: m.matchId || null,
+        jingcai_id: m.matchNumStr || '',
+        beidan_id: '',
+        home: m.home || '',
+        away: m.away || '',
+        league: m.league || '',
+        time: (m.matchDate || '') + ' ' + (m.matchTime || ''),
+        is_jingcai: true,
+        bet365_kelly: null,
+        weide_kelly: null,
+        bet365_payout: 0.93,
+        weide_payout: 0.93,
+        odds_365: odds_365,
+        macau_ah: null,
+        _from_sporttery: true,
+        _sp_odds: { had: had, hhad: hhad, crs: crs, ttg: ttg, hafu: hafu },
+        _sp_poolInfo: m.poolInfo || {},
+      });
+    }
+  }
+  return result.length > 0 ? result : null;
 }
 
 function getKellyFingerprint(data) {
@@ -2059,6 +2014,36 @@ async function fetchWithRealtimeCheck(dateKey) {
     console.log('Kelly loaded: '+_kellyCache.length+' matches, realtime='+isRealtime+', date='+dateKey);
     return _kellyCache;
   }
+  // Fallback: try sporttery odds data for schedule display
+  var sportteryDateKey = dateKey.replace(/-/g,'');
+  var spData = await fetchOnce('data/sporttery_odds/'+sportteryDateKey+'.json');
+  if (spData) {
+    var spMatches = convertSportteryOdds(spData, dateKey);
+    if (spMatches && spMatches.length > 0) {
+      _kellyCache = spMatches;
+      _kellyCacheDate = dateKey;
+      _kellyFetchedAt = Date.now();
+      _isRealtime = false;
+      _dataTimestamp = null;
+      console.log('Sporttery odds fallback: '+spMatches.length+' matches, date='+dateKey);
+      return spMatches;
+    }
+  }
+  // Try latest.json for dates not in per-date files
+  if (!spData && _latestSporttery) {
+    if (_latestSporttery.matches_by_date && _latestSporttery.matches_by_date[sportteryDateKey]) {
+      var latestMatches = convertSportteryOdds({matches_by_date: {[sportteryDateKey]: _latestSporttery.matches_by_date[sportteryDateKey]}}, dateKey);
+      if (latestMatches && latestMatches.length > 0) {
+        _kellyCache = latestMatches;
+        _kellyCacheDate = dateKey;
+        _kellyFetchedAt = Date.now();
+        _isRealtime = false;
+        _dataTimestamp = null;
+        console.log('Sporttery latest.json fallback: '+latestMatches.length+' matches, date='+dateKey);
+        return latestMatches;
+      }
+    }
+  }
   return null;
 }
 
@@ -2066,6 +2051,11 @@ async function fetchKellyData() {
   var now = new Date();
   var dk = now.getFullYear()+String(now.getMonth()+1).padStart(2,'0')+String(now.getDate()).padStart(2,'0');
   if (_kellyCache && _kellyCacheDate===dk && _kellyFetchedAt && (Date.now()-_kellyFetchedAt)<5*60*1000) return _kellyCache;
+
+  // Load latest sporttery odds once for fallback
+  if (!_latestSporttery) {
+    _latestSporttery = await fetchOnce('data/sporttery_odds/latest.json') || null;
+  }
 
   var folders = getRecentFolderDates(14, 5);
   var map = new Map();
@@ -2077,6 +2067,21 @@ async function fetchKellyData() {
     } else {
       var raw = await fetchOnce('data/500com_daily/'+folder+'/zgzcw_kelly_data.json');
       list = normalizeKellyRaw(raw);
+      if (!list || list.length === 0) {
+        // Fallback to sporttery odds for schedule display
+        var spFolder = folder.replace(/-/g,'');
+        var spRaw = await fetchOnce('data/sporttery_odds/'+spFolder+'.json');
+        if (spRaw) {
+          var spList = convertSportteryOdds(spRaw, folder);
+          if (spList && spList.length > 0) list = spList;
+        }
+        if ((!list || list.length === 0) && _latestSporttery) {
+          if (_latestSporttery.matches_by_date && _latestSporttery.matches_by_date[spFolder]) {
+            var spList2 = convertSportteryOdds({matches_by_date: {[spFolder]: _latestSporttery.matches_by_date[spFolder]}}, folder);
+            if (spList2 && spList2.length > 0) list = spList2;
+          }
+        }
+      }
     }
     var locks = await loadLocksForDate(folder);
     for (var j = 0; j < list.length; j++) {
@@ -2197,16 +2202,8 @@ function renderMatchCard(match, result, idx) {
   var pickClass = getPickClass(prediction);
   var singleClass = (singlePick && !singleTied) ? getPickClass(singlePick) : '';
   var isLow = confLevel==='low';
-  var kellyExcluded = result.kellyExcluded || [];
-  var kellySwapNote = result.kellySwapNote || '';
   var warningHtml = '';
-  if (kellyExcluded.length > 0 && kellySwapNote !== '全部排除') {
-    warningHtml += '<div class="warning-note" style="color:#f59e0b">⚡ Kelly排除: '+kellySwapNote+'</div>';
-  }
-  if (kellySwapNote === '全部排除') {
-    warningHtml += '<div class="warning-note" style="color:#ef4444">🚫 Kelly排除: 推荐方向全部被排除，本场不推</div>';
-  }
-  if (isLow) warningHtml += '<div class="warning-note">⚠️ 样本仅 '+sampleCount+' 场，预测可信度低，建议回避单选。</div>';
+  if (isLow) warningHtml = '<div class="warning-note">⚠️ 样本仅 '+sampleCount+' 场，预测可信度低，建议回避单选。</div>';
   if (singleTied) warningHtml += '<div class="warning-note">⚖️ 单选方向并列（各'+singleRate+'%），无统计优势，建议走双选。</div>';
 
   // 蛙跳盘特殊渲染
