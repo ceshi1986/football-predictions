@@ -1912,47 +1912,58 @@ function convertZgzcwKelly(data) {
 
 function convertSportteryOdds(data, dateKey) {
   // 竞彩赔率数据回退：当Kelly数据不可用时，从sporttery_odds加载赛程
-  if (!data || !data.matches_by_date) return null;
-  var result = [];
-  var dateKeys = Object.keys(data.matches_by_date);
-  for (var di=0; di<dateKeys.length; di++) {
-    var dk = dateKeys[di];
-    var matches = data.matches_by_date[dk] || [];
-    for (var i=0; i<matches.length; i++) {
-      var m = matches[i];
-      var odds = m.odds || {};
-      var had = odds.had || {};
-      var hhad = odds.hhad || {};
-      var crs = odds.crs || {};
-      var ttg = odds.ttg || {};
-      var hafu = odds.hafu || {};
-      // 赔率从"分"转回小数
-      function fenToDec(v) { return v ? (v / 100).toFixed(2) : null; }
-      var odds_365 = {};
-      if (had.h) odds_365.w = parseFloat(fenToDec(had.h));
-      if (had.d) odds_365.d = parseFloat(fenToDec(had.d));
-      if (had.a) odds_365.l = parseFloat(fenToDec(had.a));
-      result.push({
-        id: m.matchNumStr || ('jd_'+m.matchNum),
-        fixture_id: m.matchId || null,
-        jingcai_id: m.matchNumStr || '',
-        beidan_id: '',
-        home: m.home || '',
-        away: m.away || '',
-        league: m.league || '',
-        time: (m.matchDate || '') + ' ' + (m.matchTime || ''),
-        is_jingcai: true,
-        bet365_kelly: null,
-        weide_kelly: null,
-        bet365_payout: 0.93,
-        weide_payout: 0.93,
-        odds_365: odds_365,
-        macau_ah: null,
-        _from_sporttery: true,
-        _sp_odds: { had: had, hhad: hhad, crs: crs, ttg: ttg, hafu: hafu },
-        _sp_poolInfo: m.poolInfo || {},
-      });
+  if (!data) return null;
+  var allMatches = [];
+  // 支持两种格式：每日文件 {matches:[...]} 和 latest.json {matches_by_date:{...}}
+  if (Array.isArray(data.matches)) {
+    allMatches = data.matches;
+  } else if (data.matches_by_date) {
+    if (dateKey) {
+      var dk = dateKey.replace(/-/g, '');
+      allMatches = data.matches_by_date[dk] || [];
+    } else {
+      var keys = Object.keys(data.matches_by_date);
+      for (var ki=0; ki<keys.length; ki++) {
+        allMatches = allMatches.concat(data.matches_by_date[keys[ki]] || []);
+      }
     }
+  }
+  if (!allMatches || allMatches.length === 0) return null;
+  var result = [];
+  for (var i=0; i<allMatches.length; i++) {
+    var m = allMatches[i];
+    var odds = m.odds || {};
+    var had = odds.had || {};
+    var hhad = odds.hhad || {};
+    var crs = odds.crs || {};
+    var ttg = odds.ttg || {};
+    var hafu = odds.hafu || {};
+    // 赔率从"分"转回小数
+    function fenToDec(v) { return v ? (v / 100).toFixed(2) : null; }
+    var odds_365 = {};
+    if (had.h) odds_365.w = parseFloat(fenToDec(had.h));
+    if (had.d) odds_365.d = parseFloat(fenToDec(had.d));
+    if (had.a) odds_365.l = parseFloat(fenToDec(had.a));
+    result.push({
+      id: m.matchNumStr || ('jd_'+m.matchNum),
+      fixture_id: m.matchId || null,
+      jingcai_id: m.matchNumStr || '',
+      beidan_id: '',
+      home: m.home || '',
+      away: m.away || '',
+      league: m.league || '',
+      time: (m.matchDate || '') + ' ' + (m.matchTime || ''),
+      is_jingcai: true,
+      bet365_kelly: null,
+      weide_kelly: null,
+      bet365_payout: 0.93,
+      weide_payout: 0.93,
+      odds_365: odds_365,
+      macau_ah: null,
+      _from_sporttery: true,
+      _sp_odds: { had: had, hhad: hhad, crs: crs, ttg: ttg, hafu: hafu },
+      _sp_poolInfo: m.poolInfo || {},
+    });
   }
   return result.length > 0 ? result : null;
 }
