@@ -2058,6 +2058,25 @@ async function fetchWithRealtimeCheck(dateKey) {
   return null;
 }
 
+async function fetchDayMatches(folder) {
+  // 统一的单日加载：Kelly(500万/zgzcw) → 竞彩官方赔率回退
+  var list = await fetchWithRealtimeCheck(folder) || [];
+  if (list.length > 0) return list;
+  var raw = await fetchOnce('data/500com_daily/'+folder+'/zgzcw_kelly_data.json');
+  list = normalizeKellyRaw(raw) || [];
+  if (list.length > 0) return list;
+  // Kelly 不可用时，用竞彩官方赔率补赛程
+  var spFolder = folder.replace(/-/g,'');
+  var spRaw = await fetchOnce('data/sporttery_odds/'+spFolder+'.json');
+  var spList = spRaw ? convertSportteryOdds(spRaw, folder) : null;
+  if (spList && spList.length > 0) return spList;
+  if (_latestSporttery && _latestSporttery.matches_by_date && _latestSporttery.matches_by_date[spFolder]) {
+    spList = convertSportteryOdds({matches_by_date: {[spFolder]: _latestSporttery.matches_by_date[spFolder]}}, folder);
+    if (spList && spList.length > 0) return spList;
+  }
+  return [];
+}
+
 async function fetchKellyData() {
   var now = new Date();
   var dk = now.getFullYear()+String(now.getMonth()+1).padStart(2,'0')+String(now.getDate()).padStart(2,'0');
@@ -2072,28 +2091,7 @@ async function fetchKellyData() {
   var map = new Map();
   for (var i = 0; i < folders.length; i++) {
     var folder = folders[i];
-    var list;
-    if (i === 0) {
-      list = await fetchWithRealtimeCheck(folder) || [];
-    } else {
-      var raw = await fetchOnce('data/500com_daily/'+folder+'/zgzcw_kelly_data.json');
-      list = normalizeKellyRaw(raw);
-      if (!list || list.length === 0) {
-        // Fallback to sporttery odds for schedule display
-        var spFolder = folder.replace(/-/g,'');
-        var spRaw = await fetchOnce('data/sporttery_odds/'+spFolder+'.json');
-        if (spRaw) {
-          var spList = convertSportteryOdds(spRaw, folder);
-          if (spList && spList.length > 0) list = spList;
-        }
-        if ((!list || list.length === 0) && _latestSporttery) {
-          if (_latestSporttery.matches_by_date && _latestSporttery.matches_by_date[spFolder]) {
-            var spList2 = convertSportteryOdds({matches_by_date: {[spFolder]: _latestSporttery.matches_by_date[spFolder]}}, folder);
-            if (spList2 && spList2.length > 0) list = spList2;
-          }
-        }
-      }
-    }
+    var list = await fetchDayMatches(folder);
     var locks = await loadLocksForDate(folder);
     for (var j = 0; j < list.length; j++) {
       var m = list[j];
