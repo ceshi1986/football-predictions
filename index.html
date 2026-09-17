@@ -1910,6 +1910,21 @@ function convertZgzcwKelly(data) {
   return result;
 }
 
+// 竞彩sporttery的时间转成前端可解析的 YYYY-MM-DD HH:MM 格式
+function spTimeStr(kickoff, matchDate, matchTime) {
+  if (kickoff) {
+    var mm = String(kickoff).match(/^(\d{4})[-/](\d{1,2})[-/](\d{1,2})[T ](\d{1,2}):(\d{2})/);
+    if (mm) return mm[1]+'-'+String(mm[2]).padStart(2,'0')+'-'+String(mm[3]).padStart(2,'0')+' '+mm[4]+':'+mm[5];
+  }
+  if (matchDate) {
+    var dd = String(matchDate).replace(/(\d{4})(\d{2})(\d{2})/, '$1-$2-$3');
+    if (dd.indexOf('-') < 0) dd = String(matchDate).match(/^(\d{4})[-/](\d{1,2})[-/](\d{1,2})/) ? String(matchDate).replace(/^(\d{4})[-/](\d{1,2})[-/](\d{1,2})/, '$1-$2-$3') : dd;
+    var hh = String(matchTime||'').match(/(\d{1,2}):(\d{2})/);
+    return dd+' '+(hh?hh[1]+':'+hh[2]:'');
+  }
+  return kickoff || '';
+}
+
 function convertSportteryOdds(data, dateKey) {
   // 竞彩赔率数据回退：当Kelly数据不可用时，从sporttery_odds加载赛程
   if (!data) return null;
@@ -1952,7 +1967,7 @@ function convertSportteryOdds(data, dateKey) {
       home: m.home || '',
       away: m.away || '',
       league: m.league || '',
-      time: m.kickoff || ((m.matchDate||'').replace(/(\d{4})(\d{2})(\d{2})/, '$1-$2-$3') + 'T' + (m.matchTime||'') + '+08:00'),
+      time: spTimeStr(m.kickoff, m.matchDate, m.matchTime),
       is_jingcai: true,
       bet365_kelly: null,
       weide_kelly: null,
