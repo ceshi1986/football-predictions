@@ -868,10 +868,20 @@
         if(b.matches){
           for(var j = 0; j < b.matches.length; j++){
             var m = b.matches[j];
-            var selStr = (m.selections || []).join(',');
+            var selStr = (m.selections || []).join('、') || (m.selections || []).join(',');
+            // 赛果: 已结算显示实际比分+命中
+            var resultHtml = '';
+            if(b.status === 'settled' && m.score){
+              var actualCN = ({w:'胜',d:'平',l:'负'})[m.actual] || m.actual || '';
+              var hit = m._hit === true;
+              resultHtml = '<span class="abm-result ' + (hit ? 'win' : 'lose') + '">' +
+                m.score + ' ' + actualCN + (hit ? '✅' : '❌') +
+              '</span>';
+            }
             matchesHtml += '<div class="auto-bet-match">' +
               '<span class="abm-teams">' + (m.matchNumStr || m.match_id) + ' ' + (m.home || '') + ' vs ' + (m.away || '') + '</span>' +
               '<span class="abm-sel">' + selStr + '</span>' +
+              resultHtml +
             '</div>';
           }
         }
