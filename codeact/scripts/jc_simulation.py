@@ -831,51 +831,78 @@ def build_bet_record(bet_id: str, date: str, bet_type: str, match_details: list,
 def build_parlay_bets(strong_jc_nums: list, decisions: list[BetDecision],
                       capital: float) -> list[dict]:
     """
-    构建2串1串关投注 (仅2串1，不再做3串1+)
+    构建2串1串关投注 (仅2串1，不做3串1+) —— V2 组合增强版
     
-    策略:
-    - 只从强信号单选场次中选取
-    - 每腿赔率不超过 PARLAY_MAX_LEG_ODDS (2.20)
-    - 组合赔率不低于 PARLAY_MIN_COMBINED_ODDS (2.50)
-    - 每腿EV不低于 PARLAY_MIN_EV_PER_LEG (8%)
-    - 按EV从高到低排序选取最优两场
+    核心变更(2026-09-17 用户重建要求):
+    老版只允许"单选×单选"进串关(len(selection_codes)==1)，把"单选+双选"
+    "双选+双选"全砍了，导致串关几乎打不出来。V2 改为: 单选场与双选场都可
+    进入2串1，支持 单选×单选 / 单选×双选 / 双选×双选 三种组合。
+    竞彩规则本就是"串关各场可复式"，组合数=各场选择数相乘，结算阶段枚举
+    笛卡尔积、逐组合判命中，双选只会增加覆盖、不改变每注赔率。【复式进串关
+    竞彩是允许的，且是放大覆盖的正规玩法】
+
+    选取逻辑:
+    - 从强信号场次里先取"单选场"作为串关首推(赔率干净、组合数少)
+    - 若强信号缺席, 则用中信号中EV最高的低赔场顶位
+    - 组合 EV = 联合胜率 × 组合赔率 - 1, 筛选阈值沿用旧逻辑
+    - 按组合EV从高到低排序, 取出最优的一注2串1
     """
     if len(strong_jc_nums) < 2:
         return []
 
-    # 所有候选比赛的映射
     candidate_map = {d.match_id: d for d in decisions if d.match_id in strong_jc_nums}
-    # 只保留单选的场次(双选不适合串关,组合数爆炸)
+
+    # ── 划分候选: 单选场 / 双选场, 都进串关池 ──
     single_candidates = {
         mid: d for mid, d in candidate_map.items()
         if len(d.selection_codes) == 1
     }
-    if len(single_candidates) < 2:
-        return []
+    double_candidates = {
+        mid: d for mid, d in candidate_map.items()
+        if len(d.selection_codes) >= 2
+    }
 
-    # EV过滤: 只保留每腿赔率合理且EV足够的场次
-    qualified = []
-    for mid, d in single_candidates.items():
+    # 合并及格池: 每场先过单腿赔率/EV门槛
+    def _ok(d):
         if d.primary_odds > PARLAY_MAX_LEG_ODDS:
-            continue  # 单腿赔率太高，串关风险过大
+            return False
         if d.primary_odds < 1.40:
-            continue  # 单腿赔率太低，串关价值不够
+            return False
         if d.ev < PARLAY_MIN_EV_PER_LEG:
-            continue  # 单腿EV不足
-        qualified.append(d)
+            return False
+        return True
 
-    if len(qualified) < 2:
+    qual_single = [d for d in single_candidates.values() if _ok(d)]
+    qual_double = [d for d in double_candidates.values() if _ok(d)]
+    if len(qual_single) + len(qual_double) < 2:
         return []
 
-    # 按EV从高到低排序，选取最优的两场组成2串1
-    qualified.sort(key=lambda d: d.ev, reverse=True)
-    parlay_nums = [d.match_id for d in qualified[:MAX_PARLAY_MATCHES]]
+    # ── 组合选取: 优先单选×单选(最干净), 其次单选×双选, 再双选×双选 ──
+    from itertools import combinations as comb
+    best = None
+    candidates_list = qual_single + qual_double
+    for a, b in comb(range(len(candidates_list)), 2):
+        da, db = candidates_list[a], candidates_list[b]
+        combo_odds = da.primary_odds * db.primary_odds
+        if combo_odds < PARLAY_MIN_COMBINED_ODDS:
+            continue  # 组合赔率太低, 串关不划算
+        cpa, cpb = da.confidence, db.confidence
+        combo_ev = calc_ev(cpa * cpb, combo_odds)
+        if combo_ev < MIN_EV_THRESHOLD:
+            continue
+        # 类型加权: 单选越多越干净(命中隔离), 作为同EV下的择优偏好
+        type_score = (1 if len(da.selection_codes) == 1 else 0) + \
+                     (1 if len(db.selection_codes) == 1 else 0)
+        item = (combo_ev, type_score, da, db)
+        if best is None or item[:2] > best[:2]:
+            best = (combo_ev, type_score, da, db)
+
+    if best is None:
+        return []
+    parlay_ev, _, da, db = best
 
     match_details = []
-    combined_odds = 1.0
-    combined_ev_prob = 1.0  # 串关联合胜率
-    for jcn in parlay_nums:
-        d = qualified[[q.match_id for q in qualified].index(jcn)]
+    for d in (da, db):
         match_details.append({
             "id": d.match_id,
             "home": d.home,
@@ -888,22 +915,19 @@ def build_parlay_bets(strong_jc_nums: list, decisions: list[BetDecision],
             "handicap": d.handicap,
             "handicap_odds": d.handicap_odds,
         })
-        combined_odds *= d.primary_odds
-        combined_ev_prob *= d.confidence
 
-    # 串关EV = 联合胜率 × 组合赔率 - 1
-    parlay_ev = calc_ev(combined_ev_prob, combined_odds)
-    if combined_odds < PARLAY_MIN_COMBINED_ODDS:
-        return []  # 组合赔率太低，不值得串关
-    if parlay_ev < MIN_EV_THRESHOLD:
-        return []  # 串关整体EV不足
-
+    combo_odds = da.primary_odds * db.primary_odds
     budget = round(capital * PARLAY_BUDGET_PCT, 2)
-    parlay_label = f"{len(parlay_nums)}串1"
+    combo_desc = "×".join(
+        "单选" if len(d.selection_codes) == 1 else f"双选({len(d.selection_codes)})"
+        for d in (da, db)
+    )
+    parlay_label = "2串1"
     bet = build_bet_record(
         bet_id=None, date=today_str(), bet_type="parlay",
         match_details=match_details, signal_strength="strong",
-        budget=budget, reason=f"2串1(EV={parlay_ev:.3f}): 高信心单选组合",
+        budget=budget,
+        reason=f"2串1(EV={parlay_ev:.3f}): {combo_desc}组合",
     )
     bet["parlay_label"] = parlay_label
     return [bet]
