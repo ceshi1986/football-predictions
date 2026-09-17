@@ -1044,6 +1044,10 @@ def settle_bet(bet: dict, score_map: dict) -> Optional[dict]:
         sel_desc = matches[i].get("selection", "")
         hit = mr["actual"] in matches[i].get("selection_codes", [])
         mark = "✅" if hit else "❌"
+        # 逐场赛果写回 match，供前端展示比分与命中
+        matches[i]["_actual"] = mr["actual"]
+        matches[i]["_score"] = mr["score"]
+        matches[i]["_hit"] = hit
         result_parts.append(f"{mr['jc_num']} {mr['score']} {DIR_NAMES[mr['actual']]}{mark}")
 
     bet_copy["result"] = " ".join(result_parts)
