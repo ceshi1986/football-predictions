@@ -157,12 +157,17 @@ def bet_to_frontend_json(bet: dict) -> dict:
     # 比赛列表
     matches = []
     for m in bet.get("matches", []):
+        # 逐场实际赛果(仅已结算时有)
+        _actual = m.get("_actual", "")
+        _score = m.get("_score", "")
         matches.append({
             "matchNumStr": m.get("id", ""),
             "match_id": m.get("id", ""),
             "home": m.get("home", ""),
             "away": m.get("away", ""),
             "selections": _build_selections(m),
+            "actual": _actual,
+            "score": _score,
         })
 
     return {
