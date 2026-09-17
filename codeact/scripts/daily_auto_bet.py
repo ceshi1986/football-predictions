@@ -50,6 +50,7 @@ if SCRIPT_DIR not in sys.path:
 # Patch jc_simulation 模块路径
 import jc_simulation
 jc_simulation.KELLY_DATA_DIR = KELLY_DATA_DIR
+jc_simulation.K = KELLY_DATA_DIR if hasattr(jc_simulation, 'K') else jc_simulation.KELLY_DATA_DIR
 jc_simulation.STATE_DIR = STATE_DIR
 jc_simulation.STATE_FILE = os.path.join(STATE_DIR, "state.json")
 jc_simulation.OUTPUT_DIR = os.path.join(SCRIPT_DIR, "..", "output")
