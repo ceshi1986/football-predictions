@@ -841,29 +841,24 @@ def build_parlay_bets(strong_jc_nums: list, decisions: list[BetDecision],
     笛卡尔积、逐组合判命中，双选只会增加覆盖、不改变每注赔率。【复式进串关
     竞彩是允许的，且是放大覆盖的正规玩法】
 
-    选取逻辑:
-    - 从强信号场次里先取"单选场"作为串关首推(赔率干净、组合数少)
-    - 若强信号缺席, 则用中信号中EV最高的低赔场顶位
+    选取逻辑(V3 二次增强 2026-09-18):
+    - 不再局限于 strong_jc_nums(强信号池)——那会儿导致高EV双选场(medium信号)
+      无法进串关。现在从当天全部 decisions 中挑组合, 只要该场过了单腿赔率/
+      每腿EV门槛即可, 单选/双选一视同仁按组合EV择优。
     - 组合 EV = 联合胜率 × 组合赔率 - 1, 筛选阈值沿用旧逻辑
-    - 按组合EV从高到低排序, 取出最优的一注2串1
+    - 按组合EV从高到低+类型加分(单选越多越干净), 取出最优的一注2串1
     """
-    if len(strong_jc_nums) < 2:
+    if len(decisions) < 2:
         return []
 
-    candidate_map = {d.match_id: d for d in decisions if d.match_id in strong_jc_nums}
+    # 候选池: 全部decisions, strong_jc_nums仅作优先级加分参考
+    strong_set = set(strong_jc_nums)
 
-    # ── 划分候选: 单选场 / 双选场, 都进串关池 ──
-    single_candidates = {
-        mid: d for mid, d in candidate_map.items()
-        if len(d.selection_codes) == 1
-    }
-    double_candidates = {
-        mid: d for mid, d in candidate_map.items()
-        if len(d.selection_codes) >= 2
-    }
-
-    # 合并及格池: 每场先过单腿赔率/EV门槛
     def _ok(d):
+        # 双选场: 高EV来自"选两个方向覆盖", 单腿赔率可到2.20以上(尤其主选赔率高)
+        # 不再用 primary_odds 卡 2.20 上限——那是单选逻辑。双选只卡 EV 门槛。
+        if len(d.selection_codes) > 1:
+            return d.ev >= PARLAY_MIN_EV_PER_LEG
         if d.primary_odds > PARLAY_MAX_LEG_ODDS:
             return False
         if d.primary_odds < 1.40:
@@ -872,34 +867,43 @@ def build_parlay_bets(strong_jc_nums: list, decisions: list[BetDecision],
             return False
         return True
 
-    qual_single = [d for d in single_candidates.values() if _ok(d)]
-    qual_double = [d for d in double_candidates.values() if _ok(d)]
-    if len(qual_single) + len(qual_double) < 2:
+    qualified = [d for d in decisions if _ok(d)]
+    if len(qualified) < 2:
         return []
 
-    # ── 组合选取: 优先单选×单选(最干净), 其次单选×双选, 再双选×双选 ──
+    # 每场的"串关有效赔率": 单选=主选赔率; 双选=命中保底min(两方向SP)
+    # 双选场 confidence 已是联合命中率, 组合EV用 联合胜率×有效赔率 才不失真
+    def _leg_eff_odds(d):
+        if len(d.selection_codes) > 1:
+            vals = [d.odds_map.get(c, d.primary_odds) for c in d.selection_codes]
+            vals = [v for v in vals if v and v > 0]
+            return min(vals) if vals else d.primary_odds
+        return d.primary_odds
+
+    # ── 组合选取: 遍历两两组合, 按组合EV排序, 强信号成员加分 ──
     from itertools import combinations as comb
     best = None
-    candidates_list = qual_single + qual_double
-    for a, b in comb(range(len(candidates_list)), 2):
-        da, db = candidates_list[a], candidates_list[b]
-        combo_odds = da.primary_odds * db.primary_odds
+    for a, b in comb(range(len(qualified)), 2):
+        da, db = qualified[a], qualified[b]
+        combo_odds = _leg_eff_odds(da) * _leg_eff_odds(db)
         if combo_odds < PARLAY_MIN_COMBINED_ODDS:
             continue  # 组合赔率太低, 串关不划算
         cpa, cpb = da.confidence, db.confidence
         combo_ev = calc_ev(cpa * cpb, combo_odds)
         if combo_ev < MIN_EV_THRESHOLD:
             continue
-        # 类型加权: 单选越多越干净(命中隔离), 作为同EV下的择优偏好
+        # 类型/信号加分: 单选越多越干净; 强信号场次优先
         type_score = (1 if len(da.selection_codes) == 1 else 0) + \
                      (1 if len(db.selection_codes) == 1 else 0)
-        item = (combo_ev, type_score, da, db)
-        if best is None or item[:2] > best[:2]:
-            best = (combo_ev, type_score, da, db)
+        sig_score = (1 if da.match_id in strong_set else 0) + \
+                    (1 if db.match_id in strong_set else 0)
+        item = (combo_ev, sig_score, type_score, da, db)
+        if best is None or item[:3] > best[:3]:
+            best = (combo_ev, sig_score, type_score, da, db)
 
     if best is None:
         return []
-    parlay_ev, _, da, db = best
+    parlay_ev, _, _, da, db = best
 
     match_details = []
     for d in (da, db):
@@ -916,7 +920,7 @@ def build_parlay_bets(strong_jc_nums: list, decisions: list[BetDecision],
             "handicap_odds": d.handicap_odds,
         })
 
-    combo_odds = da.primary_odds * db.primary_odds
+    combo_odds = _leg_eff_odds(da) * _leg_eff_odds(db)
     budget = round(capital * PARLAY_BUDGET_PCT, 2)
     combo_desc = "×".join(
         "单选" if len(d.selection_codes) == 1 else f"双选({len(d.selection_codes)})"
