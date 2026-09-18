@@ -28,7 +28,8 @@ from codeact_sdk import CodeActSDK
 
 # 脚本工作目录（fp-repo 相对路径）
 SCRIPT_DIR = os.path.dirname(os.path.abspath(__file__))
-FP_REPO_DIR = os.path.abspath(os.path.join(SCRIPT_DIR, "..", "..", "fp-repo"))
+# codeact/scripts -> codeact -> fp-repo
+FP_REPO_DIR = os.path.abspath(os.path.join(SCRIPT_DIR, "..", ".."))
 DATA_DIR = os.path.join(FP_REPO_DIR, "data")
 KELLY_DAILY_DIR = os.path.join(DATA_DIR, "500com_daily")
 MASTER_TABLE_PATH = os.path.join(FP_REPO_DIR, "backtest_master_table_dedup.json")
@@ -350,42 +351,170 @@ def check_hit(recommendation, score_h, score_a):
 # 数据加载与处理
 # ============================================================
 
-def load_match_results(path):
-    """加载赛果数据"""
-    if not os.path.exists(path):
-        return []
-    with open(path, 'r', encoding='utf-8') as f:
-        return json.load(f)
+def load_match_results(date):
+    """加载某日期的赛果数据，优先从每日目录读取，兜底全局文件"""
+    results = []
+    
+    # 1. 优先从每日目录读取 match_results.json
+    daily_path = os.path.join(KELLY_DAILY_DIR, date, 'match_results.json')
+    if os.path.exists(daily_path):
+        try:
+            with open(daily_path, 'r', encoding='utf-8') as f:
+                data = json.load(f)
+            # 每日目录的 match_results.json 格式：{date, generated_at, total, results}
+            # results 可能是 list 或 dict
+            if isinstance(data, dict):
+                results_data = data.get('results', [])
+                if isinstance(results_data, list):
+                    results.extend(results_data)
+                elif isinstance(results_data, dict):
+                    # dict 格式：{"主队|客队": {比赛信息}}
+                    for key, match_info in results_data.items():
+                        if isinstance(match_info, dict):
+                            results.append(match_info)
+            elif isinstance(data, list):
+                results.extend(data)
+        except Exception as e:
+            print(f"[警告] 读取每日赛果失败 {daily_path}: {e}")
+    
+    # 2. 兜底：从全局 match_results.json 读取该日期的赛果
+    if not results and os.path.exists(MATCH_RESULTS_PATH):
+        try:
+            with open(MATCH_RESULTS_PATH, 'r', encoding='utf-8') as f:
+                all_data = json.load(f)
+            if isinstance(all_data, list):
+                # 过滤出该日期的赛果
+                for item in all_data:
+                    if item.get('date') == date:
+                        results.append(item)
+        except Exception as e:
+            print(f"[警告] 读取全局赛果失败: {e}")
+    
+    return results
 
 
-def load_kelly_data(date):
-    """加载某日期的Kelly数据，优先zgzcw，其次kelly_data_full，再次500com_kelly_data"""
+def load_kelly_data(date, github_token=None):
+    """加载某日期的Kelly数据，500万win500优先（铁律），其次zgzcw兜底"""
     date_dir = os.path.join(KELLY_DAILY_DIR, date)
+    
+    # 确保日期目录存在
     if not os.path.isdir(date_dir):
-        return None, None
-
-    # 优先 zgzcw
+        os.makedirs(date_dir, exist_ok=True)
+    
+    # 【铁律】优先 500万 win500_data.json
+    w500_path = os.path.join(date_dir, 'win500_data.json')
+    if not os.path.exists(w500_path) and github_token:
+        # 本地缺失时尝试从 GitHub 拉取
+        print(f"[500万] 本地缺失 {date}，尝试从GitHub拉取...")
+        ok = fetch_win500_from_github(date, github_token)
+        if not ok:
+            print(f"[500万] GitHub拉取失败 {date}")
+    
+    if os.path.exists(w500_path):
+        try:
+            with open(w500_path, 'r', encoding='utf-8') as f:
+                data = json.load(f)
+            return ('win500', data)
+        except Exception as e:
+            print(f"[警告] win500_data.json 读取失败: {e}")
+    
+    # 兜底：zgzcw_kelly_data.json
     z_path = os.path.join(date_dir, 'zgzcw_kelly_data.json')
     if os.path.exists(z_path):
         with open(z_path, 'r', encoding='utf-8') as f:
             data = json.load(f)
         return ('zgzcw', data)
-
-    # 其次 kelly_data_full
+    
+    # 最后：kelly_data_full / 500com_kelly_data
     k_path = os.path.join(date_dir, 'kelly_data_full.json')
     if os.path.exists(k_path):
         with open(k_path, 'r', encoding='utf-8') as f:
             data = json.load(f)
         return ('full', data)
-
-    # 最后 500com_kelly_data
+    
     f_path = os.path.join(date_dir, '500com_kelly_data.json')
     if os.path.exists(f_path):
         with open(f_path, 'r', encoding='utf-8') as f:
             data = json.load(f)
         return ('500com', data)
-
+    
     return None, None
+
+
+def fetch_win500_from_github(date, token):
+    """从GitHub拉取指定日期的 win500_data.json"""
+    import base64
+    import requests
+    
+    repo = 'ceshi1986/football-predictions'
+    api_url = f'https://api.github.com/repos/{repo}/contents/data/500com_daily/{date}/win500_data.json?ref=main'
+    headers = {
+        'Authorization': f'token {token}',
+        'Accept': 'application/vnd.github.v3+json',
+    }
+    
+    try:
+        resp = requests.get(api_url, headers=headers, timeout=30)
+        if resp.status_code != 200:
+            print(f"[GitHub] 拉取失败 {date}: HTTP {resp.status_code}")
+            return False
+        
+        data = resp.json()
+        content_b64 = data.get('content', '')
+        if not content_b64:
+            print(f"[GitHub] 拉取失败 {date}: 无content字段")
+            return False
+        
+        content = base64.b64decode(content_b64).decode('utf-8')
+        
+        # 保存到本地
+        date_dir = os.path.join(KELLY_DAILY_DIR, date)
+        os.makedirs(date_dir, exist_ok=True)
+        local_path = os.path.join(date_dir, 'win500_data.json')
+        with open(local_path, 'w', encoding='utf-8') as f:
+            f.write(content)
+        
+        print(f"[GitHub] 拉取成功 {date} -> {local_path}")
+        return True
+    except Exception as e:
+        print(f"[GitHub] 拉取异常 {date}: {e}")
+        return False
+
+
+def fetch_match_results_from_github(date, token):
+    """从GitHub拉取指定日期的 match_results.json（如果存在）"""
+    import base64
+    import requests
+    
+    repo = 'ceshi1986/football-predictions'
+    api_url = f'https://api.github.com/repos/{repo}/contents/data/500com_daily/{date}/match_results.json?ref=main'
+    headers = {
+        'Authorization': f'token {token}',
+        'Accept': 'application/vnd.github.v3+json',
+    }
+    
+    try:
+        resp = requests.get(api_url, headers=headers, timeout=30)
+        if resp.status_code != 200:
+            return False
+        
+        data = resp.json()
+        content_b64 = data.get('content', '')
+        if not content_b64:
+            return False
+        
+        content = base64.b64decode(content_b64).decode('utf-8')
+        
+        date_dir = os.path.join(KELLY_DAILY_DIR, date)
+        os.makedirs(date_dir, exist_ok=True)
+        local_path = os.path.join(date_dir, 'match_results.json')
+        with open(local_path, 'w', encoding='utf-8') as f:
+            f.write(content)
+        
+        print(f"[GitHub] 拉取赛果成功 {date}")
+        return True
+    except Exception:
+        return False
 
 
 def build_kelly_index(fmt_type, kelly_data):
@@ -594,6 +723,46 @@ def push_to_github_api(commit_msg):
 # 主流程
 # ============================================================
 
+def get_github_token():
+    """从git config中提取GitHub token"""
+    try:
+        config_path = os.path.join(FP_REPO_DIR, '.git', 'config')
+        if os.path.exists(config_path):
+            with open(config_path, 'r') as f:
+                config_text = f.read()
+            m = re.search(r'url = https://([^@]+)@github\.com/(.+?)\.git', config_text)
+            if m:
+                return m.group(1)
+    except Exception:
+        pass
+    return None
+
+
+def parse_date_range(date_arg):
+    """解析日期参数，支持单日期和日期范围
+    单日期: 20260904
+    日期范围: 20260904-20260918
+    返回: [date1, date2, ...]
+    """
+    if not date_arg:
+        yesterday = datetime.now() - timedelta(days=1)
+        return [yesterday.strftime('%Y%m%d')]
+    
+    if '-' in date_arg:
+        parts = date_arg.split('-')
+        if len(parts) == 2:
+            start_date = datetime.strptime(parts[0], '%Y%m%d')
+            end_date = datetime.strptime(parts[1], '%Y%m%d')
+            dates = []
+            current = start_date
+            while current <= end_date:
+                dates.append(current.strftime('%Y%m%d'))
+                current += timedelta(days=1)
+            return dates
+    
+    return [date_arg]
+
+
 async def main():
     result_mode = sys.argv[1] if len(sys.argv) > 1 else "display_only"
     date_arg = sys.argv[2] if len(sys.argv) > 2 else None
@@ -601,50 +770,20 @@ async def main():
     sdk = CodeActSDK()
 
     try:
-        # 确定处理日期
-        if date_arg:
-            target_date = date_arg
+        # 解析日期范围
+        target_dates = parse_date_range(date_arg)
+        is_batch_mode = len(target_dates) > 1
+        
+        print(f"[参数] result_mode={result_mode}, dates={target_dates[0]}{'...' if is_batch_mode else ''} (共{len(target_dates)}天)")
+        
+        # 获取 GitHub token
+        github_token = get_github_token()
+        if github_token:
+            print(f"[GitHub] Token已加载")
         else:
-            yesterday = datetime.now() - timedelta(days=1)
-            target_date = yesterday.strftime('%Y%m%d')
+            print(f"[GitHub] 未找到Token，无法从GitHub拉取数据")
 
-        print(f"[参数] result_mode={result_mode}, date={target_date}")
-
-        # 1. 加载赛果（当天已完赛）
-        all_results = load_match_results(MATCH_RESULTS_PATH)
-        results_by_date = defaultdict(list)
-        for r in all_results:
-            results_by_date[r['date']].append(r)
-
-        day_results = results_by_date.get(target_date, [])
-        print(f"[赛果] {target_date} 共 {len(day_results)} 场已完赛比赛")
-
-        if not day_results:
-            actual_mode = result_mode if result_mode != "auto" else "no_reply"
-            await sdk.submit_result(
-                result_mode=actual_mode,
-                status="success",
-                message=f"{target_date} 无已完赛比赛数据，跳过更新。",
-                data={"date": target_date, "added": 0},
-            )
-            return
-
-        # 2. 加载Kelly数据
-        fmt_type, kelly_data = load_kelly_data(target_date)
-        if kelly_data is None:
-            actual_mode = result_mode if result_mode != "auto" else "display_only"
-            await sdk.submit_result(
-                result_mode=actual_mode,
-                status="success",
-                message=f"{target_date} 未找到Kelly数据文件，跳过更新。",
-                data={"date": target_date, "added": 0},
-            )
-            return
-
-        kelly_matches = build_kelly_index(fmt_type, kelly_data)
-        print(f"[Kelly] 来源={fmt_type}, 共 {len(kelly_matches)} 场比赛")
-
-        # 3. 加载回测主表，构建去重索引
+        # 加载回测主表，构建去重索引
         master = load_master_table()
         detail = master.get('detail', [])
         existing_keys = set()
@@ -654,109 +793,178 @@ async def main():
 
         print(f"[主表] 当前 {len(detail)} 场，已加载去重索引")
 
-        # 4. 匹配并处理每场比赛
-        new_records = []
-        skip_stats = Counter()
-        matched_count = 0
+        # 批量处理每个日期
+        total_added = 0
+        daily_stats = []
+        
+        for target_date in target_dates:
+            print(f"\n{'='*50}")
+            print(f"[处理] {target_date}")
+            print(f"{'='*50}")
+            
+            # 1. 加载赛果
+            day_results = load_match_results(target_date)
+            print(f"[赛果] {target_date} 共 {len(day_results)} 场已完赛比赛")
 
-        for r in day_results:
-            # 在Kelly数据中找匹配
-            matched_km = None
-            for km in kelly_matches:
-                if fuzzy_match(km['k_home'], r['home']) and fuzzy_match(km['k_away'], r['away']):
-                    matched_km = km
-                    break
-
-            if not matched_km:
-                skip_stats['kelly未匹配'] += 1
+            if not day_results:
+                daily_stats.append({
+                    'date': target_date,
+                    'added': 0,
+                    'total_results': 0,
+                    'reason': '无赛果数据'
+                })
                 continue
 
-            matched_count += 1
-
-            # 去重检查
-            dedup_key = make_dedup_key(target_date, r['home'], r['away'])
-            if dedup_key in existing_keys:
-                skip_stats['已在主表中'] += 1
+            # 2. 加载Kelly数据（500万优先）
+            fmt_type, kelly_data = load_kelly_data(target_date, github_token)
+            if kelly_data is None:
+                daily_stats.append({
+                    'date': target_date,
+                    'added': 0,
+                    'total_results': len(day_results),
+                    'reason': '无Kelly数据'
+                })
+                print(f"[Kelly] {target_date} 未找到Kelly数据，跳过")
                 continue
 
-            # 处理比赛
-            record, reason = process_match(r, matched_km, target_date)
-            if record is None:
-                skip_stats[reason or '处理失败'] += 1
-                continue
+            kelly_matches = build_kelly_index(fmt_type, kelly_data)
+            print(f"[Kelly] 来源={fmt_type}, 共 {len(kelly_matches)} 场比赛")
 
-            new_records.append(record)
-            existing_keys.add(dedup_key)
+            # 3. 匹配并处理每场比赛
+            new_records = []
+            skip_stats = Counter()
+            matched_count = 0
 
-        print(f"[匹配] 赛果匹配Kelly: {matched_count}/{len(day_results)}")
-        print(f"[新增] 有效新增: {len(new_records)} 场")
-        print(f"[跳过] {dict(skip_stats)}")
+            for r in day_results:
+                # 确保赛果记录有必要的字段
+                if 'home' not in r or 'away' not in r or 'score_h' not in r or 'score_a' not in r:
+                    skip_stats['赛果字段缺失'] += 1
+                    continue
+                
+                # 在Kelly数据中找匹配
+                matched_km = None
+                for km in kelly_matches:
+                    if fuzzy_match(km['k_home'], r['home']) and fuzzy_match(km['k_away'], r['away']):
+                        matched_km = km
+                        break
 
-        # 5. 追加到主表
-        if new_records:
-            detail.extend(new_records)
-            master['detail'] = detail
+                if not matched_km:
+                    skip_stats['kelly未匹配'] += 1
+                    continue
+
+                matched_count += 1
+
+                # 去重检查
+                dedup_key = make_dedup_key(target_date, r['home'], r['away'])
+                if dedup_key in existing_keys:
+                    skip_stats['已在主表中'] += 1
+                    continue
+
+                # 处理比赛
+                record, reason = process_match(r, matched_km, target_date)
+                if record is None:
+                    skip_stats[reason or '处理失败'] += 1
+                    continue
+
+                new_records.append(record)
+                existing_keys.add(dedup_key)
+
+            print(f"[匹配] 赛果匹配Kelly: {matched_count}/{len(day_results)}")
+            print(f"[新增] 有效新增: {len(new_records)} 场")
+            if skip_stats:
+                print(f"[跳过] {dict(skip_stats)}")
+
+            # 4. 追加到主表
+            if new_records:
+                detail.extend(new_records)
+                master['detail'] = detail
+                total_added += len(new_records)
+                print(f"[累计] 新增 {len(new_records)} 场，总计 {len(detail)} 场")
+
+            daily_stats.append({
+                'date': target_date,
+                'added': len(new_records),
+                'total_results': len(day_results),
+                'matched': matched_count,
+                'skipped': dict(skip_stats),
+                'kelly_source': fmt_type,
+                'kelly_count': len(kelly_matches)
+            })
+
+        # 5. 保存并推送
+        if total_added > 0:
             save_master_table(master)
-            print(f"[保存] 主表已更新，当前共 {len(detail)} 场")
+            print(f"\n[保存] 主表已更新，当前共 {len(detail)} 场")
 
-            # 6. 推送GitHub
-            commit_msg = f"update backtest_master: +{len(new_records)} ({target_date})"
+            # 推送GitHub
+            date_range_str = f"{target_dates[0]}~{target_dates[-1]}" if is_batch_mode else target_dates[0]
+            commit_msg = f"update backtest_master: +{total_added} ({date_range_str})"
             git_ok, git_msg = push_to_github_api(commit_msg)
             print(f"[GitHub] {git_msg}")
         else:
             git_ok, git_msg = True, '无新增数据，无需推送'
-            print(f"[GitHub] {git_msg}")
+            print(f"\n[GitHub] {git_msg}")
 
-        # 7. 统计摘要
-        scenario_counter = Counter(r['scenario'] for r in new_records)
-        subgroup_counter = Counter(r['subgroup'] for r in new_records)
-
-        # 计算整体命中率（基于V6.9推荐）
-        if new_records:
+        # 6. 计算命中率
+        if total_added > 0:
+            # 计算整体命中率
             hit_count = 0
-            for r in new_records:
-                rec, _ = get_recommendation(r['scenario'], r['is_strong_home'])
-                if rec != '未知' and check_hit(rec, r['score_h'], r['score_a']):
-                    hit_count += 1
-            hit_rate = hit_count / len(new_records) * 100
+            total_with_result = 0
+            for r in detail:
+                if r.get('hit') is not None:
+                    total_with_result += 1
+                    if r.get('hit'):
+                        hit_count += 1
+            hit_rate = hit_count / total_with_result * 100 if total_with_result > 0 else 0.0
         else:
+            hit_count = 0
             hit_rate = 0.0
-            hit_count = 0
 
-        # 8. 组装结果消息
-        if new_records:
-            top_scenarios = scenario_counter.most_common(5)
-            scenario_str = ', '.join(f"{s}:{c}" for s, c in top_scenarios)
-
-            msg_lines = [
-                f"✅ 回测主表更新完成（{target_date}）",
-                f"新增 {len(new_records)} 场 | 总场次 {len(detail)} 场",
-                f"V6.9推荐命中: {hit_count}/{len(new_records)} ({hit_rate:.1f}%)",
-                f"场景分布: {scenario_str}",
-            ]
-            if git_ok:
-                msg_lines.append(f"GitHub推送: 成功")
-            else:
-                msg_lines.append(f"GitHub推送: 失败（{git_msg}）")
-            message = '\n'.join(msg_lines)
+        # 7. 组装结果消息
+        msg_lines = []
+        if is_batch_mode:
+            msg_lines.append(f"📊 回测主表批量补跑完成")
+            msg_lines.append(f"日期范围: {target_dates[0]} ~ {target_dates[-1]}")
+            msg_lines.append(f"新增: {total_added} 场 | 总场次: {len(detail)} 场")
+            msg_lines.append(f"整体命中率: {hit_rate:.1f}%")
+            msg_lines.append("")
+            msg_lines.append("每日明细:")
+            for stat in daily_stats:
+                status = "✓" if stat['added'] > 0 else "○"
+                reason = f" ({stat.get('reason', '')})" if stat.get('reason') else ""
+                msg_lines.append(f"  {status} {stat['date']}: +{stat['added']} 场{reason}")
         else:
-            message = f"ℹ️ {target_date} 无可新增的回测数据（已跳过: {sum(skip_stats.values())} 场）"
+            target_date = target_dates[0]
+            stat = daily_stats[0] if daily_stats else {}
+            if total_added > 0:
+                msg_lines.append(f"✅ 回测主表更新完成（{target_date}）")
+                msg_lines.append(f"新增 {total_added} 场 | 总场次 {len(detail)} 场")
+                msg_lines.append(f"整体命中率: {hit_rate:.1f}%")
+            else:
+                reason = stat.get('reason', '无数据')
+                msg_lines.append(f"ℹ️ {target_date} 无可新增的回测数据（{reason}）")
+
+        if git_ok and total_added > 0:
+            msg_lines.append(f"GitHub推送: 成功")
+        elif total_added > 0:
+            msg_lines.append(f"GitHub推送: 失败（{git_msg}）")
+
+        message = '\n'.join(msg_lines)
 
         # result_mode 映射
         if result_mode == "auto":
-            actual_mode = "display_only" if new_records else "no_reply"
+            actual_mode = "display_only" if total_added > 0 else "no_reply"
         else:
             actual_mode = result_mode
 
         data_payload = {
-            "date": target_date,
-            "added": len(new_records),
+            "date_range": f"{target_dates[0]}~{target_dates[-1]}",
+            "dates_processed": len(target_dates),
+            "added": total_added,
             "total": len(detail),
-            "hit_count": hit_count,
             "hit_rate": round(hit_rate, 2),
-            "scenarios": dict(scenario_counter),
+            "daily_stats": daily_stats,
             "git_status": git_msg,
-            "skipped": dict(skip_stats),
         }
 
         await sdk.submit_result(
