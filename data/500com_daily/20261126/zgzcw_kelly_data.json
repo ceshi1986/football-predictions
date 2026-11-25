@@ -1,9 +1,118 @@
 {
   "date": "20261126",
-  "scrape_time": "2026-11-26 07:05:02",
+  "scrape_time": "2026-11-26 07:33:58",
   "source": "500.com_local",
   "total_matches": 58,
   "matches": {
+    "1479983": {
+      "match_name": "萨迪纳摩 vs 勒沃库森",
+      "home": "萨迪纳摩",
+      "away": "勒沃库森",
+      "league": "欧罗巴",
+      "match_time": "11-27 01:45",
+      "jingcai_id": "周四002",
+      "beidan_id": "",
+      "fixture_id": "1479983",
+      "companies": {
+        "bet365": {
+          "name": "bet365",
+          "latest_odds": [
+            4.5,
+            4.2,
+            1.67
+          ],
+          "initial_odds": [
+            4.33,
+            3.75,
+            1.67
+          ],
+          "kelly": [
+            0.95,
+            0.94,
+            0.94
+          ],
+          "payout": 0.9442
+        },
+        "weide": {
+          "name": "weide",
+          "latest_odds": [
+            4.4,
+            4.1,
+            1.62
+          ],
+          "initial_odds": [
+            4.75,
+            4.2,
+            1.55
+          ],
+          "kelly": [
+            0.93,
+            0.92,
+            0.92
+          ],
+          "payout": 0.9187
+        },
+        "libo": {
+          "name": "libo",
+          "latest_odds": [
+            4.4,
+            4.2,
+            1.67
+          ],
+          "initial_odds": [
+            4.5,
+            4.4,
+            1.65
+          ],
+          "kelly": [
+            0.93,
+            0.94,
+            0.94
+          ],
+          "payout": 0.9397
+        },
+        "william_hill": {
+          "name": "william_hill",
+          "latest_odds": [
+            4.2,
+            3.9,
+            1.67
+          ],
+          "initial_odds": [
+            4.75,
+            4.2,
+            1.55
+          ],
+          "kelly": [
+            0.89,
+            0.87,
+            0.94
+          ],
+          "payout": 0.9147
+        },
+        "macau": {
+          "initial_handicap_str": "受半球/一球",
+          "latest_handicap_str": "受半球/一球",
+          "initial_handicap_val": -0.75,
+          "latest_handicap_val": -0.75,
+          "handicap_path": []
+        }
+      },
+      "asian_handicap": {
+        "macau": {
+          "initial_handicap_str": "受半球/一球",
+          "latest_handicap_str": "受半球/一球",
+          "initial_handicap_val": -0.75,
+          "latest_handicap_val": -0.75,
+          "initial_home_water": 0.93,
+          "initial_away_water": 0.85,
+          "latest_home_water": 0.99,
+          "latest_away_water": 0.79
+        }
+      },
+      "is_realtime": true,
+      "data_quality": "realtime"
+    },
     "1480110": {
       "match_name": "比尔森 vs 本菲卡",
       "home": "比尔森",
@@ -17,7 +126,7 @@
         "bet365": {
           "name": "bet365",
           "latest_odds": [
-            6.0,
+            5.75,
             5.0,
             1.45
           ],
@@ -27,18 +136,18 @@
             1.4
           ],
           "kelly": [
+            0.94,
             0.97,
-            0.96,
-            0.94
+            0.93
           ],
-          "payout": 0.9467
+          "payout": 0.9402
         },
         "weide": {
           "name": "weide",
           "latest_odds": [
-            6.0,
-            4.6,
-            1.4
+            5.75,
+            4.5,
+            1.44
           ],
           "initial_odds": [
             5.75,
@@ -46,17 +155,17 @@
             1.44
           ],
           "kelly": [
-            0.97,
-            0.89,
-            0.9
+            0.94,
+            0.87,
+            0.93
           ],
-          "payout": 0.9105
+          "payout": 0.9169
         },
         "libo": {
           "name": "libo",
           "latest_odds": [
-            5.5,
-            4.6,
+            5.25,
+            4.8,
             1.5
           ],
           "initial_odds": [
@@ -65,11 +174,11 @@
             1.5
           ],
           "kelly": [
-            0.89,
-            0.89,
-            0.97
+            0.86,
+            0.93,
+            0.96
           ],
-          "payout": 0.9382
+          "payout": 0.9385
         },
         "william_hill": {
           "name": "william_hill",
@@ -84,7 +193,7 @@
             1.5
           ],
           "kelly": [
-            0.81,
+            0.82,
             0.87,
             0.93
           ],
@@ -108,115 +217,6 @@
           "initial_away_water": 1.01,
           "latest_home_water": 0.87,
           "latest_away_water": 0.91
-        }
-      },
-      "is_realtime": true,
-      "data_quality": "realtime"
-    },
-    "1479983": {
-      "match_name": "萨迪纳摩 vs 勒沃库森",
-      "home": "萨迪纳摩",
-      "away": "勒沃库森",
-      "league": "欧罗巴",
-      "match_time": "11-27 01:45",
-      "jingcai_id": "周四002",
-      "beidan_id": "",
-      "fixture_id": "1479983",
-      "companies": {
-        "bet365": {
-          "name": "bet365",
-          "latest_odds": [
-            4.33,
-            4.5,
-            1.65
-          ],
-          "initial_odds": [
-            4.33,
-            3.75,
-            1.67
-          ],
-          "kelly": [
-            0.92,
-            1.0,
-            0.94
-          ],
-          "payout": 0.9441
-        },
-        "weide": {
-          "name": "weide",
-          "latest_odds": [
-            4.4,
-            4.1,
-            1.62
-          ],
-          "initial_odds": [
-            4.75,
-            4.2,
-            1.55
-          ],
-          "kelly": [
-            0.93,
-            0.91,
-            0.92
-          ],
-          "payout": 0.9187
-        },
-        "libo": {
-          "name": "libo",
-          "latest_odds": [
-            4.4,
-            4.2,
-            1.67
-          ],
-          "initial_odds": [
-            4.5,
-            4.4,
-            1.65
-          ],
-          "kelly": [
-            0.93,
-            0.93,
-            0.95
-          ],
-          "payout": 0.9397
-        },
-        "william_hill": {
-          "name": "william_hill",
-          "latest_odds": [
-            4.2,
-            3.9,
-            1.67
-          ],
-          "initial_odds": [
-            4.75,
-            4.2,
-            1.55
-          ],
-          "kelly": [
-            0.89,
-            0.86,
-            0.95
-          ],
-          "payout": 0.9147
-        },
-        "macau": {
-          "initial_handicap_str": "受半球/一球",
-          "latest_handicap_str": "受半球/一球",
-          "initial_handicap_val": -0.75,
-          "latest_handicap_val": -0.75,
-          "handicap_path": []
-        }
-      },
-      "asian_handicap": {
-        "macau": {
-          "initial_handicap_str": "受半球/一球",
-          "latest_handicap_str": "受半球/一球",
-          "initial_handicap_val": -0.75,
-          "latest_handicap_val": -0.75,
-          "initial_home_water": 0.93,
-          "initial_away_water": 0.85,
-          "latest_home_water": 0.99,
-          "latest_away_water": 0.79
         }
       },
       "is_realtime": true,
@@ -265,7 +265,7 @@
           ],
           "kelly": [
             0.92,
-            0.9,
+            0.91,
             0.91
           ],
           "payout": 0.9144
@@ -430,9 +430,9 @@
         "libo": {
           "name": "libo",
           "latest_odds": [
-            2.0,
-            3.9,
-            3.2
+            2.05,
+            3.8,
+            3.25
           ],
           "initial_odds": [
             2.05,
@@ -440,11 +440,11 @@
             3.2
           ],
           "kelly": [
-            0.91,
-            0.96,
-            0.95
+            0.94,
+            0.94,
+            0.96
           ],
-          "payout": 0.9355
+          "payout": 0.9446
         },
         "william_hill": {
           "name": "william_hill",
@@ -464,27 +464,100 @@
             0.92
           ],
           "payout": 0.9088
+        }
+      },
+      "asian_handicap": {},
+      "is_realtime": true,
+      "data_quality": "realtime"
+    },
+    "1480149": {
+      "match_name": "桑德兰 vs 比亚韦",
+      "home": "桑德兰",
+      "away": "比亚韦",
+      "league": "欧罗巴",
+      "match_time": "11-27 04:00",
+      "jingcai_id": "周四008",
+      "beidan_id": "",
+      "fixture_id": "1480149",
+      "companies": {
+        "bet365": {
+          "name": "bet365",
+          "latest_odds": [
+            1.25,
+            5.75,
+            13.0
+          ],
+          "initial_odds": [
+            1.55,
+            4.2,
+            4.75
+          ],
+          "kelly": [
+            0.95,
+            0.89,
+            1.07
+          ],
+          "payout": 0.9516
         },
-        "macau": {
-          "initial_handicap_str": "半球",
-          "latest_handicap_str": "平手/半球降",
-          "initial_handicap_val": 0.5,
-          "latest_handicap_val": 0.25,
-          "handicap_path": []
+        "weide": {
+          "name": "weide",
+          "latest_odds": [
+            1.2,
+            5.75,
+            11.5
+          ],
+          "initial_odds": [
+            1.3,
+            4.75,
+            9.0
+          ],
+          "kelly": [
+            0.92,
+            0.89,
+            0.95
+          ],
+          "payout": 0.9139
+        },
+        "libo": {
+          "name": "libo",
+          "latest_odds": [
+            1.22,
+            6.5,
+            11.0
+          ],
+          "initial_odds": [
+            1.28,
+            5.5,
+            9.5
+          ],
+          "kelly": [
+            0.93,
+            1.01,
+            0.91
+          ],
+          "payout": 0.9395
+        },
+        "william_hill": {
+          "name": "william_hill",
+          "latest_odds": [
+            1.22,
+            5.8,
+            12.0
+          ],
+          "initial_odds": [
+            1.29,
+            5.0,
+            8.5
+          ],
+          "kelly": [
+            0.93,
+            0.9,
+            0.99
+          ],
+          "payout": 0.9299
         }
       },
-      "asian_handicap": {
-        "macau": {
-          "initial_handicap_str": "半球",
-          "latest_handicap_str": "平手/半球降",
-          "initial_handicap_val": 0.5,
-          "latest_handicap_val": 0.25,
-          "initial_home_water": 1.03,
-          "initial_away_water": 0.75,
-          "latest_home_water": 0.77,
-          "latest_away_water": 1.01
-        }
-      },
+      "asian_handicap": {},
       "is_realtime": true,
       "data_quality": "realtime"
     },
@@ -516,72 +589,6 @@
           "initial_away_water": 0.9,
           "latest_home_water": 0.84,
           "latest_away_water": 0.94
-        }
-      },
-      "is_realtime": true,
-      "data_quality": "realtime"
-    },
-    "1480149": {
-      "match_name": "桑德兰 vs 比亚韦",
-      "home": "桑德兰",
-      "away": "比亚韦",
-      "league": "欧罗巴",
-      "match_time": "11-27 04:00",
-      "jingcai_id": "周四008",
-      "beidan_id": "",
-      "fixture_id": "1480149",
-      "companies": {
-        "macau": {
-          "initial_handicap_str": "球半",
-          "latest_handicap_str": "球半/两球升",
-          "initial_handicap_val": 1.5,
-          "latest_handicap_val": 1.75,
-          "handicap_path": []
-        }
-      },
-      "asian_handicap": {
-        "macau": {
-          "initial_handicap_str": "球半",
-          "latest_handicap_str": "球半/两球升",
-          "initial_handicap_val": 1.5,
-          "latest_handicap_val": 1.75,
-          "initial_home_water": 0.76,
-          "initial_away_water": 1.02,
-          "latest_home_water": 0.87,
-          "latest_away_water": 0.91
-        }
-      },
-      "is_realtime": true,
-      "data_quality": "realtime"
-    },
-    "1480080": {
-      "match_name": "奈梅亨 vs 雷恩",
-      "home": "奈梅亨",
-      "away": "雷恩",
-      "league": "欧罗巴",
-      "match_time": "11-27 04:00",
-      "jingcai_id": "周四010",
-      "beidan_id": "",
-      "fixture_id": "1480080",
-      "companies": {
-        "macau": {
-          "initial_handicap_str": "受平手/半球",
-          "latest_handicap_str": "受平手/半球",
-          "initial_handicap_val": -0.25,
-          "latest_handicap_val": -0.25,
-          "handicap_path": []
-        }
-      },
-      "asian_handicap": {
-        "macau": {
-          "initial_handicap_str": "受平手/半球",
-          "latest_handicap_str": "受平手/半球",
-          "initial_handicap_val": -0.25,
-          "latest_handicap_val": -0.25,
-          "initial_home_water": 0.89,
-          "initial_away_water": 0.89,
-          "latest_home_water": 0.96,
-          "latest_away_water": 0.82
         }
       },
       "is_realtime": true,
@@ -672,6 +679,115 @@
             0.91
           ],
           "payout": 0.8992
+        },
+        "macau": {
+          "initial_handicap_str": "球半",
+          "latest_handicap_str": "球半",
+          "initial_handicap_val": 1.5,
+          "latest_handicap_val": 1.5,
+          "handicap_path": []
+        }
+      },
+      "asian_handicap": {
+        "macau": {
+          "initial_handicap_str": "球半",
+          "latest_handicap_str": "球半",
+          "initial_handicap_val": 1.5,
+          "latest_handicap_val": 1.5,
+          "initial_home_water": 0.93,
+          "initial_away_water": 0.85,
+          "latest_home_water": 0.83,
+          "latest_away_water": 0.95
+        }
+      },
+      "is_realtime": true,
+      "data_quality": "realtime"
+    },
+    "1480080": {
+      "match_name": "奈梅亨 vs 雷恩",
+      "home": "奈梅亨",
+      "away": "雷恩",
+      "league": "欧罗巴",
+      "match_time": "11-27 04:00",
+      "jingcai_id": "周四010",
+      "beidan_id": "",
+      "fixture_id": "1480080",
+      "companies": {
+        "bet365": {
+          "name": "bet365",
+          "latest_odds": [
+            3.1,
+            3.8,
+            2.15
+          ],
+          "initial_odds": [
+            2.8,
+            3.5,
+            2.2
+          ],
+          "kelly": [
+            0.95,
+            0.94,
+            0.95
+          ],
+          "payout": 0.9516
+        },
+        "weide": {
+          "name": "weide",
+          "latest_odds": [
+            3.0,
+            3.7,
+            2.05
+          ],
+          "initial_odds": [
+            2.55,
+            3.6,
+            2.4
+          ],
+          "kelly": [
+            0.92,
+            0.92,
+            0.91
+          ],
+          "payout": 0.9162
+        },
+        "libo": {
+          "name": "libo",
+          "latest_odds": [
+            3.1,
+            3.7,
+            2.15
+          ],
+          "initial_odds": [
+            2.7,
+            3.6,
+            2.37
+          ],
+          "kelly": [
+            0.95,
+            0.92,
+            0.95
+          ],
+          "payout": 0.9452
+        },
+        "william_hill": {
+          "name": "william_hill",
+          "latest_odds": [
+            2.9,
+            3.6,
+            2.1
+          ],
+          "initial_odds": [
+            2.8,
+            3.5,
+            2.2
+          ],
+          "kelly": [
+            0.89,
+            0.89,
+            0.93
+          ],
+          "payout": 0.9101
         }
       },
       "asian_handicap": {},
@@ -688,84 +804,26 @@
       "beidan_id": "",
       "fixture_id": "1473959",
       "companies": {
-        "bet365": {
-          "name": "bet365",
-          "latest_odds": [
-            1.5,
-            4.33,
-            5.0
-          ],
-          "initial_odds": [
-            1.5,
-            4.1,
-            5.0
-          ],
-          "kelly": [
-            0.94,
-            0.93,
-            0.8
-          ],
-          "payout": 0.9111
-        },
-        "weide": {
-          "name": "weide",
-          "latest_odds": [
-            1.45,
-            4.5,
-            6.0
-          ],
-          "initial_odds": [
-            1.55,
-            4.1,
-            5.25
-          ],
-          "kelly": [
-            0.91,
-            0.97,
-            0.96
-          ],
-          "payout": 0.9272
-        },
-        "libo": {
-          "name": "libo",
-          "latest_odds": [
-            1.48,
-            4.0,
-            5.25
-          ],
-          "initial_odds": [
-            1.55,
-            3.9,
-            4.8
-          ],
-          "kelly": [
-            0.92,
-            0.86,
-            0.84
-          ],
-          "payout": 0.8959
-        },
-        "william_hill": {
-          "name": "william_hill",
-          "latest_odds": [
-            1.44,
-            4.0,
-            6.0
-          ],
-          "initial_odds": [
-            1.55,
-            3.9,
-            5.0
-          ],
-          "kelly": [
-            0.9,
-            0.86,
-            0.96
-          ],
-          "payout": 0.9
+        "macau": {
+          "initial_handicap_str": "一球",
+          "latest_handicap_str": "一球",
+          "initial_handicap_val": 1.0,
+          "latest_handicap_val": 1.0,
+          "handicap_path": []
         }
       },
-      "asian_handicap": {},
+      "asian_handicap": {
+        "macau": {
+          "initial_handicap_str": "一球",
+          "latest_handicap_str": "一球",
+          "initial_handicap_val": 1.0,
+          "latest_handicap_val": 1.0,
+          "initial_home_water": 0.87,
+          "initial_away_water": 0.91,
+          "latest_home_water": 0.78,
+          "latest_away_water": 1.0
+        }
+      },
       "is_realtime": true,
       "data_quality": "realtime"
     },
@@ -797,115 +855,6 @@
           "initial_away_water": 0.88,
           "latest_home_water": 0.95,
           "latest_away_water": 0.89
-        }
-      },
-      "is_realtime": true,
-      "data_quality": "realtime"
-    },
-    "1480100": {
-      "match_name": "里斯本 vs 曼联",
-      "home": "里斯本",
-      "away": "曼联",
-      "league": "欧冠",
-      "match_time": "11-26 04:00",
-      "jingcai_id": "周三005",
-      "beidan_id": "",
-      "fixture_id": "1480100",
-      "companies": {
-        "bet365": {
-          "name": "bet365",
-          "latest_odds": [
-            2.8,
-            3.7,
-            2.35
-          ],
-          "initial_odds": [
-            2.25,
-            3.5,
-            3.0
-          ],
-          "kelly": [
-            1.03,
-            0.95,
-            0.89
-          ],
-          "payout": 0.9497
-        },
-        "weide": {
-          "name": "weide",
-          "latest_odds": [
-            2.7,
-            3.75,
-            2.3
-          ],
-          "initial_odds": [
-            2.5,
-            3.6,
-            2.5
-          ],
-          "kelly": [
-            0.99,
-            0.96,
-            0.87
-          ],
-          "payout": 0.933
-        },
-        "libo": {
-          "name": "libo",
-          "latest_odds": [
-            2.5,
-            3.75,
-            2.5
-          ],
-          "initial_odds": [
-            2.5,
-            3.6,
-            2.6
-          ],
-          "kelly": [
-            0.92,
-            0.96,
-            0.94
-          ],
-          "payout": 0.9375
-        },
-        "william_hill": {
-          "name": "william_hill",
-          "latest_odds": [
-            2.63,
-            3.5,
-            2.45
-          ],
-          "initial_odds": [
-            2.5,
-            3.5,
-            2.63
-          ],
-          "kelly": [
-            0.96,
-            0.9,
-            0.92
-          ],
-          "payout": 0.931
-        },
-        "macau": {
-          "initial_handicap_str": "平手",
-          "latest_handicap_str": "平手",
-          "initial_handicap_val": 0.0,
-          "latest_handicap_val": 0.0,
-          "handicap_path": []
-        }
-      },
-      "asian_handicap": {
-        "macau": {
-          "initial_handicap_str": "平手",
-          "latest_handicap_str": "平手",
-          "initial_handicap_val": 0.0,
-          "latest_handicap_val": 0.0,
-          "initial_home_water": 0.9,
-          "initial_away_water": 0.94,
-          "latest_home_water": 1.01,
-          "latest_away_water": 0.83
         }
       },
       "is_realtime": true,
@@ -996,40 +945,58 @@
             0.93
           ],
           "payout": 0.9079
-        }
-      },
-      "asian_handicap": {},
-      "is_realtime": true,
-      "data_quality": "realtime"
-    },
-    "1479982": {
-      "match_name": "国际米兰 vs 斯图加特",
-      "home": "国际米兰",
-      "away": "斯图加特",
-      "league": "欧冠",
-      "match_time": "11-26 04:00",
-      "jingcai_id": "周三006",
-      "beidan_id": "",
-      "fixture_id": "1479982",
-      "companies": {
+        },
         "macau": {
-          "initial_handicap_str": "球半",
-          "latest_handicap_str": "球半",
-          "initial_handicap_val": 1.5,
-          "latest_handicap_val": 1.5,
+          "initial_handicap_str": "受平手/半球",
+          "latest_handicap_str": "平手升",
+          "initial_handicap_val": -0.25,
+          "latest_handicap_val": 0.0,
           "handicap_path": []
         }
       },
       "asian_handicap": {
         "macau": {
-          "initial_handicap_str": "球半",
-          "latest_handicap_str": "球半",
-          "initial_handicap_val": 1.5,
-          "latest_handicap_val": 1.5,
-          "initial_home_water": 1.01,
-          "initial_away_water": 0.83,
-          "latest_home_water": 1.02,
-          "latest_away_water": 0.82
+          "initial_handicap_str": "受平手/半球",
+          "latest_handicap_str": "平手升",
+          "initial_handicap_val": -0.25,
+          "latest_handicap_val": 0.0,
+          "initial_home_water": 0.91,
+          "initial_away_water": 0.93,
+          "latest_home_water": 1.06,
+          "latest_away_water": 0.78
+        }
+      },
+      "is_realtime": true,
+      "data_quality": "realtime"
+    },
+    "1480100": {
+      "match_name": "里斯本 vs 曼联",
+      "home": "里斯本",
+      "away": "曼联",
+      "league": "欧冠",
+      "match_time": "11-26 04:00",
+      "jingcai_id": "周三005",
+      "beidan_id": "",
+      "fixture_id": "1480100",
+      "companies": {
+        "macau": {
+          "initial_handicap_str": "平手",
+          "latest_handicap_str": "平手",
+          "initial_handicap_val": 0.0,
+          "latest_handicap_val": 0.0,
+          "handicap_path": []
+        }
+      },
+      "asian_handicap": {
+        "macau": {
+          "initial_handicap_str": "平手",
+          "latest_handicap_str": "平手",
+          "initial_handicap_val": 0.0,
+          "latest_handicap_val": 0.0,
+          "initial_home_water": 0.9,
+          "initial_away_water": 0.94,
+          "latest_home_water": 1.01,
+          "latest_away_water": 0.83
         }
       },
       "is_realtime": true,
@@ -1068,95 +1035,19 @@
       "is_realtime": true,
       "data_quality": "realtime"
     },
-    "1479892": {
-      "match_name": "马竞 vs 维京",
-      "home": "马竞",
-      "away": "维京",
+    "1479982": {
+      "match_name": "国际米兰 vs 斯图加特",
+      "home": "国际米兰",
+      "away": "斯图加特",
       "league": "欧冠",
       "match_time": "11-26 04:00",
-      "jingcai_id": "周三008",
+      "jingcai_id": "周三006",
       "beidan_id": "",
-      "fixture_id": "1479892",
+      "fixture_id": "1479982",
       "companies": {
-        "bet365": {
-          "name": "bet365",
-          "latest_odds": [
-            1.11,
-            9.5,
-            19.0
-          ],
-          "initial_odds": [
-            1.3,
-            5.5,
-            9.5
-          ],
-          "kelly": [
-            0.95,
-            0.88,
-            0.9
-          ],
-          "payout": 0.9445
-        },
-        "weide": {
-          "name": "weide",
-          "latest_odds": [
-            1.08,
-            10.0,
-            20.0
-          ],
-          "initial_odds": [
-            1.08,
-            9.5,
-            21.0
-          ],
-          "kelly": [
-            0.93,
-            0.92,
-            0.95
-          ],
-          "payout": 0.9294
-        },
-        "libo": {
-          "name": "libo",
-          "latest_odds": [
-            1.1,
-            9.5,
-            17.0
-          ],
-          "initial_odds": [
-            1.12,
-            9.5,
-            21.0
-          ],
-          "kelly": [
-            0.95,
-            0.88,
-            0.8
-          ],
-          "payout": 0.9318
-        },
-        "william_hill": {
-          "name": "william_hill",
-          "latest_odds": [
-            1.11,
-            9.0,
-            19.0
-          ],
-          "initial_odds": [
-            1.1,
-            9.5,
-            21.0
-          ],
-          "kelly": [
-            0.95,
-            0.83,
-            0.9
-          ],
-          "payout": 0.9393
-        },
         "macau": {
-          "initial_handicap_str": "两球半",
-          "latest_handicap_str": "两球半",
+          "initial_handicap_str": "球半",
+          "latest_handicap_str": "球半",
           "initial_handicap_val": 1.5,
           "latest_handicap_val": 1.5,
           "handicap_path": []
@@ -1164,14 +1055,14 @@
       },
       "asian_handicap": {
         "macau": {
-          "initial_handicap_str": "两球半",
-          "latest_handicap_str": "两球半",
+          "initial_handicap_str": "球半",
+          "latest_handicap_str": "球半",
           "initial_handicap_val": 1.5,
           "latest_handicap_val": 1.5,
-          "initial_home_water": 0.88,
-          "initial_away_water": 0.96,
-          "latest_home_water": 0.82,
-          "latest_away_water": 1.02
+          "initial_home_water": 1.01,
+          "initial_away_water": 0.83,
+          "latest_home_water": 1.02,
+          "latest_away_water": 0.82
         }
       },
       "is_realtime": true,
@@ -1301,34 +1192,34 @@
       "is_realtime": true,
       "data_quality": "realtime"
     },
-    "1426040": {
-      "match_name": "斯托克城 vs 米尔沃尔",
-      "home": "斯托克城",
-      "away": "米尔沃尔",
-      "league": "英冠",
+    "1479892": {
+      "match_name": "马竞 vs 维京",
+      "home": "马竞",
+      "away": "维京",
+      "league": "欧冠",
       "match_time": "11-26 04:00",
-      "jingcai_id": "周三011",
+      "jingcai_id": "周三008",
       "beidan_id": "",
-      "fixture_id": "1426040",
+      "fixture_id": "1479892",
       "companies": {
         "macau": {
-          "initial_handicap_str": "平手/半球",
-          "latest_handicap_str": "半球升",
-          "initial_handicap_val": 0.25,
-          "latest_handicap_val": 0.5,
+          "initial_handicap_str": "两球半",
+          "latest_handicap_str": "两球半",
+          "initial_handicap_val": 1.5,
+          "latest_handicap_val": 1.5,
           "handicap_path": []
         }
       },
       "asian_handicap": {
         "macau": {
-          "initial_handicap_str": "平手/半球",
-          "latest_handicap_str": "半球升",
-          "initial_handicap_val": 0.25,
-          "latest_handicap_val": 0.5,
-          "initial_home_water": 0.96,
-          "initial_away_water": 0.82,
-          "latest_home_water": 1.01,
-          "latest_away_water": 0.77
+          "initial_handicap_str": "两球半",
+          "latest_handicap_str": "两球半",
+          "initial_handicap_val": 1.5,
+          "latest_handicap_val": 1.5,
+          "initial_home_water": 0.88,
+          "initial_away_water": 0.96,
+          "latest_home_water": 0.82,
+          "latest_away_water": 1.02
         }
       },
       "is_realtime": true,
@@ -1419,27 +1310,9 @@
             0.92
           ],
           "payout": 0.9144
-        },
-        "macau": {
-          "initial_handicap_str": "半球",
-          "latest_handicap_str": "半球",
-          "initial_handicap_val": 0.5,
-          "latest_handicap_val": 0.5,
-          "handicap_path": []
         }
       },
-      "asian_handicap": {
-        "macau": {
-          "initial_handicap_str": "半球",
-          "latest_handicap_str": "半球",
-          "initial_handicap_val": 0.5,
-          "latest_handicap_val": 0.5,
-          "initial_home_water": 1.0,
-          "initial_away_water": 0.78,
-          "latest_home_water": 0.84,
-          "latest_away_water": 0.94
-        }
-      },
+      "asian_handicap": {},
       "is_realtime": true,
       "data_quality": "realtime"
     },
@@ -1534,67 +1407,143 @@
       "is_realtime": true,
       "data_quality": "realtime"
     },
-    "1454467": {
-      "match_name": "帕多瓦 vs 桑普多利亚",
-      "home": "帕多瓦",
-      "away": "桑普多利亚",
-      "league": "意乙",
-      "match_time": "11-25 02:50",
-      "jingcai_id": "",
-      "beidan_id": "北单061",
-      "fixture_id": "1454467",
+    "1426040": {
+      "match_name": "斯托克城 vs 米尔沃尔",
+      "home": "斯托克城",
+      "away": "米尔沃尔",
+      "league": "英冠",
+      "match_time": "11-26 04:00",
+      "jingcai_id": "周三011",
+      "beidan_id": "",
+      "fixture_id": "1426040",
       "companies": {
         "macau": {
-          "initial_handicap_str": "受平手/半球",
-          "latest_handicap_str": "受平手/半球",
-          "initial_handicap_val": -0.25,
-          "latest_handicap_val": -0.25,
+          "initial_handicap_str": "平手/半球",
+          "latest_handicap_str": "半球升",
+          "initial_handicap_val": 0.25,
+          "latest_handicap_val": 0.5,
           "handicap_path": []
         }
       },
       "asian_handicap": {
         "macau": {
-          "initial_handicap_str": "受平手/半球",
-          "latest_handicap_str": "受平手/半球",
-          "initial_handicap_val": -0.25,
-          "latest_handicap_val": -0.25,
-          "initial_home_water": 0.73,
-          "initial_away_water": 1.05,
-          "latest_home_water": 0.83,
-          "latest_away_water": 0.95
+          "initial_handicap_str": "平手/半球",
+          "latest_handicap_str": "半球升",
+          "initial_handicap_val": 0.25,
+          "latest_handicap_val": 0.5,
+          "initial_home_water": 0.96,
+          "initial_away_water": 0.82,
+          "latest_home_water": 1.01,
+          "latest_away_water": 0.77
         }
       },
       "is_realtime": true,
       "data_quality": "realtime"
     },
-    "1454471": {
-      "match_name": "比萨 vs 摩德纳",
-      "home": "比萨",
-      "away": "摩德纳",
-      "league": "意乙",
-      "match_time": "11-25 02:50",
+    "1426034": {
+      "match_name": "博尔顿 vs 西布罗姆维奇",
+      "home": "博尔顿",
+      "away": "西布罗姆维奇",
+      "league": "英冠",
+      "match_time": "11-25 03:35",
       "jingcai_id": "",
-      "beidan_id": "北单062",
-      "fixture_id": "1454471",
+      "beidan_id": "北单063",
+      "fixture_id": "1426034",
       "companies": {
+        "bet365": {
+          "name": "bet365",
+          "latest_odds": [
+            3.9,
+            3.5,
+            1.91
+          ],
+          "initial_odds": [
+            3.9,
+            3.7,
+            1.83
+          ],
+          "kelly": [
+            0.99,
+            0.92,
+            0.92
+          ],
+          "payout": 0.9384
+        },
+        "weide": {
+          "name": "weide",
+          "latest_odds": [
+            3.7,
+            3.5,
+            1.87
+          ],
+          "initial_odds": [
+            3.3,
+            3.6,
+            2.0
+          ],
+          "kelly": [
+            0.94,
+            0.92,
+            0.9
+          ],
+          "payout": 0.9168
+        },
+        "libo": {
+          "name": "libo",
+          "latest_odds": [
+            3.7,
+            3.5,
+            1.95
+          ],
+          "initial_odds": [
+            3.7,
+            3.6,
+            1.95
+          ],
+          "kelly": [
+            0.94,
+            0.92,
+            0.94
+          ],
+          "payout": 0.9356
+        },
+        "william_hill": {
+          "name": "william_hill",
+          "latest_odds": [
+            3.7,
+            3.4,
+            1.91
+          ],
+          "initial_odds": [
+            3.3,
+            3.3,
+            2.05
+          ],
+          "kelly": [
+            0.94,
+            0.89,
+            0.92
+          ],
+          "payout": 0.9192
+        },
         "macau": {
-          "initial_handicap_str": "平手/半球",
-          "latest_handicap_str": "平手/半球",
-          "initial_handicap_val": 0.25,
-          "latest_handicap_val": 0.25,
+          "initial_handicap_str": "受半球",
+          "latest_handicap_str": "受半球",
+          "initial_handicap_val": -0.5,
+          "latest_handicap_val": -0.5,
           "handicap_path": []
         }
       },
       "asian_handicap": {
         "macau": {
-          "initial_handicap_str": "平手/半球",
-          "latest_handicap_str": "平手/半球",
-          "initial_handicap_val": 0.25,
-          "latest_handicap_val": 0.25,
-          "initial_home_water": 1.0,
-          "initial_away_water": 0.78,
-          "latest_home_water": 1.05,
-          "latest_away_water": 0.73
+          "initial_handicap_str": "受半球",
+          "latest_handicap_str": "受半球",
+          "initial_handicap_val": -0.5,
+          "latest_handicap_val": -0.5,
+          "initial_home_water": 0.82,
+          "initial_away_water": 0.96,
+          "latest_home_water": 0.88,
+          "latest_away_water": 0.9
         }
       },
       "is_realtime": true,
@@ -1685,100 +1634,27 @@
             0.96
           ],
           "payout": 0.9194
+        },
+        "macau": {
+          "initial_handicap_str": "平手",
+          "latest_handicap_str": "平手",
+          "initial_handicap_val": 0.0,
+          "latest_handicap_val": 0.0,
+          "handicap_path": []
         }
       },
-      "asian_handicap": {},
-      "is_realtime": true,
-      "data_quality": "realtime"
-    },
-    "1426034": {
-      "match_name": "博尔顿 vs 西布罗姆维奇",
-      "home": "博尔顿",
-      "away": "西布罗姆维奇",
-      "league": "英冠",
-      "match_time": "11-25 03:35",
-      "jingcai_id": "",
-      "beidan_id": "北单063",
-      "fixture_id": "1426034",
-      "companies": {
-        "bet365": {
-          "name": "bet365",
-          "latest_odds": [
-            3.9,
-            3.5,
-            1.91
-          ],
-          "initial_odds": [
-            3.9,
-            3.7,
-            1.83
-          ],
-          "kelly": [
-            0.99,
-            0.92,
-            0.92
-          ],
-          "payout": 0.9384
-        },
-        "weide": {
-          "name": "weide",
-          "latest_odds": [
-            3.7,
-            3.5,
-            1.87
-          ],
-          "initial_odds": [
-            3.3,
-            3.6,
-            2.0
-          ],
-          "kelly": [
-            0.94,
-            0.92,
-            0.9
-          ],
-          "payout": 0.9168
-        },
-        "libo": {
-          "name": "libo",
-          "latest_odds": [
-            3.7,
-            3.5,
-            1.95
-          ],
-          "initial_odds": [
-            3.7,
-            3.6,
-            1.95
-          ],
-          "kelly": [
-            0.94,
-            0.92,
-            0.94
-          ],
-          "payout": 0.9356
-        },
-        "william_hill": {
-          "name": "william_hill",
-          "latest_odds": [
-            3.7,
-            3.4,
-            1.91
-          ],
-          "initial_odds": [
-            3.3,
-            3.3,
-            2.05
-          ],
-          "kelly": [
-            0.94,
-            0.89,
-            0.92
-          ],
-          "payout": 0.9192
+      "asian_handicap": {
+        "macau": {
+          "initial_handicap_str": "平手",
+          "latest_handicap_str": "平手",
+          "initial_handicap_val": 0.0,
+          "latest_handicap_val": 0.0,
+          "initial_home_water": 0.96,
+          "initial_away_water": 0.82,
+          "latest_home_water": 0.97,
+          "latest_away_water": 0.81
         }
       },
-      "asian_handicap": {},
       "is_realtime": true,
       "data_quality": "realtime"
     },
@@ -1792,6 +1668,82 @@
       "beidan_id": "北单065",
       "fixture_id": "1426042",
       "companies": {
+        "bet365": {
+          "name": "bet365",
+          "latest_odds": [
+            2.45,
+            3.25,
+            2.88
+          ],
+          "initial_odds": [
+            2.6,
+            3.3,
+            2.55
+          ],
+          "kelly": [
+            0.92,
+            0.93,
+            0.97
+          ],
+          "payout": 0.9407
+        },
+        "weide": {
+          "name": "weide",
+          "latest_odds": [
+            2.4,
+            3.25,
+            2.75
+          ],
+          "initial_odds": [
+            2.5,
+            3.3,
+            2.6
+          ],
+          "kelly": [
+            0.91,
+            0.93,
+            0.93
+          ],
+          "payout": 0.9191
+        },
+        "libo": {
+          "name": "libo",
+          "latest_odds": [
+            2.5,
+            3.3,
+            2.75
+          ],
+          "initial_odds": [
+            2.6,
+            3.4,
+            2.6
+          ],
+          "kelly": [
+            0.94,
+            0.94,
+            0.93
+          ],
+          "payout": 0.9375
+        },
+        "william_hill": {
+          "name": "william_hill",
+          "latest_odds": [
+            2.4,
+            3.1,
+            2.8
+          ],
+          "initial_odds": [
+            2.5,
+            3.25,
+            2.7
+          ],
+          "kelly": [
+            0.91,
+            0.88,
+            0.95
+          ],
+          "payout": 0.9121
+        },
         "macau": {
           "initial_handicap_str": "平手",
           "latest_handicap_str": "平手",
@@ -1815,203 +1767,236 @@
       "is_realtime": true,
       "data_quality": "realtime"
     },
-    "1362547": {
-      "match_name": "米内罗竞技 vs 科林蒂安",
-      "home": "米内罗竞技",
-      "away": "科林蒂安",
-      "league": "巴西甲",
-      "match_time": "11-25 06:50",
+    "1454471": {
+      "match_name": "比萨 vs 摩德纳",
+      "home": "比萨",
+      "away": "摩德纳",
+      "league": "意乙",
+      "match_time": "11-25 02:50",
       "jingcai_id": "",
-      "beidan_id": "北单073",
-      "fixture_id": "1362547",
+      "beidan_id": "北单062",
+      "fixture_id": "1454471",
       "companies": {
-        "bet365": {
-          "name": "bet365",
-          "latest_odds": [
-            2.75,
-            3.2,
-            2.7
-          ],
-          "initial_odds": [
-            2.35,
-            3.25,
-            3.0
-          ],
-          "kelly": [
-            1.01,
-            0.93,
-            0.92
-          ],
-          "payout": 0.9556
-        },
-        "weide": {
-          "name": "weide",
-          "latest_odds": [
-            2.63,
-            3.2,
-            2.63
-          ],
-          "initial_odds": [
-            2.38,
-            3.3,
-            2.9
-          ],
-          "kelly": [
-            0.96,
-            0.93,
-            0.9
-          ],
-          "payout": 0.932
-        },
-        "libo": {
-          "name": "libo",
-          "latest_odds": [
-            2.62,
-            3.2,
-            2.62
-          ],
-          "initial_odds": [
-            2.37,
-            3.3,
-            2.9
-          ],
-          "kelly": [
-            0.96,
-            0.93,
-            0.9
-          ],
-          "payout": 0.9295
-        },
-        "william_hill": {
-          "name": "william_hill",
-          "latest_odds": [
-            2.6,
-            3.1,
-            2.63
-          ],
-          "initial_odds": [
-            2.3,
-            3.2,
-            2.9
-          ],
-          "kelly": [
-            0.95,
-            0.9,
-            0.9
-          ],
-          "payout": 0.9196
-        },
         "macau": {
           "initial_handicap_str": "平手/半球",
-          "latest_handicap_str": "平手降",
+          "latest_handicap_str": "平手/半球",
           "initial_handicap_val": 0.25,
-          "latest_handicap_val": 0.0,
+          "latest_handicap_val": 0.25,
           "handicap_path": []
         }
       },
       "asian_handicap": {
         "macau": {
           "initial_handicap_str": "平手/半球",
-          "latest_handicap_str": "平手降",
+          "latest_handicap_str": "平手/半球",
           "initial_handicap_val": 0.25,
-          "latest_handicap_val": 0.0,
-          "initial_home_water": 1.01,
-          "initial_away_water": 0.77,
-          "latest_home_water": 0.9,
-          "latest_away_water": 0.88
+          "latest_handicap_val": 0.25,
+          "initial_home_water": 1.0,
+          "initial_away_water": 0.78,
+          "latest_home_water": 1.05,
+          "latest_away_water": 0.73
         }
       },
       "is_realtime": true,
       "data_quality": "realtime"
     },
-    "2204276": {
-      "match_name": "博卡青年 vs 门多萨独立",
-      "home": "博卡青年",
-      "away": "门多萨独立",
-      "league": "阿职联",
-      "match_time": "11-25 07:50",
+    "1454467": {
+      "match_name": "帕多瓦 vs 桑普多利亚",
+      "home": "帕多瓦",
+      "away": "桑普多利亚",
+      "league": "意乙",
+      "match_time": "11-25 02:50",
       "jingcai_id": "",
-      "beidan_id": "北单074",
-      "fixture_id": "2204276",
+      "beidan_id": "北单061",
+      "fixture_id": "1454467",
+      "companies": {
+        "bet365": {
+          "name": "bet365",
+          "latest_odds": [
+            3.2,
+            3.1,
+            2.35
+          ],
+          "initial_odds": [
+            2.65,
+            3.2,
+            2.6
+          ],
+          "kelly": [
+            0.96,
+            0.94,
+            0.93
+          ],
+          "payout": 0.9429
+        },
+        "weide": {
+          "name": "weide",
+          "latest_odds": [
+            2.9,
+            3.13,
+            2.3
+          ],
+          "initial_odds": [
+            2.63,
+            3.2,
+            2.5
+          ],
+          "kelly": [
+            0.87,
+            0.95,
+            0.91
+          ],
+          "payout": 0.9098
+        },
+        "libo": {
+          "name": "libo",
+          "latest_odds": [
+            3.0,
+            3.0,
+            2.2
+          ],
+          "initial_odds": [
+            2.45,
+            3.0,
+            2.7
+          ],
+          "kelly": [
+            0.9,
+            0.91,
+            0.87
+          ],
+          "payout": 0.8919
+        },
+        "william_hill": {
+          "name": "william_hill",
+          "latest_odds": [
+            3.1,
+            2.9,
+            2.3
+          ],
+          "initial_odds": [
+            2.75,
+            2.9,
+            2.5
+          ],
+          "kelly": [
+            0.93,
+            0.88,
+            0.91
+          ],
+          "payout": 0.9073
+        }
+      },
+      "asian_handicap": {},
+      "is_realtime": true,
+      "data_quality": "realtime"
+    },
+    "2299820": {
+      "match_name": "托卢卡 vs 阿特拉斯",
+      "home": "托卢卡",
+      "away": "阿特拉斯",
+      "league": "墨超",
+      "match_time": "11-25 08:50",
+      "jingcai_id": "",
+      "beidan_id": "北单075",
+      "fixture_id": "2299820",
       "companies": {
         "bet365": {
           "name": "bet365",
           "latest_odds": [
             1.42,
-            4.2,
-            8.5
+            4.75,
+            7.0
           ],
           "initial_odds": [
-            1.62,
-            3.6,
-            5.5
+            1.42,
+            4.75,
+            7.0
           ],
           "kelly": [
             0.92,
             0.94,
-            1.09
+            1.07
           ],
-          "payout": 0.9434
+          "payout": 0.9455
         },
         "weide": {
           "name": "weide",
           "latest_odds": [
             1.4,
-            4.2,
-            8.0
+            4.6,
+            6.5
           ],
           "initial_odds": [
-            1.53,
-            3.8,
+            1.4,
+            4.6,
             6.5
           ],
           "kelly": [
             0.91,
-            0.94,
-            1.03
+            0.91,
+            0.99
           ],
-          "payout": 0.9282
+          "payout": 0.9212
         },
         "libo": {
           "name": "libo",
           "latest_odds": [
-            1.44,
-            4.4,
-            7.5
+            1.4,
+            4.33,
+            5.75
           ],
           "initial_odds": [
-            1.55,
-            4.0,
-            6.0
+            1.35,
+            4.5,
+            6.5
           ],
           "kelly": [
-            0.93,
-            0.99,
-            0.97
+            0.91,
+            0.86,
+            0.88
           ],
-          "payout": 0.9478
+          "payout": 0.8935
         },
         "william_hill": {
           "name": "william_hill",
           "latest_odds": [
             1.4,
             4.2,
-            7.0
+            5.5
           ],
           "initial_odds": [
-            1.55,
-            3.6,
-            6.0
+            1.36,
+            4.5,
+            5.5
           ],
           "kelly": [
             0.91,
-            0.94,
-            0.9
+            0.83,
+            0.84
           ],
-          "payout": 0.913
+          "payout": 0.8817
+        },
+        "macau": {
+          "initial_handicap_str": "一球/球半",
+          "latest_handicap_str": "一球/球半",
+          "initial_handicap_val": 1.25,
+          "latest_handicap_val": 1.25,
+          "handicap_path": []
         }
       },
-      "asian_handicap": {},
+      "asian_handicap": {
+        "macau": {
+          "initial_handicap_str": "一球/球半",
+          "latest_handicap_str": "一球/球半",
+          "initial_handicap_val": 1.25,
+          "latest_handicap_val": 1.25,
+          "initial_home_water": 0.93,
+          "initial_away_water": 0.85,
+          "latest_home_water": 0.92,
+          "latest_away_water": 0.86
+        }
+      },
       "is_realtime": true,
       "data_quality": "realtime"
     },
@@ -2025,6 +2010,82 @@
       "beidan_id": "北单076",
       "fixture_id": "2299821",
       "companies": {
+        "bet365": {
+          "name": "bet365",
+          "latest_odds": [
+            2.25,
+            3.4,
+            3.2
+          ],
+          "initial_odds": [
+            2.3,
+            3.6,
+            2.9
+          ],
+          "kelly": [
+            0.93,
+            0.96,
+            0.97
+          ],
+          "payout": 0.9514
+        },
+        "weide": {
+          "name": "weide",
+          "latest_odds": [
+            2.2,
+            3.4,
+            3.0
+          ],
+          "initial_odds": [
+            2.3,
+            3.4,
+            2.8
+          ],
+          "kelly": [
+            0.91,
+            0.96,
+            0.91
+          ],
+          "payout": 0.9242
+        },
+        "libo": {
+          "name": "libo",
+          "latest_odds": [
+            2.15,
+            3.2,
+            2.9
+          ],
+          "initial_odds": [
+            2.37,
+            3.4,
+            2.5
+          ],
+          "kelly": [
+            0.89,
+            0.9,
+            0.88
+          ],
+          "payout": 0.8909
+        },
+        "william_hill": {
+          "name": "william_hill",
+          "latest_odds": [
+            2.2,
+            3.0,
+            2.9
+          ],
+          "initial_odds": [
+            2.25,
+            3.0,
+            2.75
+          ],
+          "kelly": [
+            0.91,
+            0.85,
+            0.88
+          ],
+          "payout": 0.8828
+        },
         "macau": {
           "initial_handicap_str": "平手/半球",
           "latest_handicap_str": "平手/半球",
@@ -2043,39 +2104,6 @@
           "initial_away_water": 0.74,
           "latest_home_water": 0.88,
           "latest_away_water": 0.9
-        }
-      },
-      "is_realtime": true,
-      "data_quality": "realtime"
-    },
-    "2299820": {
-      "match_name": "托卢卡 vs 阿特拉斯",
-      "home": "托卢卡",
-      "away": "阿特拉斯",
-      "league": "墨超",
-      "match_time": "11-25 08:50",
-      "jingcai_id": "",
-      "beidan_id": "北单075",
-      "fixture_id": "2299820",
-      "companies": {
-        "macau": {
-          "initial_handicap_str": "一球/球半",
-          "latest_handicap_str": "一球/球半",
-          "initial_handicap_val": 1.25,
-          "latest_handicap_val": 1.25,
-          "handicap_path": []
-        }
-      },
-      "asian_handicap": {
-        "macau": {
-          "initial_handicap_str": "一球/球半",
-          "latest_handicap_str": "一球/球半",
-          "initial_handicap_val": 1.25,
-          "latest_handicap_val": 1.25,
-          "initial_home_water": 0.93,
-          "initial_away_water": 0.85,
-          "latest_home_water": 0.91,
-          "latest_away_water": 0.87
         }
       },
       "is_realtime": true,
@@ -2190,221 +2218,403 @@
       "is_realtime": true,
       "data_quality": "realtime"
     },
-    "1480138": {
-      "match_name": "萨尔茨堡红牛 vs 阿拉拉特亚美尼亚",
-      "home": "萨尔茨堡红牛",
-      "away": "阿拉拉特亚美尼亚",
-      "league": "欧罗巴联赛",
-      "match_time": "11-26 01:35",
+    "1362547": {
+      "match_name": "米内罗竞技 vs 科林蒂安",
+      "home": "米内罗竞技",
+      "away": "科林蒂安",
+      "league": "巴西甲",
+      "match_time": "11-25 06:50",
       "jingcai_id": "",
-      "beidan_id": "北单083",
-      "fixture_id": "1480138",
+      "beidan_id": "北单073",
+      "fixture_id": "1362547",
       "companies": {
         "bet365": {
           "name": "bet365",
           "latest_odds": [
-            1.17,
-            7.5,
-            15.0
+            2.7,
+            3.1,
+            2.65
           ],
           "initial_odds": [
-            1.25,
-            5.5,
-            10.0
+            2.35,
+            3.25,
+            3.0
           ],
           "kelly": [
-            0.95,
-            0.89,
-            1.03
+            0.99,
+            0.9,
+            0.91
           ],
-          "payout": 0.9481
+          "payout": 0.9343
         },
         "weide": {
           "name": "weide",
           "latest_odds": [
-            1.13,
-            7.5,
-            15.0
+            2.63,
+            3.2,
+            2.63
           ],
           "initial_odds": [
-            1.22,
-            5.75,
-            10.0
+            2.38,
+            3.3,
+            2.9
           ],
           "kelly": [
-            0.92,
-            0.89,
-            1.03
+            0.96,
+            0.93,
+            0.9
           ],
-          "payout": 0.9217
+          "payout": 0.932
         },
         "libo": {
           "name": "libo",
           "latest_odds": [
-            1.18,
-            8.5,
-            12.0
+            2.7,
+            3.1,
+            2.7
           ],
           "initial_odds": [
-            1.22,
-            7.5,
-            10.0
+            2.37,
+            3.3,
+            2.9
           ],
           "kelly": [
-            0.96,
-            1.0,
-            0.82
+            0.99,
+            0.9,
+            0.92
           ],
-          "payout": 0.9538
+          "payout": 0.9404
         },
         "william_hill": {
           "name": "william_hill",
           "latest_odds": [
-            1.17,
-            7.0,
-            13.0
+            2.63,
+            3.0,
+            2.63
           ],
           "initial_odds": [
-            1.2,
-            6.5,
-            13.0
+            2.3,
+            3.2,
+            2.9
+          ],
+          "kelly": [
+            0.96,
+            0.87,
+            0.9
+          ],
+          "payout": 0.9143
+        }
+      },
+      "asian_handicap": {},
+      "is_realtime": true,
+      "data_quality": "realtime"
+    },
+    "1480073": {
+      "match_name": "马赛 vs 索非亚列夫斯基",
+      "home": "马赛",
+      "away": "索非亚列夫斯基",
+      "league": "欧罗巴联赛",
+      "match_time": "11-26 01:35",
+      "jingcai_id": "",
+      "beidan_id": "北单079",
+      "fixture_id": "1480073",
+      "companies": {
+        "bet365": {
+          "name": "bet365",
+          "latest_odds": [
+            1.33,
+            5.25,
+            9.0
+          ],
+          "initial_odds": [
+            1.4,
+            4.33,
+            6.5
+          ],
+          "kelly": [
+            0.93,
+            0.96,
+            1.05
+          ],
+          "payout": 0.9492
+        },
+        "weide": {
+          "name": "weide",
+          "latest_odds": [
+            1.3,
+            5.0,
+            8.5
+          ],
+          "initial_odds": [
+            1.5,
+            4.1,
+            5.5
+          ],
+          "kelly": [
+            0.91,
+            0.91,
+            0.99
+          ],
+          "payout": 0.9201
+        },
+        "libo": {
+          "name": "libo",
+          "latest_odds": [
+            1.33,
+            5.25,
+            7.5
+          ],
+          "initial_odds": [
+            1.5,
+            4.5,
+            6.0
+          ],
+          "kelly": [
+            0.93,
+            0.96,
+            0.88
+          ],
+          "payout": 0.9296
+        },
+        "william_hill": {
+          "name": "william_hill",
+          "latest_odds": [
+            1.36,
+            4.75,
+            7.0
+          ],
+          "initial_odds": [
+            1.5,
+            4.0,
+            6.0
           ],
           "kelly": [
             0.95,
-            0.83,
-            0.89
+            0.87,
+            0.82
           ],
-          "payout": 0.9307
+          "payout": 0.9185
         },
         "macau": {
-          "initial_handicap_str": "两球/两球半",
-          "latest_handicap_str": "两球/两球半",
-          "initial_handicap_val": 2.25,
-          "latest_handicap_val": 2.25,
+          "initial_handicap_str": "一球/球半",
+          "latest_handicap_str": "球半升",
+          "initial_handicap_val": 1.25,
+          "latest_handicap_val": 1.5,
           "handicap_path": []
         }
       },
       "asian_handicap": {
         "macau": {
-          "initial_handicap_str": "两球/两球半",
-          "latest_handicap_str": "两球/两球半",
-          "initial_handicap_val": 2.25,
-          "latest_handicap_val": 2.25,
+          "initial_handicap_str": "一球/球半",
+          "latest_handicap_str": "球半升",
+          "initial_handicap_val": 1.25,
+          "latest_handicap_val": 1.5,
           "initial_home_water": 0.94,
           "initial_away_water": 0.84,
-          "latest_home_water": 0.87,
-          "latest_away_water": 0.91
+          "latest_home_water": 1.02,
+          "latest_away_water": 0.76
         }
       },
       "is_realtime": true,
       "data_quality": "realtime"
     },
-    "1480172": {
-      "match_name": "阿贾克斯 vs 图恩",
-      "home": "阿贾克斯",
-      "away": "图恩",
-      "league": "欧协联赛",
+    "1480133": {
+      "match_name": "圣吉罗斯 vs 波兹南莱赫",
+      "home": "圣吉罗斯",
+      "away": "波兹南莱赫",
+      "league": "欧罗巴联赛",
       "match_time": "11-26 01:35",
       "jingcai_id": "",
-      "beidan_id": "北单085",
-      "fixture_id": "1480172",
+      "beidan_id": "北单081",
+      "fixture_id": "1480133",
       "companies": {
         "bet365": {
           "name": "bet365",
           "latest_odds": [
-            1.17,
-            7.0,
-            13.0
+            1.36,
+            5.25,
+            7.5
           ],
           "initial_odds": [
-            1.17,
-            6.25,
-            13.0
+            1.42,
+            4.33,
+            6.25
           ],
           "kelly": [
-            0.94,
-            0.83,
-            0.98
+            0.95,
+            0.92,
+            0.93
           ],
-          "payout": 0.9307
+          "payout": 0.9442
         },
         "weide": {
           "name": "weide",
           "latest_odds": [
-            1.13,
-            7.5,
-            13.0
+            1.3,
+            5.0,
+            8.0
           ],
           "initial_odds": [
-            1.15,
-            7.0,
-            12.0
+            1.4,
+            4.6,
+            6.5
           ],
           "kelly": [
             0.91,
-            0.89,
-            0.98
+            0.87,
+            1.0
           ],
-          "payout": 0.9131
+          "payout": 0.9139
         },
         "libo": {
           "name": "libo",
           "latest_odds": [
-            1.17,
-            8.5,
-            12.0
+            1.33,
+            5.25,
+            7.0
           ],
           "initial_odds": [
-            1.22,
-            6.5,
-            11.0
+            1.4,
+            5.0,
+            7.0
           ],
           "kelly": [
-            0.94,
-            1.01,
-            0.91
+            0.93,
+            0.92,
+            0.87
           ],
-          "payout": 0.9473
+          "payout": 0.9215
         },
         "william_hill": {
           "name": "william_hill",
           "latest_odds": [
-            1.15,
-            7.5,
-            13.0
+            1.33,
+            5.0,
+            7.5
           ],
           "initial_odds": [
-            1.17,
-            6.5,
-            15.0
+            1.36,
+            4.5,
+            7.0
           ],
           "kelly": [
             0.93,
-            0.89,
-            0.98
+            0.87,
+            0.93
           ],
-          "payout": 0.9261
+          "payout": 0.9215
         },
         "macau": {
-          "initial_handicap_str": "两球",
-          "latest_handicap_str": "两球/两球半升",
-          "initial_handicap_val": 2.0,
-          "latest_handicap_val": 2.25,
+          "initial_handicap_str": "球半",
+          "latest_handicap_str": "球半",
+          "initial_handicap_val": 1.5,
+          "latest_handicap_val": 1.5,
           "handicap_path": []
         }
       },
       "asian_handicap": {
         "macau": {
-          "initial_handicap_str": "两球",
-          "latest_handicap_str": "两球/两球半升",
-          "initial_handicap_val": 2.0,
-          "latest_handicap_val": 2.25,
-          "initial_home_water": 0.78,
-          "initial_away_water": 1.0,
-          "latest_home_water": 0.91,
-          "latest_away_water": 0.87
+          "initial_handicap_str": "球半",
+          "latest_handicap_str": "球半",
+          "initial_handicap_val": 1.5,
+          "latest_handicap_val": 1.5,
+          "initial_home_water": 0.96,
+          "initial_away_water": 0.82,
+          "latest_home_water": 0.88,
+          "latest_away_water": 0.9
         }
       },
+      "is_realtime": true,
+      "data_quality": "realtime"
+    },
+    "2204276": {
+      "match_name": "博卡青年 vs 门多萨独立",
+      "home": "博卡青年",
+      "away": "门多萨独立",
+      "league": "阿职联",
+      "match_time": "11-25 07:50",
+      "jingcai_id": "",
+      "beidan_id": "北单074",
+      "fixture_id": "2204276",
+      "companies": {
+        "bet365": {
+          "name": "bet365",
+          "latest_odds": [
+            1.42,
+            4.2,
+            8.5
+          ],
+          "initial_odds": [
+            1.62,
+            3.6,
+            5.5
+          ],
+          "kelly": [
+            0.92,
+            0.94,
+            1.08
+          ],
+          "payout": 0.9434
+        },
+        "weide": {
+          "name": "weide",
+          "latest_odds": [
+            1.4,
+            4.2,
+            8.0
+          ],
+          "initial_odds": [
+            1.53,
+            3.8,
+            6.5
+          ],
+          "kelly": [
+            0.91,
+            0.94,
+            1.02
+          ],
+          "payout": 0.9282
+        },
+        "libo": {
+          "name": "libo",
+          "latest_odds": [
+            1.44,
+            4.4,
+            7.5
+          ],
+          "initial_odds": [
+            1.55,
+            4.0,
+            6.0
+          ],
+          "kelly": [
+            0.94,
+            0.98,
+            0.95
+          ],
+          "payout": 0.9478
+        },
+        "william_hill": {
+          "name": "william_hill",
+          "latest_odds": [
+            1.4,
+            4.2,
+            7.0
+          ],
+          "initial_odds": [
+            1.55,
+            3.6,
+            6.0
+          ],
+          "kelly": [
+            0.91,
+            0.94,
+            0.89
+          ],
+          "payout": 0.913
+        }
+      },
+      "asian_handicap": {},
       "is_realtime": true,
       "data_quality": "realtime"
     },
@@ -2540,7 +2750,7 @@
             3.5
           ],
           "kelly": [
-            0.92,
+            0.93,
             0.93,
             0.96
           ],
@@ -2559,7 +2769,7 @@
             3.4
           ],
           "kelly": [
-            0.92,
+            0.93,
             0.93,
             0.9
           ],
@@ -2578,7 +2788,7 @@
             4.33
           ],
           "kelly": [
-            0.92,
+            0.93,
             0.94,
             0.96
           ],
@@ -2597,7 +2807,7 @@
             4.0
           ],
           "kelly": [
-            0.92,
+            0.93,
             0.88,
             0.93
           ],
@@ -2619,72 +2829,6 @@
           "latest_handicap_val": 0.25,
           "initial_home_water": 0.86,
           "initial_away_water": 0.92,
-          "latest_home_water": 0.88,
-          "latest_away_water": 0.9
-        }
-      },
-      "is_realtime": true,
-      "data_quality": "realtime"
-    },
-    "1480073": {
-      "match_name": "马赛 vs 索非亚列夫斯基",
-      "home": "马赛",
-      "away": "索非亚列夫斯基",
-      "league": "欧罗巴联赛",
-      "match_time": "11-26 01:35",
-      "jingcai_id": "",
-      "beidan_id": "北单079",
-      "fixture_id": "1480073",
-      "companies": {
-        "macau": {
-          "initial_handicap_str": "一球/球半",
-          "latest_handicap_str": "球半升",
-          "initial_handicap_val": 1.25,
-          "latest_handicap_val": 1.5,
-          "handicap_path": []
-        }
-      },
-      "asian_handicap": {
-        "macau": {
-          "initial_handicap_str": "一球/球半",
-          "latest_handicap_str": "球半升",
-          "initial_handicap_val": 1.25,
-          "latest_handicap_val": 1.5,
-          "initial_home_water": 0.94,
-          "initial_away_water": 0.84,
-          "latest_home_water": 1.02,
-          "latest_away_water": 0.76
-        }
-      },
-      "is_realtime": true,
-      "data_quality": "realtime"
-    },
-    "1480133": {
-      "match_name": "圣吉罗斯 vs 波兹南莱赫",
-      "home": "圣吉罗斯",
-      "away": "波兹南莱赫",
-      "league": "欧罗巴联赛",
-      "match_time": "11-26 01:35",
-      "jingcai_id": "",
-      "beidan_id": "北单081",
-      "fixture_id": "1480133",
-      "companies": {
-        "macau": {
-          "initial_handicap_str": "球半",
-          "latest_handicap_str": "球半",
-          "initial_handicap_val": 1.5,
-          "latest_handicap_val": 1.5,
-          "handicap_path": []
-        }
-      },
-      "asian_handicap": {
-        "macau": {
-          "initial_handicap_str": "球半",
-          "latest_handicap_str": "球半",
-          "initial_handicap_val": 1.5,
-          "latest_handicap_val": 1.5,
-          "initial_home_water": 0.96,
-          "initial_away_water": 0.82,
           "latest_home_water": 0.88,
           "latest_away_water": 0.9
         }
@@ -2715,8 +2859,8 @@
             1.57
           ],
           "kelly": [
-            1.05,
-            0.9,
+            1.04,
+            0.89,
             0.92
           ],
           "payout": 0.9333
@@ -2734,7 +2878,7 @@
             1.57
           ],
           "kelly": [
-            0.96,
+            0.95,
             0.92,
             0.9
           ],
@@ -2753,8 +2897,8 @@
             1.5
           ],
           "kelly": [
-            0.96,
             0.95,
+            0.94,
             0.94
           ],
           "payout": 0.9449
@@ -2772,8 +2916,8 @@
             1.53
           ],
           "kelly": [
-            0.88,
-            0.88,
+            0.87,
+            0.87,
             0.94
           ],
           "payout": 0.913
@@ -2801,39 +2945,6 @@
       "is_realtime": true,
       "data_quality": "realtime"
     },
-    "1480029": {
-      "match_name": "尤文 vs 奥莫尼亚",
-      "home": "尤文",
-      "away": "奥莫尼亚",
-      "league": "欧罗巴联赛",
-      "match_time": "11-26 03:50",
-      "jingcai_id": "",
-      "beidan_id": "北单091",
-      "fixture_id": "1480029",
-      "companies": {
-        "macau": {
-          "initial_handicap_str": "两球",
-          "latest_handicap_str": "两球",
-          "initial_handicap_val": 2.0,
-          "latest_handicap_val": 2.0,
-          "handicap_path": []
-        }
-      },
-      "asian_handicap": {
-        "macau": {
-          "initial_handicap_str": "两球",
-          "latest_handicap_str": "两球",
-          "initial_handicap_val": 2.0,
-          "latest_handicap_val": 2.0,
-          "initial_home_water": 0.9,
-          "initial_away_water": 0.88,
-          "latest_home_water": 0.84,
-          "latest_away_water": 0.94
-        }
-      },
-      "is_realtime": true,
-      "data_quality": "realtime"
-    },
     "1480231": {
       "match_name": "亚布洛内茨 vs 卢加诺",
       "home": "亚布洛内茨",
@@ -2844,6 +2955,82 @@
       "beidan_id": "北单089",
       "fixture_id": "1480231",
       "companies": {
+        "bet365": {
+          "name": "bet365",
+          "latest_odds": [
+            3.5,
+            3.6,
+            2.0
+          ],
+          "initial_odds": [
+            3.0,
+            3.5,
+            2.15
+          ],
+          "kelly": [
+            1.02,
+            0.95,
+            0.89
+          ],
+          "payout": 0.9403
+        },
+        "weide": {
+          "name": "weide",
+          "latest_odds": [
+            3.1,
+            3.4,
+            2.1
+          ],
+          "initial_odds": [
+            3.0,
+            3.5,
+            2.1
+          ],
+          "kelly": [
+            0.91,
+            0.9,
+            0.93
+          ],
+          "payout": 0.915
+        },
+        "libo": {
+          "name": "libo",
+          "latest_odds": [
+            3.3,
+            3.7,
+            2.05
+          ],
+          "initial_odds": [
+            2.62,
+            3.5,
+            2.5
+          ],
+          "kelly": [
+            0.96,
+            0.97,
+            0.91
+          ],
+          "payout": 0.9424
+        },
+        "william_hill": {
+          "name": "william_hill",
+          "latest_odds": [
+            3.25,
+            3.5,
+            2.0
+          ],
+          "initial_odds": [
+            2.9,
+            3.25,
+            2.25
+          ],
+          "kelly": [
+            0.95,
+            0.92,
+            0.89
+          ],
+          "payout": 0.9146
+        },
         "macau": {
           "initial_handicap_str": "受平手/半球",
           "latest_handicap_str": "受平手/半球",
@@ -2867,871 +3054,32 @@
       "is_realtime": true,
       "data_quality": "realtime"
     },
-    "1480065": {
-      "match_name": "里昂 vs 利勒斯特罗姆",
-      "home": "里昂",
-      "away": "利勒斯特罗姆",
-      "league": "欧罗巴联赛",
-      "match_time": "11-26 03:50",
-      "jingcai_id": "",
-      "beidan_id": "北单092",
-      "fixture_id": "1480065",
-      "companies": {
-        "bet365": {
-          "name": "bet365",
-          "latest_odds": [
-            1.22,
-            7.0,
-            11.0
-          ],
-          "initial_odds": [
-            1.22,
-            6.0,
-            8.0
-          ],
-          "kelly": [
-            0.98,
-            0.89,
-            0.81
-          ],
-          "payout": 0.9493
-        },
-        "weide": {
-          "name": "weide",
-          "latest_odds": [
-            1.17,
-            6.5,
-            13.0
-          ],
-          "initial_odds": [
-            1.2,
-            6.0,
-            11.0
-          ],
-          "kelly": [
-            0.94,
-            0.82,
-            0.95
-          ],
-          "payout": 0.9213
-        },
-        "libo": {
-          "name": "libo",
-          "latest_odds": [
-            1.22,
-            7.0,
-            11.0
-          ],
-          "initial_odds": [
-            1.22,
-            6.5,
-            11.0
-          ],
-          "kelly": [
-            0.98,
-            0.89,
-            0.81
-          ],
-          "payout": 0.9493
-        },
-        "william_hill": {
-          "name": "william_hill",
-          "latest_odds": [
-            1.18,
-            6.5,
-            13.0
-          ],
-          "initial_odds": [
-            1.18,
-            6.5,
-            9.0
-          ],
-          "kelly": [
-            0.94,
-            0.82,
-            0.95
-          ],
-          "payout": 0.9274
-        }
-      },
-      "asian_handicap": {},
-      "is_realtime": true,
-      "data_quality": "realtime"
-    },
-    "1479995": {
-      "match_name": "费伦茨瓦罗斯 vs 采列",
-      "home": "费伦茨瓦罗斯",
-      "away": "采列",
-      "league": "欧罗巴联赛",
-      "match_time": "11-26 03:50",
-      "jingcai_id": "",
-      "beidan_id": "北单093",
-      "fixture_id": "1479995",
-      "companies": {
-        "macau": {
-          "initial_handicap_str": "球半",
-          "latest_handicap_str": "球半",
-          "initial_handicap_val": 1.5,
-          "latest_handicap_val": 1.5,
-          "handicap_path": []
-        }
-      },
-      "asian_handicap": {
-        "macau": {
-          "initial_handicap_str": "球半",
-          "latest_handicap_str": "球半",
-          "initial_handicap_val": 1.5,
-          "latest_handicap_val": 1.5,
-          "initial_home_water": 0.96,
-          "initial_away_water": 0.82,
-          "latest_home_water": 0.96,
-          "latest_away_water": 0.82
-        }
-      },
-      "is_realtime": true,
-      "data_quality": "realtime"
-    },
-    "1480154": {
-      "match_name": "托伦斯 vs 凯尔特人",
-      "home": "托伦斯",
-      "away": "凯尔特人",
-      "league": "欧罗巴联赛",
-      "match_time": "11-26 03:50",
-      "jingcai_id": "",
-      "beidan_id": "北单098",
-      "fixture_id": "1480154",
-      "companies": {
-        "macau": {
-          "initial_handicap_str": "受半球/一球",
-          "latest_handicap_str": "受半球/一球",
-          "initial_handicap_val": -0.75,
-          "latest_handicap_val": -0.75,
-          "handicap_path": []
-        }
-      },
-      "asian_handicap": {
-        "macau": {
-          "initial_handicap_str": "受半球/一球",
-          "latest_handicap_str": "受半球/一球",
-          "initial_handicap_val": -0.75,
-          "latest_handicap_val": -0.75,
-          "initial_home_water": 0.9,
-          "initial_away_water": 0.88,
-          "latest_home_water": 1.0,
-          "latest_away_water": 0.78
-        }
-      },
-      "is_realtime": true,
-      "data_quality": "realtime"
-    },
-    "1480189": {
-      "match_name": "布拉加 vs 库普斯",
-      "home": "布拉加",
-      "away": "库普斯",
+    "1480172": {
+      "match_name": "阿贾克斯 vs 图恩",
+      "home": "阿贾克斯",
+      "away": "图恩",
       "league": "欧协联赛",
-      "match_time": "11-26 03:50",
+      "match_time": "11-26 01:35",
       "jingcai_id": "",
-      "beidan_id": "北单101",
-      "fixture_id": "1480189",
+      "beidan_id": "北单085",
+      "fixture_id": "1480172",
       "companies": {
-        "bet365": {
-          "name": "bet365",
-          "latest_odds": [
-            1.11,
-            8.0,
-            19.0
-          ],
-          "initial_odds": [
-            1.2,
-            6.25,
-            12.0
-          ],
-          "kelly": [
-            0.92,
-            0.9,
-            1.07
-          ],
-          "payout": 0.9272
-        },
-        "weide": {
-          "name": "weide",
-          "latest_odds": [
-            1.1,
-            8.0,
-            19.0
-          ],
-          "initial_odds": [
-            1.11,
-            7.5,
-            17.0
-          ],
-          "kelly": [
-            0.91,
-            0.9,
-            1.07
-          ],
-          "payout": 0.9202
-        },
-        "libo": {
-          "name": "libo",
-          "latest_odds": [
-            1.13,
-            9.5,
-            15.0
-          ],
-          "initial_odds": [
-            1.2,
-            7.0,
-            12.0
-          ],
-          "kelly": [
-            0.94,
-            1.06,
-            0.85
-          ],
-          "payout": 0.9462
-        },
-        "william_hill": {
-          "name": "william_hill",
-          "latest_odds": [
-            1.13,
-            8.0,
-            17.0
-          ],
-          "initial_odds": [
-            1.18,
-            6.0,
-            13.0
-          ],
-          "kelly": [
-            0.94,
-            0.9,
-            0.96
-          ],
-          "payout": 0.9356
-        },
         "macau": {
-          "initial_handicap_str": "两球/两球半",
-          "latest_handicap_str": "两球/两球半",
-          "initial_handicap_val": 2.25,
+          "initial_handicap_str": "两球",
+          "latest_handicap_str": "两球/两球半升",
+          "initial_handicap_val": 2.0,
           "latest_handicap_val": 2.25,
           "handicap_path": []
         }
       },
       "asian_handicap": {
         "macau": {
-          "initial_handicap_str": "两球/两球半",
-          "latest_handicap_str": "两球/两球半",
-          "initial_handicap_val": 2.25,
+          "initial_handicap_str": "两球",
+          "latest_handicap_str": "两球/两球半升",
+          "initial_handicap_val": 2.0,
           "latest_handicap_val": 2.25,
-          "initial_home_water": 0.94,
-          "initial_away_water": 0.84,
-          "latest_home_water": 0.82,
-          "latest_away_water": 0.96
-        }
-      },
-      "is_realtime": true,
-      "data_quality": "realtime"
-    },
-    "1480086": {
-      "match_name": "OFI克里特 vs 安德莱赫特",
-      "home": "OFI克里特",
-      "away": "安德莱赫特",
-      "league": "欧罗巴联赛",
-      "match_time": "11-26 03:50",
-      "jingcai_id": "",
-      "beidan_id": "北单100",
-      "fixture_id": "1480086",
-      "companies": {
-        "macau": {
-          "initial_handicap_str": "受半球/一球",
-          "latest_handicap_str": "受半球/一球",
-          "initial_handicap_val": -0.75,
-          "latest_handicap_val": -0.75,
-          "handicap_path": []
-        }
-      },
-      "asian_handicap": {
-        "macau": {
-          "initial_handicap_str": "受半球/一球",
-          "latest_handicap_str": "受半球/一球",
-          "initial_handicap_val": -0.75,
-          "latest_handicap_val": -0.75,
           "initial_home_water": 0.78,
           "initial_away_water": 1.0,
-          "latest_home_water": 0.79,
-          "latest_away_water": 0.99
-        }
-      },
-      "is_realtime": true,
-      "data_quality": "realtime"
-    },
-    "1480174": {
-      "match_name": "弗赖堡 vs 特温特",
-      "home": "弗赖堡",
-      "away": "特温特",
-      "league": "欧协联赛",
-      "match_time": "11-26 03:50",
-      "jingcai_id": "",
-      "beidan_id": "北单102",
-      "fixture_id": "1480174",
-      "companies": {
-        "macau": {
-          "initial_handicap_str": "平手/半球",
-          "latest_handicap_str": "平手/半球",
-          "initial_handicap_val": 0.25,
-          "latest_handicap_val": 0.25,
-          "handicap_path": []
-        }
-      },
-      "asian_handicap": {
-        "macau": {
-          "initial_handicap_str": "平手/半球",
-          "latest_handicap_str": "平手/半球",
-          "initial_handicap_val": 0.25,
-          "latest_handicap_val": 0.25,
-          "initial_home_water": 0.79,
-          "initial_away_water": 0.99,
-          "latest_home_water": 0.78,
-          "latest_away_water": 1.0
-        }
-      },
-      "is_realtime": true,
-      "data_quality": "realtime"
-    },
-    "1480161": {
-      "match_name": "根特 vs 贝尔格莱德红星",
-      "home": "根特",
-      "away": "贝尔格莱德红星",
-      "league": "欧协联赛",
-      "match_time": "11-26 03:50",
-      "jingcai_id": "",
-      "beidan_id": "北单103",
-      "fixture_id": "1480161",
-      "companies": {
-        "macau": {
-          "initial_handicap_str": "平手/半球",
-          "latest_handicap_str": "平手/半球",
-          "initial_handicap_val": 0.25,
-          "latest_handicap_val": 0.25,
-          "handicap_path": []
-        }
-      },
-      "asian_handicap": {
-        "macau": {
-          "initial_handicap_str": "平手/半球",
-          "latest_handicap_str": "平手/半球",
-          "initial_handicap_val": 0.25,
-          "latest_handicap_val": 0.25,
-          "initial_home_water": 0.84,
-          "initial_away_water": 0.94,
-          "latest_home_water": 0.84,
-          "latest_away_water": 0.94
-        }
-      },
-      "is_realtime": true,
-      "data_quality": "realtime"
-    },
-    "1480186": {
-      "match_name": "巴尼亚卢卡战士 vs 亚特兰大",
-      "home": "巴尼亚卢卡战士",
-      "away": "亚特兰大",
-      "league": "欧协联赛",
-      "match_time": "11-26 03:50",
-      "jingcai_id": "",
-      "beidan_id": "北单104",
-      "fixture_id": "1480186",
-      "companies": {
-        "bet365": {
-          "name": "bet365",
-          "latest_odds": [
-            6.25,
-            5.0,
-            1.42
-          ],
-          "initial_odds": [
-            7.5,
-            5.0,
-            1.33
-          ],
-          "kelly": [
-            0.95,
-            0.97,
-            0.93
-          ],
-          "payout": 0.9397
-        },
-        "weide": {
-          "name": "weide",
-          "latest_odds": [
-            7.0,
-            4.75,
-            1.36
-          ],
-          "initial_odds": [
-            5.25,
-            4.1,
-            1.53
-          ],
-          "kelly": [
-            1.06,
-            0.92,
-            0.89
-          ],
-          "payout": 0.9185
-        },
-        "libo": {
-          "name": "libo",
-          "latest_odds": [
-            6.0,
-            5.0,
-            1.44
-          ],
-          "initial_odds": [
-            5.25,
-            4.2,
-            1.57
-          ],
-          "kelly": [
-            0.91,
-            0.97,
-            0.94
-          ],
-          "payout": 0.9424
-        },
-        "william_hill": {
-          "name": "william_hill",
-          "latest_odds": [
-            5.8,
-            4.4,
-            1.44
-          ],
-          "initial_odds": [
-            8.5,
-            5.0,
-            1.3
-          ],
-          "kelly": [
-            0.88,
-            0.85,
-            0.94
-          ],
-          "payout": 0.914
-        }
-      },
-      "asian_handicap": {},
-      "is_realtime": true,
-      "data_quality": "realtime"
-    },
-    "1480245": {
-      "match_name": "哈伊杜克 vs 圣图尔登",
-      "home": "哈伊杜克",
-      "away": "圣图尔登",
-      "league": "欧协联赛",
-      "match_time": "11-26 03:50",
-      "jingcai_id": "",
-      "beidan_id": "北单105",
-      "fixture_id": "1480245",
-      "companies": {
-        "macau": {
-          "initial_handicap_str": "平手/半球",
-          "latest_handicap_str": "平手/半球",
-          "initial_handicap_val": 0.25,
-          "latest_handicap_val": 0.25,
-          "handicap_path": []
-        }
-      },
-      "asian_handicap": {
-        "macau": {
-          "initial_handicap_str": "平手/半球",
-          "latest_handicap_str": "平手/半球",
-          "initial_handicap_val": 0.25,
-          "latest_handicap_val": 0.25,
-          "initial_home_water": 0.81,
-          "initial_away_water": 0.97,
-          "latest_home_water": 0.82,
-          "latest_away_water": 0.96
-        }
-      },
-      "is_realtime": true,
-      "data_quality": "realtime"
-    },
-    "1480199": {
-      "match_name": "北西兰 vs 帕纳辛纳科斯",
-      "home": "北西兰",
-      "away": "帕纳辛纳科斯",
-      "league": "欧协联赛",
-      "match_time": "11-26 03:50",
-      "jingcai_id": "",
-      "beidan_id": "北单106",
-      "fixture_id": "1480199",
-      "companies": {
-        "macau": {
-          "initial_handicap_str": "平手",
-          "latest_handicap_str": "平手",
-          "initial_handicap_val": 0.0,
-          "latest_handicap_val": 0.0,
-          "handicap_path": []
-        }
-      },
-      "asian_handicap": {
-        "macau": {
-          "initial_handicap_str": "平手",
-          "latest_handicap_str": "平手",
-          "initial_handicap_val": 0.0,
-          "latest_handicap_val": 0.0,
-          "initial_home_water": 1.01,
-          "initial_away_water": 0.77,
-          "latest_home_water": 0.83,
-          "latest_away_water": 0.95
-        }
-      },
-      "is_realtime": true,
-      "data_quality": "realtime"
-    },
-    "1480196": {
-      "match_name": "埃斯卡尔德斯国际 vs 哥本哈根",
-      "home": "埃斯卡尔德斯国际",
-      "away": "哥本哈根",
-      "league": "欧协联赛",
-      "match_time": "11-26 03:50",
-      "jingcai_id": "",
-      "beidan_id": "北单107",
-      "fixture_id": "1480196",
-      "companies": {
-        "bet365": {
-          "name": "bet365",
-          "latest_odds": [
-            15.0,
-            6.0,
-            1.2
-          ],
-          "initial_odds": [
-            10.0,
-            6.0,
-            1.2
-          ],
-          "kelly": [
-            1.17,
-            0.9,
-            0.93
-          ],
-          "payout": 0.9375
-        },
-        "weide": {
-          "name": "weide",
-          "latest_odds": [
-            13.0,
-            6.0,
-            1.18
-          ],
-          "initial_odds": [
-            10.5,
-            5.75,
-            1.22
-          ],
-          "kelly": [
-            1.01,
-            0.9,
-            0.91
-          ],
-          "payout": 0.9166
-        },
-        "libo": {
-          "name": "libo",
-          "latest_odds": [
-            13.0,
-            6.5,
-            1.2
-          ],
-          "initial_odds": [
-            10.0,
-            6.5,
-            1.25
-          ],
-          "kelly": [
-            1.01,
-            0.97,
-            0.93
-          ],
-          "payout": 0.9398
-        },
-        "william_hill": {
-          "name": "william_hill",
-          "latest_odds": [
-            12.0,
-            5.5,
-            1.22
-          ],
-          "initial_odds": [
-            11.0,
-            5.5,
-            1.22
-          ],
-          "kelly": [
-            0.94,
-            0.82,
-            0.94
-          ],
-          "payout": 0.9218
-        },
-        "macau": {
-          "initial_handicap_str": "受球半/两球",
-          "latest_handicap_str": "受球半/两球",
-          "initial_handicap_val": -1.75,
-          "latest_handicap_val": -1.75,
-          "handicap_path": []
-        }
-      },
-      "asian_handicap": {
-        "macau": {
-          "initial_handicap_str": "受球半/两球",
-          "latest_handicap_str": "受球半/两球",
-          "initial_handicap_val": -1.75,
-          "latest_handicap_val": -1.75,
-          "initial_home_water": 0.84,
-          "initial_away_water": 0.94,
-          "latest_home_water": 1.01,
-          "latest_away_water": 0.77
-        }
-      },
-      "is_realtime": true,
-      "data_quality": "realtime"
-    },
-    "1480251": {
-      "match_name": "索非亚中央陆军 vs 特拉布宗",
-      "home": "索非亚中央陆军",
-      "away": "特拉布宗",
-      "league": "欧协联赛",
-      "match_time": "11-26 03:50",
-      "jingcai_id": "",
-      "beidan_id": "北单108",
-      "fixture_id": "1480251",
-      "companies": {
-        "macau": {
-          "initial_handicap_str": "受半球",
-          "latest_handicap_str": "受半球/一球降",
-          "initial_handicap_val": -0.5,
-          "latest_handicap_val": -0.75,
-          "handicap_path": []
-        }
-      },
-      "asian_handicap": {
-        "macau": {
-          "initial_handicap_str": "受半球",
-          "latest_handicap_str": "受半球/一球降",
-          "initial_handicap_val": -0.5,
-          "latest_handicap_val": -0.75,
-          "initial_home_water": 0.88,
-          "initial_away_water": 0.9,
-          "latest_home_water": 0.79,
-          "latest_away_water": 0.99
-        }
-      },
-      "is_realtime": true,
-      "data_quality": "realtime"
-    },
-    "1362538": {
-      "match_name": "圣保罗 vs 雷莫",
-      "home": "圣保罗",
-      "away": "雷莫",
-      "league": "巴西甲",
-      "match_time": "11-26 06:50",
-      "jingcai_id": "",
-      "beidan_id": "北单110",
-      "fixture_id": "1362538",
-      "companies": {
-        "macau": {
-          "initial_handicap_str": "一球/球半",
-          "latest_handicap_str": "球半升",
-          "initial_handicap_val": 1.25,
-          "latest_handicap_val": 1.5,
-          "handicap_path": []
-        }
-      },
-      "asian_handicap": {
-        "macau": {
-          "initial_handicap_str": "一球/球半",
-          "latest_handicap_str": "球半升",
-          "initial_handicap_val": 1.25,
-          "latest_handicap_val": 1.5,
-          "initial_home_water": 0.8,
-          "initial_away_water": 0.98,
-          "latest_home_water": 0.99,
-          "latest_away_water": 0.79
-        }
-      },
-      "is_realtime": true,
-      "data_quality": "realtime"
-    },
-    "2299818": {
-      "match_name": "帕丘卡 vs 瓜达拉哈拉",
-      "home": "帕丘卡",
-      "away": "瓜达拉哈拉",
-      "league": "墨超",
-      "match_time": "11-26 08:50",
-      "jingcai_id": "",
-      "beidan_id": "北单111",
-      "fixture_id": "2299818",
-      "companies": {
-        "bet365": {
-          "name": "bet365",
-          "latest_odds": [
-            2.6,
-            3.6,
-            2.55
-          ],
-          "initial_odds": [
-            2.6,
-            3.75,
-            2.5
-          ],
-          "kelly": [
-            0.92,
-            1.0,
-            0.94
-          ],
-          "payout": 0.9483
-        },
-        "weide": {
-          "name": "weide",
-          "latest_odds": [
-            2.55,
-            3.4,
-            2.5
-          ],
-          "initial_odds": [
-            2.6,
-            3.5,
-            2.45
-          ],
-          "kelly": [
-            0.9,
-            0.94,
-            0.92
-          ],
-          "payout": 0.9206
-        },
-        "libo": {
-          "name": "libo",
-          "latest_odds": [
-            2.5,
-            3.25,
-            2.45
-          ],
-          "initial_odds": [
-            2.6,
-            3.1,
-            2.4
-          ],
-          "kelly": [
-            0.89,
-            0.9,
-            0.9
-          ],
-          "payout": 0.8962
-        },
-        "william_hill": {
-          "name": "william_hill",
-          "latest_odds": [
-            2.5,
-            3.1,
-            2.45
-          ],
-          "initial_odds": [
-            2.5,
-            3.0,
-            2.45
-          ],
-          "kelly": [
-            0.89,
-            0.86,
-            0.9
-          ],
-          "payout": 0.8844
-        },
-        "macau": {
-          "initial_handicap_str": "平手",
-          "latest_handicap_str": "平手",
-          "initial_handicap_val": 0.0,
-          "latest_handicap_val": 0.0,
-          "handicap_path": []
-        }
-      },
-      "asian_handicap": {
-        "macau": {
-          "initial_handicap_str": "平手",
-          "latest_handicap_str": "平手",
-          "initial_handicap_val": 0.0,
-          "latest_handicap_val": 0.0,
-          "initial_home_water": 0.93,
-          "initial_away_water": 0.85,
-          "latest_home_water": 0.92,
-          "latest_away_water": 0.86
-        }
-      },
-      "is_realtime": true,
-      "data_quality": "realtime"
-    },
-    "1425897": {
-      "match_name": "唐卡斯特 vs 哈德斯菲尔德",
-      "home": "唐卡斯特",
-      "away": "哈德斯菲尔德",
-      "league": "英甲",
-      "match_time": "11-26 03:50",
-      "jingcai_id": "",
-      "beidan_id": "北单109",
-      "fixture_id": "1425897",
-      "companies": {
-        "macau": {
-          "initial_handicap_str": "受半球/一球",
-          "latest_handicap_str": "受半球/一球",
-          "initial_handicap_val": -0.75,
-          "latest_handicap_val": -0.75,
-          "handicap_path": []
-        }
-      },
-      "asian_handicap": {
-        "macau": {
-          "initial_handicap_str": "受半球/一球",
-          "latest_handicap_str": "受半球/一球",
-          "initial_handicap_val": -0.75,
-          "latest_handicap_val": -0.75,
-          "initial_home_water": 0.8,
-          "initial_away_water": 0.98,
-          "latest_home_water": 0.88,
-          "latest_away_water": 0.9
-        }
-      },
-      "is_realtime": true,
-      "data_quality": "realtime"
-    },
-    "2299819": {
-      "match_name": "莱昂 vs 蓝十字",
-      "home": "莱昂",
-      "away": "蓝十字",
-      "league": "墨超",
-      "match_time": "11-27 11:00",
-      "jingcai_id": "",
-      "beidan_id": "北单112",
-      "fixture_id": "2299819",
-      "companies": {
-        "macau": {
-          "initial_handicap_str": "受平手/半球",
-          "latest_handicap_str": "受平手/半球",
-          "initial_handicap_val": -0.25,
-          "latest_handicap_val": -0.25,
-          "handicap_path": []
-        }
-      },
-      "asian_handicap": {
-        "macau": {
-          "initial_handicap_str": "受平手/半球",
-          "latest_handicap_str": "受平手/半球",
-          "initial_handicap_val": -0.25,
-          "latest_handicap_val": -0.25,
-          "initial_home_water": 0.93,
-          "initial_away_water": 0.85,
           "latest_home_water": 0.91,
           "latest_away_water": 0.87
         }
@@ -3829,9 +3177,1403 @@
       "asian_handicap": {},
       "is_realtime": true,
       "data_quality": "realtime"
+    },
+    "1479995": {
+      "match_name": "费伦茨瓦罗斯 vs 采列",
+      "home": "费伦茨瓦罗斯",
+      "away": "采列",
+      "league": "欧罗巴联赛",
+      "match_time": "11-26 03:50",
+      "jingcai_id": "",
+      "beidan_id": "北单093",
+      "fixture_id": "1479995",
+      "companies": {
+        "bet365": {
+          "name": "bet365",
+          "latest_odds": [
+            1.36,
+            5.0,
+            7.5
+          ],
+          "initial_odds": [
+            1.5,
+            4.0,
+            5.5
+          ],
+          "kelly": [
+            0.95,
+            0.9,
+            0.93
+          ],
+          "payout": 0.9358
+        },
+        "weide": {
+          "name": "weide",
+          "latest_odds": [
+            1.33,
+            5.0,
+            7.5
+          ],
+          "initial_odds": [
+            1.4,
+            4.33,
+            6.5
+          ],
+          "kelly": [
+            0.93,
+            0.9,
+            0.93
+          ],
+          "payout": 0.9215
+        },
+        "libo": {
+          "name": "libo",
+          "latest_odds": [
+            1.36,
+            5.25,
+            7.0
+          ],
+          "initial_odds": [
+            1.35,
+            5.25,
+            7.5
+          ],
+          "kelly": [
+            0.95,
+            0.95,
+            0.87
+          ],
+          "payout": 0.9358
+        },
+        "william_hill": {
+          "name": "william_hill",
+          "latest_odds": [
+            1.35,
+            4.8,
+            7.5
+          ],
+          "initial_odds": [
+            1.33,
+            4.75,
+            7.5
+          ],
+          "kelly": [
+            0.94,
+            0.87,
+            0.93
+          ],
+          "payout": 0.9239
+        },
+        "macau": {
+          "initial_handicap_str": "球半",
+          "latest_handicap_str": "球半",
+          "initial_handicap_val": 1.5,
+          "latest_handicap_val": 1.5,
+          "handicap_path": []
+        }
+      },
+      "asian_handicap": {
+        "macau": {
+          "initial_handicap_str": "球半",
+          "latest_handicap_str": "球半",
+          "initial_handicap_val": 1.5,
+          "latest_handicap_val": 1.5,
+          "initial_home_water": 0.96,
+          "initial_away_water": 0.82,
+          "latest_home_water": 0.96,
+          "latest_away_water": 0.82
+        }
+      },
+      "is_realtime": true,
+      "data_quality": "realtime"
+    },
+    "1480029": {
+      "match_name": "尤文 vs 奥莫尼亚",
+      "home": "尤文",
+      "away": "奥莫尼亚",
+      "league": "欧罗巴联赛",
+      "match_time": "11-26 03:50",
+      "jingcai_id": "",
+      "beidan_id": "北单091",
+      "fixture_id": "1480029",
+      "companies": {
+        "bet365": {
+          "name": "bet365",
+          "latest_odds": [
+            1.17,
+            7.5,
+            15.0
+          ],
+          "initial_odds": [
+            1.18,
+            6.25,
+            12.0
+          ],
+          "kelly": [
+            0.94,
+            0.96,
+            1.02
+          ],
+          "payout": 0.9481
+        },
+        "weide": {
+          "name": "weide",
+          "latest_odds": [
+            1.14,
+            7.0,
+            13.0
+          ],
+          "initial_odds": [
+            1.18,
+            6.0,
+            12.0
+          ],
+          "kelly": [
+            0.92,
+            0.89,
+            0.88
+          ],
+          "payout": 0.9116
+        },
+        "libo": {
+          "name": "libo",
+          "latest_odds": [
+            1.17,
+            7.5,
+            13.0
+          ],
+          "initial_odds": [
+            1.2,
+            6.5,
+            10.0
+          ],
+          "kelly": [
+            0.94,
+            0.96,
+            0.88
+          ],
+          "payout": 0.939
+        },
+        "william_hill": {
+          "name": "william_hill",
+          "latest_odds": [
+            1.17,
+            7.0,
+            13.0
+          ],
+          "initial_odds": [
+            1.2,
+            6.0,
+            11.0
+          ],
+          "kelly": [
+            0.94,
+            0.89,
+            0.88
+          ],
+          "payout": 0.9307
+        }
+      },
+      "asian_handicap": {},
+      "is_realtime": true,
+      "data_quality": "realtime"
+    },
+    "1480065": {
+      "match_name": "里昂 vs 利勒斯特罗姆",
+      "home": "里昂",
+      "away": "利勒斯特罗姆",
+      "league": "欧罗巴联赛",
+      "match_time": "11-26 03:50",
+      "jingcai_id": "",
+      "beidan_id": "北单092",
+      "fixture_id": "1480065",
+      "companies": {
+        "macau": {
+          "initial_handicap_str": "两球",
+          "latest_handicap_str": "两球",
+          "initial_handicap_val": 2.0,
+          "latest_handicap_val": 2.0,
+          "handicap_path": []
+        }
+      },
+      "asian_handicap": {
+        "macau": {
+          "initial_handicap_str": "两球",
+          "latest_handicap_str": "两球",
+          "initial_handicap_val": 2.0,
+          "latest_handicap_val": 2.0,
+          "initial_home_water": 0.87,
+          "initial_away_water": 0.91,
+          "latest_home_water": 0.9,
+          "latest_away_water": 0.88
+        }
+      },
+      "is_realtime": true,
+      "data_quality": "realtime"
+    },
+    "1480086": {
+      "match_name": "OFI克里特 vs 安德莱赫特",
+      "home": "OFI克里特",
+      "away": "安德莱赫特",
+      "league": "欧罗巴联赛",
+      "match_time": "11-26 03:50",
+      "jingcai_id": "",
+      "beidan_id": "北单100",
+      "fixture_id": "1480086",
+      "companies": {
+        "bet365": {
+          "name": "bet365",
+          "latest_odds": [
+            4.5,
+            3.75,
+            1.75
+          ],
+          "initial_odds": [
+            3.6,
+            3.5,
+            1.85
+          ],
+          "kelly": [
+            1.0,
+            0.94,
+            0.92
+          ],
+          "payout": 0.9431
+        },
+        "weide": {
+          "name": "weide",
+          "latest_odds": [
+            4.1,
+            3.75,
+            1.73
+          ],
+          "initial_odds": [
+            3.4,
+            3.7,
+            1.9
+          ],
+          "kelly": [
+            0.91,
+            0.94,
+            0.91
+          ],
+          "payout": 0.9186
+        },
+        "libo": {
+          "name": "libo",
+          "latest_odds": [
+            4.2,
+            3.75,
+            1.8
+          ],
+          "initial_odds": [
+            3.7,
+            3.6,
+            1.95
+          ],
+          "kelly": [
+            0.93,
+            0.94,
+            0.95
+          ],
+          "payout": 0.9431
+        },
+        "william_hill": {
+          "name": "william_hill",
+          "latest_odds": [
+            4.0,
+            3.5,
+            1.8
+          ],
+          "initial_odds": [
+            3.5,
+            3.5,
+            1.91
+          ],
+          "kelly": [
+            0.89,
+            0.87,
+            0.95
+          ],
+          "payout": 0.9164
+        },
+        "macau": {
+          "initial_handicap_str": "受半球/一球",
+          "latest_handicap_str": "受半球/一球",
+          "initial_handicap_val": -0.75,
+          "latest_handicap_val": -0.75,
+          "handicap_path": []
+        }
+      },
+      "asian_handicap": {
+        "macau": {
+          "initial_handicap_str": "受半球/一球",
+          "latest_handicap_str": "受半球/一球",
+          "initial_handicap_val": -0.75,
+          "latest_handicap_val": -0.75,
+          "initial_home_water": 0.78,
+          "initial_away_water": 1.0,
+          "latest_home_water": 0.79,
+          "latest_away_water": 0.99
+        }
+      },
+      "is_realtime": true,
+      "data_quality": "realtime"
+    },
+    "1480189": {
+      "match_name": "布拉加 vs 库普斯",
+      "home": "布拉加",
+      "away": "库普斯",
+      "league": "欧协联赛",
+      "match_time": "11-26 03:50",
+      "jingcai_id": "",
+      "beidan_id": "北单101",
+      "fixture_id": "1480189",
+      "companies": {
+        "bet365": {
+          "name": "bet365",
+          "latest_odds": [
+            1.11,
+            8.0,
+            19.0
+          ],
+          "initial_odds": [
+            1.2,
+            6.25,
+            12.0
+          ],
+          "kelly": [
+            0.92,
+            0.9,
+            1.06
+          ],
+          "payout": 0.9272
+        },
+        "weide": {
+          "name": "weide",
+          "latest_odds": [
+            1.1,
+            8.0,
+            19.0
+          ],
+          "initial_odds": [
+            1.11,
+            7.5,
+            17.0
+          ],
+          "kelly": [
+            0.92,
+            0.9,
+            1.06
+          ],
+          "payout": 0.9202
+        },
+        "libo": {
+          "name": "libo",
+          "latest_odds": [
+            1.13,
+            9.5,
+            15.0
+          ],
+          "initial_odds": [
+            1.2,
+            7.0,
+            12.0
+          ],
+          "kelly": [
+            0.94,
+            1.06,
+            0.84
+          ],
+          "payout": 0.9462
+        },
+        "william_hill": {
+          "name": "william_hill",
+          "latest_odds": [
+            1.13,
+            8.0,
+            17.0
+          ],
+          "initial_odds": [
+            1.18,
+            6.0,
+            13.0
+          ],
+          "kelly": [
+            0.94,
+            0.9,
+            0.95
+          ],
+          "payout": 0.9356
+        },
+        "macau": {
+          "initial_handicap_str": "两球/两球半",
+          "latest_handicap_str": "两球/两球半",
+          "initial_handicap_val": 2.25,
+          "latest_handicap_val": 2.25,
+          "handicap_path": []
+        }
+      },
+      "asian_handicap": {
+        "macau": {
+          "initial_handicap_str": "两球/两球半",
+          "latest_handicap_str": "两球/两球半",
+          "initial_handicap_val": 2.25,
+          "latest_handicap_val": 2.25,
+          "initial_home_water": 0.94,
+          "initial_away_water": 0.84,
+          "latest_home_water": 0.82,
+          "latest_away_water": 0.96
+        }
+      },
+      "is_realtime": true,
+      "data_quality": "realtime"
+    },
+    "1480154": {
+      "match_name": "托伦斯 vs 凯尔特人",
+      "home": "托伦斯",
+      "away": "凯尔特人",
+      "league": "欧罗巴联赛",
+      "match_time": "11-26 03:50",
+      "jingcai_id": "",
+      "beidan_id": "北单098",
+      "fixture_id": "1480154",
+      "companies": {
+        "bet365": {
+          "name": "bet365",
+          "latest_odds": [
+            4.75,
+            4.2,
+            1.67
+          ],
+          "initial_odds": [
+            3.9,
+            3.5,
+            1.8
+          ],
+          "kelly": [
+            0.97,
+            0.96,
+            0.95
+          ],
+          "payout": 0.9547
+        },
+        "weide": {
+          "name": "weide",
+          "latest_odds": [
+            4.5,
+            4.0,
+            1.62
+          ],
+          "initial_odds": [
+            3.8,
+            3.6,
+            1.83
+          ],
+          "kelly": [
+            0.92,
+            0.91,
+            0.92
+          ],
+          "payout": 0.9178
+        },
+        "libo": {
+          "name": "libo",
+          "latest_odds": [
+            4.5,
+            4.2,
+            1.61
+          ],
+          "initial_odds": [
+            4.0,
+            4.0,
+            1.75
+          ],
+          "kelly": [
+            0.92,
+            0.96,
+            0.92
+          ],
+          "payout": 0.9247
+        },
+        "william_hill": {
+          "name": "william_hill",
+          "latest_odds": [
+            4.4,
+            3.8,
+            1.67
+          ],
+          "initial_odds": [
+            4.5,
+            3.7,
+            1.65
+          ],
+          "kelly": [
+            0.9,
+            0.87,
+            0.95
+          ],
+          "payout": 0.9181
+        }
+      },
+      "asian_handicap": {},
+      "is_realtime": true,
+      "data_quality": "realtime"
+    },
+    "1480186": {
+      "match_name": "巴尼亚卢卡战士 vs 亚特兰大",
+      "home": "巴尼亚卢卡战士",
+      "away": "亚特兰大",
+      "league": "欧协联赛",
+      "match_time": "11-26 03:50",
+      "jingcai_id": "",
+      "beidan_id": "北单104",
+      "fixture_id": "1480186",
+      "companies": {
+        "bet365": {
+          "name": "bet365",
+          "latest_odds": [
+            6.25,
+            5.0,
+            1.42
+          ],
+          "initial_odds": [
+            7.5,
+            5.0,
+            1.33
+          ],
+          "kelly": [
+            0.93,
+            0.97,
+            0.93
+          ],
+          "payout": 0.9397
+        },
+        "weide": {
+          "name": "weide",
+          "latest_odds": [
+            7.0,
+            4.75,
+            1.36
+          ],
+          "initial_odds": [
+            5.25,
+            4.1,
+            1.53
+          ],
+          "kelly": [
+            1.05,
+            0.92,
+            0.89
+          ],
+          "payout": 0.9185
+        },
+        "libo": {
+          "name": "libo",
+          "latest_odds": [
+            6.0,
+            5.0,
+            1.44
+          ],
+          "initial_odds": [
+            5.25,
+            4.2,
+            1.57
+          ],
+          "kelly": [
+            0.9,
+            0.97,
+            0.95
+          ],
+          "payout": 0.9424
+        },
+        "william_hill": {
+          "name": "william_hill",
+          "latest_odds": [
+            5.8,
+            4.4,
+            1.44
+          ],
+          "initial_odds": [
+            8.5,
+            5.0,
+            1.3
+          ],
+          "kelly": [
+            0.87,
+            0.85,
+            0.95
+          ],
+          "payout": 0.914
+        },
+        "macau": {
+          "initial_handicap_str": "受一球",
+          "latest_handicap_str": "受一球/球半降",
+          "initial_handicap_val": -1.0,
+          "latest_handicap_val": -1.25,
+          "handicap_path": []
+        }
+      },
+      "asian_handicap": {
+        "macau": {
+          "initial_handicap_str": "受一球",
+          "latest_handicap_str": "受一球/球半降",
+          "initial_handicap_val": -1.0,
+          "latest_handicap_val": -1.25,
+          "initial_home_water": 0.76,
+          "initial_away_water": 1.02,
+          "latest_home_water": 0.94,
+          "latest_away_water": 0.84
+        }
+      },
+      "is_realtime": true,
+      "data_quality": "realtime"
+    },
+    "1480174": {
+      "match_name": "弗赖堡 vs 特温特",
+      "home": "弗赖堡",
+      "away": "特温特",
+      "league": "欧协联赛",
+      "match_time": "11-26 03:50",
+      "jingcai_id": "",
+      "beidan_id": "北单102",
+      "fixture_id": "1480174",
+      "companies": {
+        "macau": {
+          "initial_handicap_str": "平手/半球",
+          "latest_handicap_str": "平手/半球",
+          "initial_handicap_val": 0.25,
+          "latest_handicap_val": 0.25,
+          "handicap_path": []
+        }
+      },
+      "asian_handicap": {
+        "macau": {
+          "initial_handicap_str": "平手/半球",
+          "latest_handicap_str": "平手/半球",
+          "initial_handicap_val": 0.25,
+          "latest_handicap_val": 0.25,
+          "initial_home_water": 0.79,
+          "initial_away_water": 0.99,
+          "latest_home_water": 0.78,
+          "latest_away_water": 1.0
+        }
+      },
+      "is_realtime": true,
+      "data_quality": "realtime"
+    },
+    "1480161": {
+      "match_name": "根特 vs 贝尔格莱德红星",
+      "home": "根特",
+      "away": "贝尔格莱德红星",
+      "league": "欧协联赛",
+      "match_time": "11-26 03:50",
+      "jingcai_id": "",
+      "beidan_id": "北单103",
+      "fixture_id": "1480161",
+      "companies": {
+        "macau": {
+          "initial_handicap_str": "平手/半球",
+          "latest_handicap_str": "平手/半球",
+          "initial_handicap_val": 0.25,
+          "latest_handicap_val": 0.25,
+          "handicap_path": []
+        }
+      },
+      "asian_handicap": {
+        "macau": {
+          "initial_handicap_str": "平手/半球",
+          "latest_handicap_str": "平手/半球",
+          "initial_handicap_val": 0.25,
+          "latest_handicap_val": 0.25,
+          "initial_home_water": 0.84,
+          "initial_away_water": 0.94,
+          "latest_home_water": 0.84,
+          "latest_away_water": 0.94
+        }
+      },
+      "is_realtime": true,
+      "data_quality": "realtime"
+    },
+    "1480196": {
+      "match_name": "埃斯卡尔德斯国际 vs 哥本哈根",
+      "home": "埃斯卡尔德斯国际",
+      "away": "哥本哈根",
+      "league": "欧协联赛",
+      "match_time": "11-26 03:50",
+      "jingcai_id": "",
+      "beidan_id": "北单107",
+      "fixture_id": "1480196",
+      "companies": {
+        "bet365": {
+          "name": "bet365",
+          "latest_odds": [
+            15.0,
+            6.0,
+            1.2
+          ],
+          "initial_odds": [
+            10.0,
+            6.0,
+            1.2
+          ],
+          "kelly": [
+            1.17,
+            0.9,
+            0.93
+          ],
+          "payout": 0.9375
+        },
+        "weide": {
+          "name": "weide",
+          "latest_odds": [
+            13.0,
+            6.0,
+            1.18
+          ],
+          "initial_odds": [
+            10.5,
+            5.75,
+            1.22
+          ],
+          "kelly": [
+            1.02,
+            0.9,
+            0.91
+          ],
+          "payout": 0.9166
+        },
+        "libo": {
+          "name": "libo",
+          "latest_odds": [
+            13.0,
+            6.5,
+            1.2
+          ],
+          "initial_odds": [
+            10.0,
+            6.5,
+            1.25
+          ],
+          "kelly": [
+            1.02,
+            0.98,
+            0.93
+          ],
+          "payout": 0.9398
+        },
+        "william_hill": {
+          "name": "william_hill",
+          "latest_odds": [
+            12.0,
+            5.5,
+            1.22
+          ],
+          "initial_odds": [
+            11.0,
+            5.5,
+            1.22
+          ],
+          "kelly": [
+            0.94,
+            0.83,
+            0.94
+          ],
+          "payout": 0.9218
+        },
+        "macau": {
+          "initial_handicap_str": "受球半/两球",
+          "latest_handicap_str": "受球半/两球",
+          "initial_handicap_val": -1.75,
+          "latest_handicap_val": -1.75,
+          "handicap_path": []
+        }
+      },
+      "asian_handicap": {
+        "macau": {
+          "initial_handicap_str": "受球半/两球",
+          "latest_handicap_str": "受球半/两球",
+          "initial_handicap_val": -1.75,
+          "latest_handicap_val": -1.75,
+          "initial_home_water": 0.84,
+          "initial_away_water": 0.94,
+          "latest_home_water": 1.01,
+          "latest_away_water": 0.77
+        }
+      },
+      "is_realtime": true,
+      "data_quality": "realtime"
+    },
+    "1480251": {
+      "match_name": "索非亚中央陆军 vs 特拉布宗",
+      "home": "索非亚中央陆军",
+      "away": "特拉布宗",
+      "league": "欧协联赛",
+      "match_time": "11-26 03:50",
+      "jingcai_id": "",
+      "beidan_id": "北单108",
+      "fixture_id": "1480251",
+      "companies": {
+        "bet365": {
+          "name": "bet365",
+          "latest_odds": [
+            4.1,
+            3.7,
+            1.8
+          ],
+          "initial_odds": [
+            3.8,
+            3.5,
+            1.9
+          ],
+          "kelly": [
+            0.96,
+            0.9,
+            0.94
+          ],
+          "payout": 0.9348
+        },
+        "weide": {
+          "name": "weide",
+          "latest_odds": [
+            4.1,
+            3.9,
+            1.7
+          ],
+          "initial_odds": [
+            3.6,
+            3.6,
+            1.87
+          ],
+          "kelly": [
+            0.96,
+            0.95,
+            0.89
+          ],
+          "payout": 0.9187
+        },
+        "libo": {
+          "name": "libo",
+          "latest_odds": [
+            4.2,
+            3.9,
+            1.75
+          ],
+          "initial_odds": [
+            4.8,
+            3.8,
+            1.7
+          ],
+          "kelly": [
+            0.98,
+            0.95,
+            0.92
+          ],
+          "payout": 0.9381
+        },
+        "william_hill": {
+          "name": "william_hill",
+          "latest_odds": [
+            3.8,
+            3.6,
+            1.8
+          ],
+          "initial_odds": [
+            4.0,
+            3.5,
+            1.75
+          ],
+          "kelly": [
+            0.89,
+            0.88,
+            0.94
+          ],
+          "payout": 0.912
+        },
+        "macau": {
+          "initial_handicap_str": "受半球",
+          "latest_handicap_str": "受半球/一球降",
+          "initial_handicap_val": -0.5,
+          "latest_handicap_val": -0.75,
+          "handicap_path": []
+        }
+      },
+      "asian_handicap": {
+        "macau": {
+          "initial_handicap_str": "受半球",
+          "latest_handicap_str": "受半球/一球降",
+          "initial_handicap_val": -0.5,
+          "latest_handicap_val": -0.75,
+          "initial_home_water": 0.88,
+          "initial_away_water": 0.9,
+          "latest_home_water": 0.79,
+          "latest_away_water": 0.99
+        }
+      },
+      "is_realtime": true,
+      "data_quality": "realtime"
+    },
+    "1480245": {
+      "match_name": "哈伊杜克 vs 圣图尔登",
+      "home": "哈伊杜克",
+      "away": "圣图尔登",
+      "league": "欧协联赛",
+      "match_time": "11-26 03:50",
+      "jingcai_id": "",
+      "beidan_id": "北单105",
+      "fixture_id": "1480245",
+      "companies": {
+        "macau": {
+          "initial_handicap_str": "平手/半球",
+          "latest_handicap_str": "平手/半球",
+          "initial_handicap_val": 0.25,
+          "latest_handicap_val": 0.25,
+          "handicap_path": []
+        }
+      },
+      "asian_handicap": {
+        "macau": {
+          "initial_handicap_str": "平手/半球",
+          "latest_handicap_str": "平手/半球",
+          "initial_handicap_val": 0.25,
+          "latest_handicap_val": 0.25,
+          "initial_home_water": 0.81,
+          "initial_away_water": 0.97,
+          "latest_home_water": 0.82,
+          "latest_away_water": 0.96
+        }
+      },
+      "is_realtime": true,
+      "data_quality": "realtime"
+    },
+    "1480199": {
+      "match_name": "北西兰 vs 帕纳辛纳科斯",
+      "home": "北西兰",
+      "away": "帕纳辛纳科斯",
+      "league": "欧协联赛",
+      "match_time": "11-26 03:50",
+      "jingcai_id": "",
+      "beidan_id": "北单106",
+      "fixture_id": "1480199",
+      "companies": {
+        "macau": {
+          "initial_handicap_str": "平手",
+          "latest_handicap_str": "平手",
+          "initial_handicap_val": 0.0,
+          "latest_handicap_val": 0.0,
+          "handicap_path": []
+        }
+      },
+      "asian_handicap": {
+        "macau": {
+          "initial_handicap_str": "平手",
+          "latest_handicap_str": "平手",
+          "initial_handicap_val": 0.0,
+          "latest_handicap_val": 0.0,
+          "initial_home_water": 1.01,
+          "initial_away_water": 0.77,
+          "latest_home_water": 0.83,
+          "latest_away_water": 0.95
+        }
+      },
+      "is_realtime": true,
+      "data_quality": "realtime"
+    },
+    "1362538": {
+      "match_name": "圣保罗 vs 雷莫",
+      "home": "圣保罗",
+      "away": "雷莫",
+      "league": "巴西甲",
+      "match_time": "11-26 06:50",
+      "jingcai_id": "",
+      "beidan_id": "北单110",
+      "fixture_id": "1362538",
+      "companies": {
+        "bet365": {
+          "name": "bet365",
+          "latest_odds": [
+            1.36,
+            4.75,
+            9.5
+          ],
+          "initial_odds": [
+            1.45,
+            4.2,
+            8.0
+          ],
+          "kelly": [
+            0.94,
+            0.91,
+            1.1
+          ],
+          "payout": 0.9514
+        },
+        "weide": {
+          "name": "weide",
+          "latest_odds": [
+            1.33,
+            4.8,
+            8.5
+          ],
+          "initial_odds": [
+            1.4,
+            4.5,
+            7.0
+          ],
+          "kelly": [
+            0.92,
+            0.92,
+            0.99
+          ],
+          "payout": 0.9278
+        },
+        "libo": {
+          "name": "libo",
+          "latest_odds": [
+            1.4,
+            4.8,
+            7.0
+          ],
+          "initial_odds": [
+            1.44,
+            4.6,
+            6.5
+          ],
+          "kelly": [
+            0.97,
+            0.92,
+            0.81
+          ],
+          "payout": 0.9385
+        },
+        "william_hill": {
+          "name": "william_hill",
+          "latest_odds": [
+            1.36,
+            4.6,
+            7.5
+          ],
+          "initial_odds": [
+            1.44,
+            4.2,
+            6.5
+          ],
+          "kelly": [
+            0.94,
+            0.88,
+            0.87
+          ],
+          "payout": 0.9208
+        },
+        "macau": {
+          "initial_handicap_str": "一球/球半",
+          "latest_handicap_str": "球半升",
+          "initial_handicap_val": 1.25,
+          "latest_handicap_val": 1.5,
+          "handicap_path": []
+        }
+      },
+      "asian_handicap": {
+        "macau": {
+          "initial_handicap_str": "一球/球半",
+          "latest_handicap_str": "球半升",
+          "initial_handicap_val": 1.25,
+          "latest_handicap_val": 1.5,
+          "initial_home_water": 0.8,
+          "initial_away_water": 0.98,
+          "latest_home_water": 0.99,
+          "latest_away_water": 0.79
+        }
+      },
+      "is_realtime": true,
+      "data_quality": "realtime"
+    },
+    "2299819": {
+      "match_name": "莱昂 vs 蓝十字",
+      "home": "莱昂",
+      "away": "蓝十字",
+      "league": "墨超",
+      "match_time": "11-27 11:00",
+      "jingcai_id": "",
+      "beidan_id": "北单112",
+      "fixture_id": "2299819",
+      "companies": {
+        "bet365": {
+          "name": "bet365",
+          "latest_odds": [
+            3.2,
+            3.5,
+            2.2
+          ],
+          "initial_odds": [
+            3.25,
+            3.6,
+            2.15
+          ],
+          "kelly": [
+            0.97,
+            0.94,
+            0.95
+          ],
+          "payout": 0.9499
+        },
+        "weide": {
+          "name": "weide",
+          "latest_odds": [
+            3.1,
+            3.5,
+            2.1
+          ],
+          "initial_odds": [
+            3.1,
+            3.5,
+            2.1
+          ],
+          "kelly": [
+            0.94,
+            0.94,
+            0.9
+          ],
+          "payout": 0.9221
+        },
+        "libo": {
+          "name": "libo",
+          "latest_odds": [
+            2.9,
+            3.4,
+            2.1
+          ],
+          "initial_odds": [
+            2.9,
+            3.4,
+            2.1
+          ],
+          "kelly": [
+            0.88,
+            0.91,
+            0.9
+          ],
+          "payout": 0.8968
+        },
+        "william_hill": {
+          "name": "william_hill",
+          "latest_odds": [
+            3.0,
+            3.2,
+            2.05
+          ],
+          "initial_odds": [
+            3.0,
+            3.2,
+            2.05
+          ],
+          "kelly": [
+            0.91,
+            0.86,
+            0.88
+          ],
+          "payout": 0.8821
+        },
+        "macau": {
+          "initial_handicap_str": "受平手/半球",
+          "latest_handicap_str": "受平手/半球",
+          "initial_handicap_val": -0.25,
+          "latest_handicap_val": -0.25,
+          "handicap_path": []
+        }
+      },
+      "asian_handicap": {
+        "macau": {
+          "initial_handicap_str": "受平手/半球",
+          "latest_handicap_str": "受平手/半球",
+          "initial_handicap_val": -0.25,
+          "latest_handicap_val": -0.25,
+          "initial_home_water": 0.93,
+          "initial_away_water": 0.85,
+          "latest_home_water": 0.91,
+          "latest_away_water": 0.87
+        }
+      },
+      "is_realtime": true,
+      "data_quality": "realtime"
+    },
+    "1425897": {
+      "match_name": "唐卡斯特 vs 哈德斯菲尔德",
+      "home": "唐卡斯特",
+      "away": "哈德斯菲尔德",
+      "league": "英甲",
+      "match_time": "11-26 03:50",
+      "jingcai_id": "",
+      "beidan_id": "北单109",
+      "fixture_id": "1425897",
+      "companies": {
+        "macau": {
+          "initial_handicap_str": "受半球/一球",
+          "latest_handicap_str": "受半球/一球",
+          "initial_handicap_val": -0.75,
+          "latest_handicap_val": -0.75,
+          "handicap_path": []
+        }
+      },
+      "asian_handicap": {
+        "macau": {
+          "initial_handicap_str": "受半球/一球",
+          "latest_handicap_str": "受半球/一球",
+          "initial_handicap_val": -0.75,
+          "latest_handicap_val": -0.75,
+          "initial_home_water": 0.8,
+          "initial_away_water": 0.98,
+          "latest_home_water": 0.88,
+          "latest_away_water": 0.9
+        }
+      },
+      "is_realtime": true,
+      "data_quality": "realtime"
+    },
+    "2299818": {
+      "match_name": "帕丘卡 vs 瓜达拉哈拉",
+      "home": "帕丘卡",
+      "away": "瓜达拉哈拉",
+      "league": "墨超",
+      "match_time": "11-26 08:50",
+      "jingcai_id": "",
+      "beidan_id": "北单111",
+      "fixture_id": "2299818",
+      "companies": {
+        "macau": {
+          "initial_handicap_str": "平手",
+          "latest_handicap_str": "平手",
+          "initial_handicap_val": 0.0,
+          "latest_handicap_val": 0.0,
+          "handicap_path": []
+        }
+      },
+      "asian_handicap": {
+        "macau": {
+          "initial_handicap_str": "平手",
+          "latest_handicap_str": "平手",
+          "initial_handicap_val": 0.0,
+          "latest_handicap_val": 0.0,
+          "initial_home_water": 0.93,
+          "initial_away_water": 0.85,
+          "latest_home_water": 0.92,
+          "latest_away_water": 0.86
+        }
+      },
+      "is_realtime": true,
+      "data_quality": "realtime"
+    },
+    "1480138": {
+      "match_name": "萨尔茨堡红牛 vs 阿拉拉特亚美尼亚",
+      "home": "萨尔茨堡红牛",
+      "away": "阿拉拉特亚美尼亚",
+      "league": "欧罗巴联赛",
+      "match_time": "11-26 01:35",
+      "jingcai_id": "",
+      "beidan_id": "北单083",
+      "fixture_id": "1480138",
+      "companies": {
+        "bet365": {
+          "name": "bet365",
+          "latest_odds": [
+            1.17,
+            7.5,
+            15.0
+          ],
+          "initial_odds": [
+            1.25,
+            5.5,
+            10.0
+          ],
+          "kelly": [
+            0.95,
+            0.89,
+            1.03
+          ],
+          "payout": 0.9481
+        },
+        "weide": {
+          "name": "weide",
+          "latest_odds": [
+            1.13,
+            7.5,
+            15.0
+          ],
+          "initial_odds": [
+            1.22,
+            5.75,
+            10.0
+          ],
+          "kelly": [
+            0.92,
+            0.89,
+            1.03
+          ],
+          "payout": 0.9217
+        },
+        "libo": {
+          "name": "libo",
+          "latest_odds": [
+            1.18,
+            8.5,
+            12.0
+          ],
+          "initial_odds": [
+            1.22,
+            7.5,
+            10.0
+          ],
+          "kelly": [
+            0.96,
+            1.0,
+            0.82
+          ],
+          "payout": 0.9538
+        },
+        "william_hill": {
+          "name": "william_hill",
+          "latest_odds": [
+            1.17,
+            7.0,
+            13.0
+          ],
+          "initial_odds": [
+            1.2,
+            6.5,
+            13.0
+          ],
+          "kelly": [
+            0.95,
+            0.83,
+            0.89
+          ],
+          "payout": 0.9307
+        },
+        "macau": {
+          "initial_handicap_str": "两球/两球半",
+          "latest_handicap_str": "两球/两球半",
+          "initial_handicap_val": 2.25,
+          "latest_handicap_val": 2.25,
+          "handicap_path": []
+        }
+      },
+      "asian_handicap": {
+        "macau": {
+          "initial_handicap_str": "两球/两球半",
+          "latest_handicap_str": "两球/两球半",
+          "initial_handicap_val": 2.25,
+          "latest_handicap_val": 2.25,
+          "initial_home_water": 0.94,
+          "initial_away_water": 0.84,
+          "latest_home_water": 0.87,
+          "latest_away_water": 0.91
+        }
+      },
+      "is_realtime": true,
+      "data_quality": "realtime"
     }
   },
   "is_realtime": true,
-  "scraped_at": "2026-11-26 07:05:02",
+  "scraped_at": "2026-11-26 07:33:58",
   "data_quality": "realtime"
 }
